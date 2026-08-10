@@ -17,15 +17,13 @@
 
   /* Department Colours — Item 10 */
   --aiml: #42b4ff;   /* AI & ML — Blue */
-  --aids: #ffffff;   /* AI & DS — White */
+  --aids: #ffed29;   /* AI & DS — Bright Yellow */
   --cse:  #ff9900;   /* CSE — Orange */
   --ece:  #00e582;   /* ECE — Green */
   --eee:  #ad5cff;   /* EEE — Purple */
   --ise:  #ff57e9;   /* ISE — Pink */
 
   --mega-accent: #8aab00;
-  /* AI&DS outline — used wherever --aids appears as a thin/text accent */
-  --aids-outline: rgba(18, 36, 43, 0.35);
 
   --font-display: 'Libre Baskerville', serif;
   --font-subheading: 'Elms Sans Variable', sans-serif;
@@ -424,14 +422,13 @@ body {
 
 }
 
-/* Plain light blue backdrop from "What is HexaVerse" (#about) through "Gallery" (#gallery) */
+/* Relative positioning & z-index layer for "What is HexaVerse" (#about) through "Gallery" (#gallery) */
 #about,
 #timeline,
 #events,
 #cube,
 #departments,
 #gallery {
-  background: var(--bg);
   position: relative;
   z-index: 1;
 }
@@ -589,6 +586,16 @@ body {
   z-index: 1;
 }
 
+/* Canvas clipping container — clips CursorGrid to card border radius without hiding ::before dot */
+.timeline-block-clip {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .timeline-block::before {
   content: '';
   position: absolute;
@@ -600,32 +607,6 @@ body {
   background: var(--block-accent, var(--cyan));
   border: 2px solid var(--bg);
   z-index: 2;
-}
-
-/* AI&DS timeline block — white accent on light BG needs outline support */
-.timeline-block[style*="--block-accent: var(--aids)"]::before {
-  background: #ffffff;
-  box-shadow: 0 0 0 1.5px var(--aids-outline);
-}
-
-.timeline-block[style*="--block-accent: var(--aids)"] .timeline-week-badge,
-.timeline-block[style*="--block-accent: var(--aids)"] .timeline-dates {
-  color: var(--text-dim); /* Use dark readable colour instead of invisible white */
-}
-
-.timeline-block[style*="--block-accent: var(--aids)"] {
-  border-left-color: rgba(255, 255, 255, 0.5);
-  box-shadow: -3px 0 0 0 var(--aids-outline);
-}
-
-.timeline-block[style*="--block-accent: var(--aids)"] .btn-timeline-register {
-  border-color: var(--text-dim);
-  color: var(--text-dim);
-}
-
-.timeline-block[style*="--block-accent: var(--aids)"] .btn-timeline-register:hover {
-  background: var(--text-dim);
-  color: #ffffff;
 }
 
 /* Department week */
@@ -1007,12 +988,10 @@ body {
   transform: rotateY(90deg) translateZ(100px);
 }
 
-/* AI&DS face — white on transparent: needs dark outline ring for visibility */
 .face-left {
   background: color-mix(in srgb, var(--aids) 50%, transparent);
   border-color: var(--aids);
-  color: var(--text);   /* use dark text since background is now very light */
-  box-shadow: inset 0 0 0 1.5px var(--aids-outline);
+  color: var(--text);
   transform: rotateY(-90deg) translateZ(100px);
 }
 
@@ -1269,12 +1248,6 @@ body {
   border-left-color: var(--card-accent, var(--cyan));
 }
 
-/* AI&DS-specific: white accent left-border needs a supporting shadow ring */
-.dept-card[style*="--card-accent: var(--aids)"] {
-  border-left-color: rgba(255, 255, 255, 0.6);
-  box-shadow: -4px 0 0 0 var(--aids-outline);
-}
-
 .dept-card-logo {
   width: 48px;
   height: 48px;
@@ -1436,50 +1409,64 @@ body {
 }
 
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .form-group label {
   font-family: var(--font-body);
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--text-dim);
-  /* Bumped size */
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 .form-input,
-.form-select {
+.form-select,
+.modal-form input[type="text"],
+.modal-form input[type="email"],
+.modal-form input[type="tel"],
+.modal-form select {
   width: 100%;
-  padding: 10px 14px;
-  border-radius: 6px;
+  padding: 12px 16px;
+  border-radius: 8px;
   background: var(--bg);
-  border: 1px solid var(--bg-card-border);
+  border: 1.5px solid var(--bg-card-border);
   color: var(--text);
   font-family: var(--font-body);
   font-size: 0.95rem;
-  /* Bumped size */
-  transition: border-color 0.2s;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
   outline: none;
 }
 
 .form-input:focus,
-.form-select:focus {
+.form-select:focus,
+.modal-form input:focus,
+.modal-form select:focus {
   border-color: var(--cyan);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cyan) 18%, transparent);
+  background: #ffffff;
 }
 
-.form-select {
+.form-select,
+.modal-form select {
   appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   cursor: pointer;
+  padding-right: 42px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2304788F' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 16px;
 }
 
 .form-hint {
@@ -1490,15 +1477,15 @@ body {
 
 .team-member-row {
   background: var(--bg);
-  border: 1px solid var(--bg-card-border);
+  border: 1.5px solid var(--bg-card-border);
   border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
   position: relative;
 }
 
 .team-member-row .form-group {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .btn-remove-member {
@@ -1638,19 +1625,6 @@ body {
   /* Bumped size */
   color: var(--dept-accent, var(--cyan));
   margin-bottom: 12px;
-}
-
-/* AI&DS dept page: white dept-accent needs dark fallback for text readability */
-[style*="--dept-accent: var(--aids)"] .dept-hero-badge,
-[style*="--dept-accent: var(--aids)"] .event-card-type,
-[style*="--dept-accent: var(--aids)"] .dept-hero-dates {
-  color: var(--text-dim);
-}
-[style*="--dept-accent: var(--aids)"] .event-card {
-  border-top-color: rgba(18, 36, 43, 0.25);
-}
-[style*="--dept-accent: var(--aids)"] .btn-dept-register {
-  background: var(--text-dim);
 }
 
 .dept-hero h1 {

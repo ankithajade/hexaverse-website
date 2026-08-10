@@ -18,6 +18,21 @@ export default function Hero() {
       className="hero"
       id="hero"
     >
+      {/* Item B: Local blue gradient layer sitting behind GeoBlocks */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: 'none',
+          background: [
+            'radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--aiml) 20%, transparent), transparent 55%)',
+            'radial-gradient(circle at 75% 70%, color-mix(in srgb, var(--cyan) 18%, transparent), transparent 50%)',
+            'var(--bg)',
+          ].join(', '),
+        }}
+      />
       <GeoBlocks />
       <div className="container">
 

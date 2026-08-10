@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import ScrollReveal from './ScrollReveal';
+import HexGridOverlay from './HexGridOverlay';
 import { departments, departmentsList } from '../data/departments';
 import { useSpotlight } from '../context/SpotlightContext';
 
@@ -29,6 +30,7 @@ export default function DepartmentsGrid() {
 
   return (
     <section className="section" id="departments">
+      <HexGridOverlay />
       <div className="container">
         <ScrollReveal>
           <div className="section-label">Explore</div>

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { FaGlobe } from 'react-icons/fa';
 import ScrollReveal from './ScrollReveal';
+import HexGridOverlay from './HexGridOverlay';
 
 /**
  * EventsPreview — 3-column mega-grid.
@@ -11,6 +12,7 @@ import ScrollReveal from './ScrollReveal';
 export default function EventsPreview() {
   return (
     <section className="section" id="events">
+      <HexGridOverlay />
       <div className="container">
         <ScrollReveal>
           <div className="section-label">Campus-Wide</div>

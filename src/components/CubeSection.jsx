@@ -1,6 +1,7 @@
 import ScrollReveal from './ScrollReveal';
 import TextScramble from './TextScramble';
 import AnimatedNumber from './AnimatedNumber';
+import HexGridOverlay from './HexGridOverlay';
 
 /**
  * CubeSection — adds:
@@ -10,6 +11,7 @@ import AnimatedNumber from './AnimatedNumber';
 export default function CubeSection() {
   return (
     <section className="section cube-section" id="cube">
+      <HexGridOverlay />
       <div className="container">
         <ScrollReveal>
           <div className="section-label" style={{ justifyContent: 'center' }}>The Concept</div>

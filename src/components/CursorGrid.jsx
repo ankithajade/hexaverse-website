@@ -22,11 +22,33 @@ const FADE_MS   = 600;  // how long a lit cell takes to fade out
  *     {/* card content *\/}
  *   </div>
  */
-export default function CursorGrid({ color = 'var(--cyan)' }) {
+function resolveCssColor(colorStr, element) {
+  if (!colorStr) return '#04788f';
+  if (colorStr.startsWith('var(')) {
+    if (element) {
+      const computed = getComputedStyle(element).color;
+      if (computed && computed !== 'rgba(0, 0, 0, 0)') return computed;
+    }
+    const temp = document.createElement('div');
+    temp.style.color = colorStr;
+    document.body.appendChild(temp);
+    const computed = getComputedStyle(temp).color;
+    document.body.removeChild(temp);
+    return computed || colorStr;
+  }
+  return colorStr;
+}
+
+export default function CursorGrid({ color = 'var(--cyan)', targetRef = null }) {
   const canvasRef = useRef(null);
   const activeRef = useRef(new Map()); // key: "col,row" → expiry timestamp
   const rafRef    = useRef(null);
   const isHovered = useRef(false);
+  const resolvedColorRef = useRef(color);
+
+  useEffect(() => {
+    resolvedColorRef.current = resolveCssColor(color, canvasRef.current);
+  }, [color]);
 
   // Draw loop — only runs while card is hovered or cells are still fading
   const draw = useCallback(() => {
@@ -49,7 +71,7 @@ export default function CursorGrid({ color = 'var(--cyan)' }) {
       const [col, row] = key.split(',').map(Number);
       const alpha = remaining / FADE_MS;
 
-      ctx.fillStyle = color;
+      ctx.fillStyle = resolvedColorRef.current;
       ctx.globalAlpha = alpha * 0.35; // max 35% opacity at peak
       ctx.fillRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE - 1, CELL_SIZE - 1);
     }
@@ -60,7 +82,7 @@ export default function CursorGrid({ color = 'var(--cyan)' }) {
     } else {
       rafRef.current = null;
     }
-  }, [color]);
+  }, []);
 
   const startLoop = useCallback(() => {
     if (!rafRef.current) {
@@ -123,23 +145,23 @@ export default function CursorGrid({ color = 'var(--cyan)' }) {
     };
   }, []);
 
-  // Register mouse events on parent container
+  // Register mouse events on target container (targetRef or parentElement)
   useEffect(() => {
     if (prefersReducedMotion) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const parent = canvas.parentElement;
-    if (!parent) return;
+    const target = targetRef?.current || canvas.parentElement;
+    if (!target) return;
 
-    parent.addEventListener('mousemove',  handleMouseMove);
-    parent.addEventListener('mouseenter', handleMouseEnter);
-    parent.addEventListener('mouseleave', handleMouseLeave);
+    target.addEventListener('mousemove',  handleMouseMove);
+    target.addEventListener('mouseenter', handleMouseEnter);
+    target.addEventListener('mouseleave', handleMouseLeave);
     return () => {
-      parent.removeEventListener('mousemove',  handleMouseMove);
-      parent.removeEventListener('mouseenter', handleMouseEnter);
-      parent.removeEventListener('mouseleave', handleMouseLeave);
+      target.removeEventListener('mousemove',  handleMouseMove);
+      target.removeEventListener('mouseenter', handleMouseEnter);
+      target.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [handleMouseMove, handleMouseEnter, handleMouseLeave]);
+  }, [targetRef, handleMouseMove, handleMouseEnter, handleMouseLeave]);
 
   if (prefersReducedMotion) return null;
 

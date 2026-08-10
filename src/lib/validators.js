@@ -37,3 +37,16 @@ export function isTeamSizeValid(size, min = 1, max = 4) {
   if (max !== null && n > max) return false;
   return true;
 }
+
+/** Check if any duplicate USNs exist in a list of USN strings */
+export function findDuplicateUSN(usnList) {
+  const seen = new Set();
+  for (const u of usnList) {
+    if (!u) continue;
+    const norm = u.trim().toUpperCase();
+    if (seen.has(norm)) return norm;
+    seen.add(norm);
+  }
+  return null;
+}
+

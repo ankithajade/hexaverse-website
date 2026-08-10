@@ -4,7 +4,6 @@ import { departments } from '../data/departments';
 import Nav from '../components/Nav';
 import Footer from '../components/Footer';
 import BackToTop from '../components/BackToTop';
-import RegistrationModal from '../components/RegistrationModal';
 import DeptAccordionCard from '../components/DeptAccordionCard';
 import ScrollReveal from '../components/ScrollReveal';
 
@@ -75,7 +74,6 @@ export default function DepartmentPage() {
 
       <Footer accentColor={dept.cssVar} />
       <BackToTop />
-      <RegistrationModal />
     </div>
   );
 }

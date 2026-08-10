@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { motion, useMotionValue, useAnimationFrame } from 'motion/react';
 import ScrollReveal from './ScrollReveal';
+import HexGridOverlay from './HexGridOverlay';
 
 const prefersReducedMotion =
   typeof window !== 'undefined' &&
@@ -82,6 +83,7 @@ export default function Gallery() {
 
   return (
     <section className="section" id="gallery">
+      <HexGridOverlay />
       <div className="container">
         <ScrollReveal>
           <div className="section-label" >Moments</div>

@@ -35,42 +35,6 @@ export default function PageBackground() {
         }}
       />
 
-      {/* Flat-top hexagon outline grid
-          Pattern tile: 84 × 48.5 (edge-length a = 28)
-          5-segment path proven to tile into a seamless hex grid. */}
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
-      >
-        <defs>
-          <pattern
-            id="hex-bg-pattern"
-            x="0"
-            y="0"
-            width="84"
-            height="48.5"
-            patternUnits="userSpaceOnUse"
-          >
-            {/*
-              Segments derived from three flat-top hex centres in the tile:
-                Left  (0, 24.25), Centre-top (42, 0), Centre-bottom (42, 48.5)
-              Path: cap → diag-up → midline → diag-up → cap
-                    then two diag-down legs + bottom caps
-            */}
-            <path
-              d="M0,0 L14,0 L28,24.25 L56,24.25 L70,0 L84,0
-                 M28,24.25 L14,48.5 L0,48.5
-                 M56,24.25 L70,48.5 L84,48.5"
-              fill="none"
-              stroke="var(--cyan)"
-              strokeWidth="0.65"
-              opacity="0.15"
-              strokeLinecap="round"
-            />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#hex-bg-pattern)" />
-      </svg>
     </div>
   );
 }

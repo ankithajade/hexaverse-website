@@ -1,13 +1,27 @@
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import ScrollReveal from './ScrollReveal';
 import CursorGrid from './CursorGrid';
+import HexGridOverlay from './HexGridOverlay';
 
 // Gold colour for valedictory block (item 10)
 const VAL_GOLD = '#c9a227';
 
 export default function Timeline() {
+  const block0Ref = useRef(null);
+  const block1Ref = useRef(null);
+  const block2Ref = useRef(null);
+  const block3Ref = useRef(null);
+  const block4Ref = useRef(null);
+  const block5Ref = useRef(null);
+  const block6Ref = useRef(null);
+  const block7Ref = useRef(null);
+  const block8Ref = useRef(null);
+  const block9Ref = useRef(null);
+
   return (
     <section className="section" id="timeline">
+      <HexGridOverlay />
       <div className="container">
         <ScrollReveal>
           <div className="section-label">6-Week Roadmap</div>
@@ -21,10 +35,13 @@ export default function Timeline() {
 
           {/* Week 01 — AI & ML */}
           <div
+            ref={block0Ref}
             className="timeline-block timeline-block--dept"
-            style={{ '--block-accent': 'var(--aiml)', position: 'relative', overflow: 'hidden' }}
+            style={{ '--block-accent': 'var(--aiml)', position: 'relative' }}
           >
-            <CursorGrid color="var(--aiml)" />
+            <div className="timeline-block-clip">
+              <CursorGrid color="var(--aiml)" targetRef={block0Ref} />
+            </div>
             <div className="timeline-block-inner">
               <div className="timeline-block-header">
                 <div className="timeline-block-brand">
@@ -55,10 +72,13 @@ export default function Timeline() {
 
           {/* Mega Event 1 — Treasure Hunt */}
           <div
+            ref={block1Ref}
             className="timeline-block timeline-block--mega"
-            style={{ position: 'relative', overflow: 'hidden' }}
+            style={{ position: 'relative' }}
           >
-            <CursorGrid color="var(--mega-accent)" />
+            <div className="timeline-block-clip">
+              <CursorGrid color="var(--mega-accent)" targetRef={block1Ref} />
+            </div>
             <div className="timeline-block-inner">
               <div className="timeline-block-header">
                 <div className="timeline-block-brand">
@@ -76,10 +96,13 @@ export default function Timeline() {
 
           {/* Week 02 — AI & DS */}
           <div
+            ref={block2Ref}
             className="timeline-block timeline-block--dept"
-            style={{ '--block-accent': 'var(--aids)', position: 'relative', overflow: 'hidden' }}
+            style={{ '--block-accent': 'var(--aids)', position: 'relative' }}
           >
-            <CursorGrid color="var(--aids)" />
+            <div className="timeline-block-clip">
+              <CursorGrid color="var(--aids)" targetRef={block2Ref} />
+            </div>
             <div className="timeline-block-inner">
               <div className="timeline-block-header">
                 <div className="timeline-block-brand">
@@ -110,10 +133,13 @@ export default function Timeline() {
 
           {/* Week 03 — CSE */}
           <div
+            ref={block3Ref}
             className="timeline-block timeline-block--dept"
-            style={{ '--block-accent': 'var(--cse)', position: 'relative', overflow: 'hidden' }}
+            style={{ '--block-accent': 'var(--cse)', position: 'relative' }}
           >
-            <CursorGrid color="var(--cse)" />
+            <div className="timeline-block-clip">
+              <CursorGrid color="var(--cse)" targetRef={block3Ref} />
+            </div>
             <div className="timeline-block-inner">
               <div className="timeline-block-header">
                 <div className="timeline-block-brand">
@@ -144,10 +170,13 @@ export default function Timeline() {
 
           {/* Mega Event 2 — Technical Talk */}
           <div
+            ref={block4Ref}
             className="timeline-block timeline-block--mega"
-            style={{ position: 'relative', overflow: 'hidden' }}
+            style={{ position: 'relative' }}
           >
-            <CursorGrid color="var(--mega-accent)" />
+            <div className="timeline-block-clip">
+              <CursorGrid color="var(--mega-accent)" targetRef={block4Ref} />
+            </div>
             <div className="timeline-block-inner">
               <div className="timeline-block-header">
                 <div className="timeline-block-brand">
@@ -165,10 +194,13 @@ export default function Timeline() {
 
           {/* Week 04 — ISE */}
           <div
+            ref={block5Ref}
             className="timeline-block timeline-block--dept"
-            style={{ '--block-accent': 'var(--ise)', position: 'relative', overflow: 'hidden' }}
+            style={{ '--block-accent': 'var(--ise)', position: 'relative' }}
           >
-            <CursorGrid color="var(--ise)" />
+            <div className="timeline-block-clip">
+              <CursorGrid color="var(--ise)" targetRef={block5Ref} />
+            </div>
             <div className="timeline-block-inner">
               <div className="timeline-block-header">
                 <div className="timeline-block-brand">
@@ -199,10 +231,13 @@ export default function Timeline() {
 
           {/* Week 05 — ECE */}
           <div
+            ref={block6Ref}
             className="timeline-block timeline-block--dept"
-            style={{ '--block-accent': 'var(--ece)', position: 'relative', overflow: 'hidden' }}
+            style={{ '--block-accent': 'var(--ece)', position: 'relative' }}
           >
-            <CursorGrid color="var(--ece)" />
+            <div className="timeline-block-clip">
+              <CursorGrid color="var(--ece)" targetRef={block6Ref} />
+            </div>
             <div className="timeline-block-inner">
               <div className="timeline-block-header">
                 <div className="timeline-block-brand">
@@ -233,10 +268,13 @@ export default function Timeline() {
 
           {/* Mega Event 3 — Hackathon */}
           <div
+            ref={block7Ref}
             className="timeline-block timeline-block--mega"
-            style={{ position: 'relative', overflow: 'hidden' }}
+            style={{ position: 'relative' }}
           >
-            <CursorGrid color="var(--mega-accent)" />
+            <div className="timeline-block-clip">
+              <CursorGrid color="var(--mega-accent)" targetRef={block7Ref} />
+            </div>
             <div className="timeline-block-inner">
               <div className="timeline-block-header">
                 <div className="timeline-block-brand">
@@ -255,10 +293,13 @@ export default function Timeline() {
 
           {/* Week 06 — EEE */}
           <div
+            ref={block8Ref}
             className="timeline-block timeline-block--dept"
-            style={{ '--block-accent': 'var(--eee)', position: 'relative', overflow: 'hidden' }}
+            style={{ '--block-accent': 'var(--eee)', position: 'relative' }}
           >
-            <CursorGrid color="var(--eee)" />
+            <div className="timeline-block-clip">
+              <CursorGrid color="var(--eee)" targetRef={block8Ref} />
+            </div>
             <div className="timeline-block-inner">
               <div className="timeline-block-header">
                 <div className="timeline-block-brand">
@@ -289,10 +330,13 @@ export default function Timeline() {
 
           {/* Valedictory */}
           <div
+            ref={block9Ref}
             className="timeline-block timeline-block--valedictory"
-            style={{ position: 'relative', overflow: 'hidden' }}
+            style={{ position: 'relative' }}
           >
-            <CursorGrid color={VAL_GOLD} />
+            <div className="timeline-block-clip">
+              <CursorGrid color={VAL_GOLD} targetRef={block9Ref} />
+            </div>
             <div className="timeline-block-inner">
               <div className="timeline-block-header">
                 <div className="timeline-block-brand">

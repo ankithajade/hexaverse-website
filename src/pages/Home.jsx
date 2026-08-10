@@ -10,7 +10,6 @@ import Gallery from '../components/Gallery';
 import ContactSection from '../components/ContactSection';
 import Footer from '../components/Footer';
 import BackToTop from '../components/BackToTop';
-import RegistrationModal from '../components/RegistrationModal';
 
 /**
  * Home — simple composition. No shared scroll timeline; every section
@@ -42,7 +41,6 @@ export default function Home() {
       <ContactSection />
       <Footer />
       <BackToTop />
-      <RegistrationModal />
     </>
   );
 }

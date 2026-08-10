@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { FiTool } from 'react-icons/fi';
 import { FaTrophy, FaHandshake } from 'react-icons/fa';
 import { GiCampingTent } from 'react-icons/gi';
 import ScrollReveal from './ScrollReveal';
+import HexGridOverlay from './HexGridOverlay';
 
 const prefersReducedMotion =
   typeof window !== 'undefined' &&
@@ -32,28 +33,19 @@ const CARDS = [
   },
 ];
 
-// Dock magnify adjacency map for a 2×2 grid
-const ADJACENT = { 0: [1, 2], 1: [0, 3], 2: [0, 3], 3: [1, 2] };
-
 /**
- * About — normal section in document flow (no scroll-linked entrance).
- * Apple-style Dock magnify hover on the 4 about-cards.
- * react-icons replacing emoji.
+ * About — normal section in document flow.
+ * AnimatedBackground sliding highlight hover on the 4 about-cards.
  */
 export default function About() {
-  const [hoveredIdx, setHoveredIdx] = useState(null);
-
-  function getCardScale(i) {
-    if (prefersReducedMotion || hoveredIdx === null) return 1;
-    if (i === hoveredIdx) return 1.06;
-    return ADJACENT[hoveredIdx]?.includes(i) ? 1.02 : 1;
-  }
+  const [hoveredId, setHoveredId] = useState(null);
 
   return (
     <section
       className="section"
       id="about"
     >
+      <HexGridOverlay />
       <div className="container">
         <ScrollReveal>
           <div className="section-label">What is HexaVerse</div>
@@ -67,8 +59,11 @@ export default function About() {
           </p>
         </ScrollReveal>
 
-        {/* Cards — Dock hover; whileInView entrance */}
-        <div className="about-grid">
+        {/* Cards — AnimatedBackground sliding highlight; whileInView entrance */}
+        <div
+          className="about-grid"
+          onMouseLeave={() => setHoveredId(null)}
+        >
           {CARDS.map((card, i) => (
             <motion.div
               key={i}
@@ -76,21 +71,35 @@ export default function About() {
               whileInView={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.09, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              onMouseEnter={() => !prefersReducedMotion && setHoveredId(i)}
+              style={{ position: 'relative' }}
             >
-              <motion.div
-                className="about-card"
-                animate={{
-                  scale: getCardScale(i),
-                  y: hoveredIdx === i && !prefersReducedMotion ? -8 : 0,
-                }}
-                transition={{ type: 'spring', stiffness: 320, damping: 22 }}
-                onHoverStart={() => !prefersReducedMotion && setHoveredIdx(i)}
-                onHoverEnd={() => setHoveredIdx(null)}
-              >
-                <div className="about-icon">{card.icon}</div>
-                <h3>{card.title}</h3>
-                <p>{card.desc}</p>
-              </motion.div>
+              <div className="about-card" style={{ position: 'relative' }}>
+                <AnimatePresence>
+                  {hoveredId === i && (
+                    <motion.div
+                      layoutId="about-card-highlight"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        borderRadius: 'inherit',
+                        background: 'color-mix(in srgb, var(--cyan) 10%, var(--bg-card))',
+                        border: '1px solid color-mix(in srgb, var(--cyan) 32%, transparent)',
+                        zIndex: 0,
+                      }}
+                    />
+                  )}
+                </AnimatePresence>
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <div className="about-icon">{card.icon}</div>
+                  <h3>{card.title}</h3>
+                  <p>{card.desc}</p>
+                </div>
+              </div>
             </motion.div>
           ))}
         </div>

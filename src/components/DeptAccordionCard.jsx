@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { useModal } from '../context/ModalContext';
+import { useNavigate } from 'react-router-dom';
 
 // SVG icon helpers
 function CalendarIcon() {
@@ -41,7 +41,7 @@ export default function DeptAccordionCard({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const accordionRef = useRef(null);
-  const { openModal } = useModal();
+  const navigate = useNavigate();
 
   const toggle = () => setIsOpen((prev) => !prev);
 
@@ -70,7 +70,7 @@ export default function DeptAccordionCard({
         </button>
         <button
           className="btn-dept-register"
-          onClick={() => openModal(eventId, eventTitle, isTeam, isInterCollege, { eventSlug: eventId })}
+          onClick={() => navigate(`/register/${eventId}`)}
         >
           Register
         </button>

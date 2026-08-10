@@ -1,12 +1,10 @@
 import { useEffect } from 'react';
-import { Link, useParams, Navigate } from 'react-router-dom';
+import { Link, useParams, Navigate, useNavigate } from 'react-router-dom';
 import { events } from '../data/events';
 import Nav from '../components/Nav';
 import Footer from '../components/Footer';
 import BackToTop from '../components/BackToTop';
-import RegistrationModal from '../components/RegistrationModal';
 import ScrollReveal from '../components/ScrollReveal';
-import { useModal } from '../context/ModalContext';
 
 // ── SVG icons ────────────────────────────────────────────────────────────────
 function CalendarIcon() {
@@ -46,7 +44,7 @@ const ICON_MAP = { calendar: CalendarIcon, location: LocationIcon, people: Peopl
 export default function EventPage() {
   const { eventId } = useParams();
   const event = events[eventId];
-  const { openModal } = useModal();
+  const navigate = useNavigate();
 
   if (!event) return <Navigate to="/" replace />;
 
@@ -58,12 +56,7 @@ export default function EventPage() {
   }, [event]);
 
   const handleRegister = () => {
-    openModal(
-      event.registrationEventId,
-      event.registrationTitle,
-      event.isTeam,
-      event.isInterCollege,
-    );
+    navigate(`/register/${event.registrationEventId || event.id}`);
   };
 
   return (
@@ -198,7 +191,6 @@ export default function EventPage() {
 
       <Footer accentColor={event.cssVar} />
       <BackToTop />
-      <RegistrationModal />
     </div>
   );
 }
