@@ -93,7 +93,7 @@ export default function Gallery() {
       </div>
 
       {/* Full-width slider outside the container so it bleeds edge-to-edge */}
-      <div style={{ marginTop: '48px' }}>
+      <ScrollReveal style={{ marginTop: '48px' }}>
         {prefersReducedMotion ? (
           <div className="gallery-grid">
             {staticCells}
@@ -101,7 +101,7 @@ export default function Gallery() {
         ) : (
           <InfiniteSlider speed={48} />
         )}
-      </div>
+      </ScrollReveal>
     </section>
   );
 }

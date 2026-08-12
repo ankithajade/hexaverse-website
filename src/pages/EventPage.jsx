@@ -4,6 +4,7 @@ import { events } from '../data/events';
 import Nav from '../components/Nav';
 import Footer from '../components/Footer';
 import BackToTop from '../components/BackToTop';
+import BackButton from '../components/BackButton';
 import ScrollReveal from '../components/ScrollReveal';
 
 // ── SVG icons ────────────────────────────────────────────────────────────────
@@ -63,9 +64,10 @@ export default function EventPage() {
     <div style={{ '--dept-accent': event.cssVar }}>
       <Nav />
 
-      {/* Breadcrumb */}
-      <div className="container">
-        <ScrollReveal className="dept-breadcrumb">
+      {/* Back Button & Breadcrumb */}
+      <div className="container" style={{ paddingTop: '90px' }}>
+        <BackButton style={{ marginBottom: '12px' }} />
+        <ScrollReveal className="dept-breadcrumb" style={{ padding: 0 }}>
           <Link to="/">Home</Link> <span>/</span>{' '}
           <Link to="/#events">Mega Events</Link> <span>/</span>{' '}
           <span>{event.title}</span>
@@ -91,13 +93,25 @@ export default function EventPage() {
             <p className="dept-hero-desc">{event.description}</p>
           </div>
           <div style={{ alignSelf: 'center', marginTop: '12px' }}>
-            <button
-              className="btn-dept-register"
-              style={{ padding: '14px 28px', fontSize: '1.05rem' }}
-              onClick={handleRegister}
-            >
-              Register Now!
-            </button>
+            {event.id === 'hackathon' ? (
+              <a
+                href="https://forms.example.com/hexaverse-hackathon-registration"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-dept-register"
+                style={{ padding: '14px 28px', fontSize: '1.05rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                Register Now!
+              </a>
+            ) : (
+              <button
+                className="btn-dept-register"
+                style={{ padding: '14px 28px', fontSize: '1.05rem' }}
+                onClick={handleRegister}
+              >
+                Register Now!
+              </button>
+            )}
           </div>
         </div>
       </ScrollReveal>
@@ -178,13 +192,25 @@ export default function EventPage() {
               borderTop: '1px solid var(--bg-card-border)',
             }}
           >
-            <button
-              className="btn-dept-register"
-              style={{ padding: '14px 40px', fontSize: '1.1rem' }}
-              onClick={handleRegister}
-            >
-              Register Now!
-            </button>
+            {event.id === 'hackathon' ? (
+              <a
+                href="https://forms.example.com/hexaverse-hackathon-registration"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-dept-register"
+                style={{ padding: '14px 40px', fontSize: '1.1rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                Register Now!
+              </a>
+            ) : (
+              <button
+                className="btn-dept-register"
+                style={{ padding: '14px 40px', fontSize: '1.1rem' }}
+                onClick={handleRegister}
+              >
+                Register Now!
+              </button>
+            )}
           </div>
         </ScrollReveal>
       </section>

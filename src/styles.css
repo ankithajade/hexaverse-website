@@ -17,10 +17,10 @@
 
   /* Department Colours — Item 10 */
   --aiml: #42b4ff;   /* AI & ML — Blue */
-  --aids: #ffed29;   /* AI & DS — Bright Yellow */
-  --cse:  #ff9900;   /* CSE — Orange */
+  --aids: #ffd400;   /* AI & DS — Vivid Bright Yellow */
+  --cse:  #ad5cff;   /* CSE — Purple */
   --ece:  #00e582;   /* ECE — Green */
-  --eee:  #ad5cff;   /* EEE — Purple */
+  --eee:  #ff9900;   /* EEE — Orange */
   --ise:  #ff57e9;   /* ISE — Pink */
 
   --mega-accent: #8aab00;
@@ -51,6 +51,32 @@ body {
   position: relative;
   font-size: 1.05rem;
   /* Bumped base font size */
+}
+
+/* Site-wide Target Cursor: hide default OS cursor except for text input caret, and restore OS cursor under reduced-motion */
+@media (prefers-reduced-motion: no-preference) {
+  html,
+  body,
+  a,
+  button,
+  select,
+  [role="button"],
+  [role="link"],
+  .dept-card,
+  .mega-card,
+  .about-card,
+  .event-card,
+  .contact-link,
+  .back-to-top {
+    cursor: none !important;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  textarea {
+    cursor: text !important;
+  }
 }
 
 /* Grid background moved to PageBackground.jsx (fixed hex-pattern layer) */
@@ -235,26 +261,15 @@ body {
   }
 }
 
-/* Accent blocks in hero */
-.geo-blocks {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.geo-block {
-  position: absolute;
-  border-radius: 4px;
-}
-
 /* ─── HERO ─── */
 .hero {
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
   position: relative;
-  padding-top: 80px;
+  padding-top: 100px;
   padding-bottom: 60px;
 }
 
@@ -276,8 +291,9 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 48px;
+  margin-bottom: 32px;
   width: 100%;
+  padding: 0 32px;
   position: relative;
   z-index: 5;
   opacity: 0;
@@ -394,6 +410,8 @@ body {
   .hero-brand-lockups {
     flex-direction: column;
     gap: 16px;
+    padding: 0 20px;
+    margin-bottom: 24px;
   }
 
   .brand-lockup {
@@ -810,15 +828,15 @@ body {
   margin-top: 8px;
 }
 
-/* Item 10: Valedictory — warm gold/champagne, distinct from ISE pink */
+/* Valedictory — deep jewel-tone crimson/garnet, distinct from ISE pink and EEE orange */
 .timeline-block--valedictory {
-  background: linear-gradient(90deg, rgba(201, 162, 39, 0.10) 0%, transparent 100%);
-  border-color: rgba(201, 162, 39, 0.28);
-  border-left: 3px solid #c9a227;
+  background: linear-gradient(90deg, rgba(184, 38, 79, 0.10) 0%, transparent 100%);
+  border-color: rgba(184, 38, 79, 0.28);
+  border-left: 3px solid #b8264f;
 }
 
 .timeline-block--valedictory::before {
-  background: #c9a227;
+  background: #b8264f;
 }
 
 .timeline-block--valedictory .timeline-val-badge {
@@ -827,7 +845,7 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 2.5px;
-  color: #c9a227;
+  color: #b8264f;
   margin-bottom: 4px;
 }
 
@@ -840,7 +858,7 @@ body {
 }
 
 .timeline-block--valedictory .timeline-dates {
-  color: #c9a227;
+  color: #b8264f;
 }
 
 @media(max-width:600px) {
@@ -968,42 +986,42 @@ body {
 
 /* Item 8: cube face saturation increased 25% → 50% */
 .face-front {
-  background: color-mix(in srgb, var(--cse) 50%, transparent);
+  background: color-mix(in srgb, var(--cse) 78%, transparent);
   border-color: var(--cse);
   color: var(--text);
   transform: translateZ(100px);
 }
 
 .face-back {
-  background: color-mix(in srgb, var(--ise) 50%, transparent);
+  background: color-mix(in srgb, var(--ise) 78%, transparent);
   border-color: var(--ise);
   color: var(--text);
   transform: rotateY(180deg) translateZ(100px);
 }
 
 .face-right {
-  background: color-mix(in srgb, var(--aiml) 50%, transparent);
+  background: color-mix(in srgb, var(--aiml) 78%, transparent);
   border-color: var(--aiml);
   color: var(--text);
   transform: rotateY(90deg) translateZ(100px);
 }
 
 .face-left {
-  background: color-mix(in srgb, var(--aids) 50%, transparent);
+  background: color-mix(in srgb, var(--aids) 78%, transparent);
   border-color: var(--aids);
   color: var(--text);
   transform: rotateY(-90deg) translateZ(100px);
 }
 
 .face-top {
-  background: color-mix(in srgb, var(--ece) 50%, transparent);
+  background: color-mix(in srgb, var(--ece) 78%, transparent);
   border-color: var(--ece);
   color: var(--text);
   transform: rotateX(90deg) translateZ(100px);
 }
 
 .face-bottom {
-  background: color-mix(in srgb, var(--eee) 50%, transparent);
+  background: color-mix(in srgb, var(--eee) 78%, transparent);
   border-color: var(--eee);
   color: var(--text);
   transform: rotateX(-90deg) translateZ(100px);
@@ -1253,13 +1271,13 @@ body {
   height: 48px;
   border-radius: 8px;
   flex-shrink: 0;
-  background: rgba(4, 36, 43, 0.04);
-  border: 1px solid var(--bg-card-border);
+  background: var(--bg-card);
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  padding: 6px;
 }
 
 .logo-placeholder {
@@ -1275,7 +1293,7 @@ body {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   transition: opacity 0.3s;
 }
 
@@ -1331,83 +1349,7 @@ body {
   }
 }
 
-/* ─── REGISTRATION MODAL ─── */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-  padding: 24px;
-}
-
-.modal-overlay.active {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.modal-card {
-  background: var(--bg-alt);
-  border: 1px solid var(--bg-card-border);
-  border-radius: 12px;
-  padding: 36px 32px;
-  width: 100%;
-  max-width: 520px;
-  max-height: 85vh;
-  overflow-y: auto;
-  position: relative;
-  transform: translateY(20px);
-  transition: transform 0.3s;
-}
-
-.modal-overlay.active .modal-card {
-  transform: translateY(0);
-}
-
-.modal-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 1.5rem;
-  cursor: pointer;
-  line-height: 1;
-  transition: color 0.2s;
-}
-
-.modal-close:hover {
-  color: var(--text);
-}
-
-.modal-header {
-  margin-bottom: 24px;
-}
-
-.modal-header h3 {
-  font-family: var(--font-subheading);
-  font-size: 1.45rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 4px;
-  /* Bumped size */
-}
-
-.modal-event-name {
-  font-family: var(--font-body);
-  font-size: 0.88rem;
-  color: var(--orange);
-  font-weight: 600;
-  /* Bumped size */
-}
-
+/* ─── REGISTRATION FORM ─── */
 .form-group {
   margin-bottom: 20px;
 }
@@ -1424,11 +1366,7 @@ body {
 }
 
 .form-input,
-.form-select,
-.modal-form input[type="text"],
-.modal-form input[type="email"],
-.modal-form input[type="tel"],
-.modal-form select {
+.form-select {
   width: 100%;
   padding: 12px 16px;
   border-radius: 8px;
@@ -1442,16 +1380,13 @@ body {
 }
 
 .form-input:focus,
-.form-select:focus,
-.modal-form input:focus,
-.modal-form select:focus {
+.form-select:focus {
   border-color: var(--cyan);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--cyan) 18%, transparent);
   background: #ffffff;
 }
 
-.form-select,
-.modal-form select {
+.form-select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -1510,7 +1445,6 @@ body {
   color: var(--cyan);
   font-size: 0.85rem;
   font-weight: 600;
-  /* Bumped size */
   cursor: pointer;
   transition: border-color 0.2s;
   margin-top: 8px;
@@ -1526,63 +1460,12 @@ body {
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--text);
-  /* Bumped size */
   margin: 20px 0 8px;
   padding-top: 16px;
   border-top: 1px solid var(--bg-card-border);
 }
 
-.modal-success {
-  text-align: center;
-  padding: 32px 0;
-}
-
-.success-checkmark {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  margin: 0 auto 20px;
-  background: rgba(16, 185, 129, 0.15);
-  border: 2px solid #10b981;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.8rem;
-  color: #10b981;
-  animation: popIn 0.4s ease;
-}
-
-.modal-success h3 {
-  font-family: var(--font-subheading);
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 8px;
-}
-
-.modal-success p {
-  font-size: 0.95rem;
-  color: var(--text-dim);
-  margin-bottom: 24px;
-}
-
-@keyframes popIn {
-  from {
-    transform: scale(0.5);
-    opacity: 0;
-  }
-
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
 @media(max-width:480px) {
-  .modal-card {
-    padding: 24px 18px;
-  }
-
   .form-row {
     grid-template-columns: 1fr;
   }
@@ -1593,8 +1476,8 @@ body {
   font-family: var(--font-body);
   font-size: 0.85rem;
   color: var(--text-muted);
-  /* Bumped size */
   padding: 100px 0 0;
+  margin-bottom: 28px;
   display: flex;
   align-items: center;
   gap: 8px;

@@ -1,5 +1,4 @@
 import { motion } from 'motion/react';
-import GeoBlocks from './GeoBlocks';
 import AnimatedNumber from './AnimatedNumber';
 
 const prefersReducedMotion =
@@ -18,7 +17,7 @@ export default function Hero() {
       className="hero"
       id="hero"
     >
-      {/* Item B: Local blue gradient layer sitting behind GeoBlocks */}
+      {/* Item B: Local blue gradient layer sitting behind content */}
       <div
         aria-hidden="true"
         style={{
@@ -33,32 +32,30 @@ export default function Hero() {
           ].join(', '),
         }}
       />
-      <GeoBlocks />
-      <div className="container">
 
-        {/* Brand lockups */}
-        <div className="hero-brand-lockups">
-          <div className="brand-lockup brand-lockup--left">
-            {/* Item 5 fixed: correct AWS SBG logo */}
-            <img
-              src="/assets/aws-black-sbg-logo.svg"
-              alt="AWS Student Builder Group Logo"
-              className="brand-lockup-logo"
-            />
-            <div className="brand-lockup-text">
-              AWS<br />
-              <span className="brand-lockup-sub">Student Builder Group, DBIT</span>
-            </div>
-          </div>
-          <div className="brand-lockup brand-lockup--right">
-            <img
-              src="/assets/college-logo.svg"
-              alt="DBIT Logo"
-              className="brand-lockup-logo"
-            />
+      {/* Brand lockups moved to true page edges */}
+      <div className="hero-brand-lockups">
+        <div className="brand-lockup brand-lockup--left">
+          <img
+            src="/assets/aws-black-sbg-logo.svg"
+            alt="AWS Student Builder Group Logo"
+            className="brand-lockup-logo"
+          />
+          <div className="brand-lockup-text">
+            AWS<br />
+            <span className="brand-lockup-sub">Student Builder Group, DBIT</span>
           </div>
         </div>
+        <div className="brand-lockup brand-lockup--right">
+          <img
+            src="/assets/college-logo.svg"
+            alt="DBIT Logo"
+            className="brand-lockup-logo"
+          />
+        </div>
+      </div>
 
+      <div className="container">
         {/* Main heading + meta — float-in via CSS animations (see styles.css fadeIn) */}
         <div className="hero-layout">
           <div className="hero-content">

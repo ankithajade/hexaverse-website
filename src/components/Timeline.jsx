@@ -4,8 +4,8 @@ import ScrollReveal from './ScrollReveal';
 import CursorGrid from './CursorGrid';
 import HexGridOverlay from './HexGridOverlay';
 
-// Gold colour for valedictory block (item 10)
-const VAL_GOLD = '#c9a227';
+// Crimson colour for valedictory block
+const VAL_CRIMSON = '#b8264f';
 
 export default function Timeline() {
   const block0Ref = useRef(null);
@@ -335,7 +335,7 @@ export default function Timeline() {
             style={{ position: 'relative' }}
           >
             <div className="timeline-block-clip">
-              <CursorGrid color={VAL_GOLD} targetRef={block9Ref} />
+              <CursorGrid color={VAL_CRIMSON} targetRef={block9Ref} />
             </div>
             <div className="timeline-block-inner">
               <div className="timeline-block-header">

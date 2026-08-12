@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { SpotlightProvider } from './context/SpotlightContext';
+import { SpotlightProvider, useSpotlight } from './context/SpotlightContext';
 import PageBackground from './components/PageBackground';
-import CursorSpotlight from './components/CursorSpotlight';
+import DotCursor from './components/DotCursor';
 import ErrorBoundary from './components/ErrorBoundary';
 import Home from './pages/Home';
 import DepartmentPage from './pages/DepartmentPage';
@@ -25,6 +25,19 @@ function ScrollToHash() {
   return null;
 }
 
+function ResetSpotlightOnRoute() {
+  const { pathname } = useLocation();
+  const { resetColor } = useSpotlight();
+
+  useEffect(() => {
+    if (!pathname.startsWith('/departments/')) {
+      resetColor();
+    }
+  }, [pathname, resetColor]);
+
+  return null;
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
@@ -32,9 +45,10 @@ export default function App() {
         <SpotlightProvider>
           {/* Fixed, behind every route */}
           <PageBackground />
-          <CursorSpotlight />
+          <DotCursor />
 
           <ScrollToHash />
+          <ResetSpotlightOnRoute />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/departments/:deptId" element={<DepartmentPage />} />

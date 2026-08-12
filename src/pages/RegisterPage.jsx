@@ -11,6 +11,7 @@ import {
 import Nav from '../components/Nav';
 import Footer from '../components/Footer';
 import BackToTop from '../components/BackToTop';
+import BackButton from '../components/BackButton';
 import ScrollReveal from '../components/ScrollReveal';
 
 const DEPARTMENTS = ['AI & ML', 'AI & DS', 'CSE', 'ISE', 'ECE', 'EEE'];
@@ -280,9 +281,10 @@ export default function RegisterPage() {
     <div>
       <Nav />
 
-      {/* Breadcrumb */}
-      <div className="container" style={{ paddingTop: '32px' }}>
-        <ScrollReveal className="dept-breadcrumb">
+      {/* Back Button & Breadcrumb */}
+      <div className="container" style={{ paddingTop: '90px' }}>
+        <BackButton style={{ marginBottom: '12px' }} />
+        <ScrollReveal className="dept-breadcrumb" style={{ padding: 0 }}>
           <Link to="/">Home</Link> <span>/</span>{' '}
           {lockedDept ? (
             <>

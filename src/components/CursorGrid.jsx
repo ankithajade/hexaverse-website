@@ -22,13 +22,9 @@ const FADE_MS   = 600;  // how long a lit cell takes to fade out
  *     {/* card content *\/}
  *   </div>
  */
-function resolveCssColor(colorStr, element) {
+function resolveCssColor(colorStr) {
   if (!colorStr) return '#04788f';
   if (colorStr.startsWith('var(')) {
-    if (element) {
-      const computed = getComputedStyle(element).color;
-      if (computed && computed !== 'rgba(0, 0, 0, 0)') return computed;
-    }
     const temp = document.createElement('div');
     temp.style.color = colorStr;
     document.body.appendChild(temp);
@@ -47,7 +43,7 @@ export default function CursorGrid({ color = 'var(--cyan)', targetRef = null }) 
   const resolvedColorRef = useRef(color);
 
   useEffect(() => {
-    resolvedColorRef.current = resolveCssColor(color, canvasRef.current);
+    resolvedColorRef.current = resolveCssColor(color);
   }, [color]);
 
   // Draw loop — only runs while card is hovered or cells are still fading

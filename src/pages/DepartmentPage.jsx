@@ -4,6 +4,7 @@ import { departments } from '../data/departments';
 import Nav from '../components/Nav';
 import Footer from '../components/Footer';
 import BackToTop from '../components/BackToTop';
+import BackButton from '../components/BackButton';
 import DeptAccordionCard from '../components/DeptAccordionCard';
 import ScrollReveal from '../components/ScrollReveal';
 
@@ -32,9 +33,10 @@ export default function DepartmentPage() {
     <div style={{ '--dept-accent': dept.cssVar }}>
       <Nav />
 
-      {/* Breadcrumb */}
-      <div className="container">
-        <ScrollReveal className="dept-breadcrumb">
+      {/* Back Button & Breadcrumb */}
+      <div className="container" style={{ paddingTop: '90px' }}>
+        <BackButton style={{ marginBottom: '12px' }} />
+        <ScrollReveal className="dept-breadcrumb" style={{ padding: 0 }}>
           <Link to="/">Home</Link> <span>/</span>{' '}
           <Link to="/#departments">Departments</Link> <span>/</span>{' '}
           <span>{dept.name}</span>
