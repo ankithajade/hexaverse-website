@@ -39,7 +39,20 @@ export default function DotCursor() {
     typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' &&
+      window.matchMedia('(max-width: 768px), (pointer: coarse)').matches
+  );
+
   const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia('(max-width: 768px), (pointer: coarse)');
+    const updateMobile = (e) => setIsMobile(e.matches);
+    mediaQuery.addEventListener('change', updateMobile);
+    return () => mediaQuery.removeEventListener('change', updateMobile);
+  }, []);
 
   const posX = useMotionValue(-100);
   const posY = useMotionValue(-100);
@@ -52,7 +65,7 @@ export default function DotCursor() {
   const springOpacity = useSpring(opacity, { stiffness: 280, damping: 28, mass: 0.4 });
 
   useEffect(() => {
-    if (prefersReducedMotion) return;
+    if (prefersReducedMotion || isMobile) return;
 
     const onMouseMove = (e) => {
       posX.set(e.clientX);
@@ -80,9 +93,9 @@ export default function DotCursor() {
       window.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseleave', onMouseLeave);
     };
-  }, [posX, posY, scale, opacity, prefersReducedMotion]);
+  }, [posX, posY, scale, opacity, prefersReducedMotion, isMobile]);
 
-  if (prefersReducedMotion) return null;
+  if (prefersReducedMotion || isMobile) return null;
 
   return (
     <motion.div

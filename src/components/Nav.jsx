@@ -108,9 +108,10 @@ export default function Nav() {
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
           <button
-            className={`hamburger${menuOpen ? ' open' : ''}`}
+            className={`hamburger${menuOpen ? ' open active' : ''}`}
             id="hamburger"
             aria-label="Menu"
+            aria-expanded={menuOpen}
             onClick={() => setMenuOpen((o) => !o)}
           >
             <span /><span /><span />
@@ -118,10 +119,16 @@ export default function Nav() {
         </div>
       </div>
 
-      {/* Mobile overlay */}
+      {/* Mobile backdrop */}
       {menuOpen && (
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 98 }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(4, 36, 43, 0.35)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 101,
+          }}
           onClick={closeMenu}
           aria-hidden="true"
         />

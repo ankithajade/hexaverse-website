@@ -2,6 +2,7 @@ import ScrollReveal from './ScrollReveal';
 import TextScramble from './TextScramble';
 import AnimatedNumber from './AnimatedNumber';
 import HexGridOverlay from './HexGridOverlay';
+import { departments } from '../data/departments';
 
 /**
  * CubeSection — adds:
@@ -23,12 +24,30 @@ export default function CubeSection() {
           <div className="cube-visual">
             <div className="cube-scene">
               <div className="cube-3d">
-                <div className="cube-face face-front">CSE<span>Side 03</span></div>
-                <div className="cube-face face-back">ISE<span>Side 04</span></div>
-                <div className="cube-face face-right">AI &amp; ML<span>Side 02</span></div>
-                <div className="cube-face face-left">AI &amp; DS<span>Side 01</span></div>
-                <div className="cube-face face-top">ECE<span>Side 05</span></div>
-                <div className="cube-face face-bottom">EEE<span>Side 06</span></div>
+                <div className="cube-face face-front">
+                  <img src={departments.cse.logoSrc} alt="" className="cube-face-logo-img" aria-hidden="true" />
+                  <span className="cube-face-name">{departments.cse.name}</span>
+                </div>
+                <div className="cube-face face-back">
+                  <img src={departments.ise.logoSrc} alt="" className="cube-face-logo-img" aria-hidden="true" />
+                  <span className="cube-face-name">{departments.ise.name}</span>
+                </div>
+                <div className="cube-face face-right">
+                  <img src={departments.aiml.logoSrc} alt="" className="cube-face-logo-img" aria-hidden="true" />
+                  <span className="cube-face-name">{departments.aiml.name}</span>
+                </div>
+                <div className="cube-face face-left">
+                  <img src={departments.aids.logoSrc} alt="" className="cube-face-logo-img" aria-hidden="true" />
+                  <span className="cube-face-name">{departments.aids.name}</span>
+                </div>
+                <div className="cube-face face-top">
+                  <img src={departments.ece.logoSrc} alt="" className="cube-face-logo-img" aria-hidden="true" />
+                  <span className="cube-face-name">{departments.ece.name}</span>
+                </div>
+                <div className="cube-face face-bottom">
+                  <img src={departments.eee.logoSrc} alt="" className="cube-face-logo-img" aria-hidden="true" />
+                  <span className="cube-face-name">{departments.eee.name}</span>
+                </div>
               </div>
             </div>
           </div>

@@ -14,12 +14,12 @@ export default function ContactSection() {
         </ScrollReveal>
 
         <ScrollReveal className="contact-links">
-          <a href="mailto:awsstudentbuildergroup.dbit@gmail.com" className="contact-link">
+          <a href="mailto:aws.sbg@dbit.co.in" className="contact-link">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="2" y="4" width="20" height="16" rx="2" />
               <path d="M22 4l-10 8L2 4" />
             </svg>
-            awsstudentbuildergroup.dbit@gmail.com
+            aws.sbg@dbit.co.in
           </a>
           <a
             href="https://www.instagram.com/awssbg_dbit?igsh=cWg3NDlocG9yZHQ4"

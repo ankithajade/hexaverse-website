@@ -1,23 +1,16 @@
-import { motion } from 'motion/react';
 import AnimatedNumber from './AnimatedNumber';
-
-const prefersReducedMotion =
-  typeof window !== 'undefined' &&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+import HeroTopGlow from './HeroTopGlow';
 
 /**
  * Hero — static section in document flow (no sticky, no scroll morph).
  * Content floats in on initial load via CSS animation (fadeIn keyframe).
  * Two-tier heading: HexaVerse huge, CloudFest '26 proportional.
- * Item 5: AWS logo correctly loaded (aws-sbg-logo.svg).
+ * Features a soft, grainy, curved dark-teal wash anchored to the top.
  */
 export default function Hero() {
   return (
-    <section
-      className="hero"
-      id="hero"
-    >
-      {/* Item B: Local blue gradient layer sitting behind content */}
+    <section className="hero" id="hero">
+      {/* Local blue gradient layer sitting behind content */}
       <div
         aria-hidden="true"
         style={{
@@ -32,6 +25,9 @@ export default function Hero() {
           ].join(', '),
         }}
       />
+
+      {/* Soft, grainy, curved top wash */}
+      <HeroTopGlow />
 
       {/* Brand lockups moved to true page edges */}
       <div className="hero-brand-lockups">
