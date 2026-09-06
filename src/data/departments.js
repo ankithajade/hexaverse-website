@@ -22,7 +22,7 @@ export const departments = {
         type: 'Workshop',
         title: 'Workshop Title TBD',
         description:
-          'A 2-day hands-on workshop exploring key concepts and practical applications in AI & ML. Participants will work through guided exercises and build real projects.',
+          'A hands-on workshop covering AWS Cloud fundamentals, core services like IAM, EC2 and S3, along with AI/ML tools such as SageMaker Canvas and Amazon Bedrock. Participants will explore Generative AI, MLOps workflows, model deployment and cloud cost management through practical sessions.',
         dates: '21 – 22 Sept 2026',
         venue: 'Venue TBD',
         eventId: 'aiml-workshop',
@@ -36,7 +36,7 @@ export const departments = {
         type: 'Signature Event',
         title: 'Dept. Signature Event TBD',
         description:
-          'A department-curated competition or activity showcasing the best of AI & ML. Open to all students from the department.',
+          'A three-round AI innovation competition that tests participants’ knowledge, creativity and application-building skills.',
         dates: '23 Sept 2026',
         venue: 'Venue TBD',
         eventId: 'aiml-event',

@@ -595,7 +595,7 @@ body {
   font-size: 1.1rem;
   color: var(--text-dim);
   /* Bumped size */
-  max-width: 65ch;
+  max-width: 90ch;
   line-height: 1.7;
 }
 

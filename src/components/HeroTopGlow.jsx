@@ -13,51 +13,65 @@ const NOISE_DATA_URI =
  */
 export default function HeroTopGlow({ className = '', style = {} }) {
   return (
-    <motion.div
+    <div
       aria-hidden="true"
       className={`hero-top-glow ${className}`.trim()}
-      initial={{ opacity: prefersReducedMotion ? 1 : 0 }}
-      animate={{ opacity: 1 }}
-      transition={
-        prefersReducedMotion
-          ? { duration: 0 }
-          : { duration: 1.0, ease: 'easeOut', delay: 0.1 }
-      }
       style={{
         position: 'absolute',
         top: 0,
         left: 0,
         width: '100%',
-        height: '52%',
+        height: '85%',
         pointerEvents: 'none',
         zIndex: 1,
-        overflow: 'hidden',
         ...style,
       }}
     >
-      {/* Curved dark cyan/teal wash */}
-      <div
+      {/* Curved dark cyan/teal wash — organically spreads from top-center outward */}
+      <motion.div
+        initial={{
+          opacity: prefersReducedMotion ? 1 : 0,
+          scaleX: prefersReducedMotion ? 1 : 0.2,
+          scaleY: prefersReducedMotion ? 1 : 0.4,
+        }}
+        animate={{
+          opacity: 1,
+          scaleX: 1,
+          scaleY: 1,
+        }}
+        transition={
+          prefersReducedMotion
+            ? { duration: 0 }
+            : { duration: 2.2, ease: [0.16, 1, 0.3, 1], delay: 0.1 }
+        }
         style={{
           position: 'absolute',
           inset: 0,
+          transformOrigin: '50% 0%',
           background:
-            'radial-gradient(ellipse 65% 50% at 50% -15%, color-mix(in srgb, var(--cyan) 45%, transparent) 0%, color-mix(in srgb, var(--cyan) 20%, transparent) 40%, transparent 72%)',
+            'radial-gradient(ellipse 60% 95% at 50% 0%, color-mix(in srgb, var(--cyan) 72%, transparent) 0%, color-mix(in srgb, var(--cyan) 34%, transparent) 45%, color-mix(in srgb, var(--cyan) 10%, transparent) 75%, transparent 100%)',
           pointerEvents: 'none',
         }}
       />
 
-      {/* Grain texture overlay */}
-      <div
+      {/* Grain texture overlay — static 1:1 unscaled tiles, smooth opacity fade only */}
+      <motion.div
+        initial={{ opacity: prefersReducedMotion ? 0.08 : 0 }}
+        animate={{ opacity: 0.08 }}
+        transition={
+          prefersReducedMotion
+            ? { duration: 0 }
+            : { duration: 1.5, ease: 'easeOut', delay: 0.2 }
+        }
         style={{
           position: 'absolute',
           inset: 0,
           backgroundImage: `url("${NOISE_DATA_URI}")`,
           backgroundRepeat: 'repeat',
-          opacity: 0.08,
           mixBlendMode: 'overlay',
           pointerEvents: 'none',
         }}
       />
-    </motion.div>
+    </div>
   );
 }

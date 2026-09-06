@@ -110,21 +110,21 @@ export default function Timeline() {
                   <h3 className="timeline-dept">AI &amp; DS</h3>
                 </div>
                 <div className="timeline-header-right">
-                  <span className="timeline-dates">28 &ndash; 30 Sept 2026</span>
+                  <span className="timeline-dates">5 &ndash; 7 Oct 2026</span>
                   <Link to="/departments/aids" className="btn-timeline-register">Register Now</Link>
                 </div>
               </div>
               <div className="timeline-days">
                 <div className="day-pill day-pill--workshop">
-                  <span className="day-pill-date">28 Sept</span>
+                  <span className="day-pill-date">5 Oct</span>
                   <span className="day-pill-label">Workshop Day 1</span>
                 </div>
                 <div className="day-pill day-pill--workshop">
-                  <span className="day-pill-date">29 Sept</span>
+                  <span className="day-pill-date">6 Oct</span>
                   <span className="day-pill-label">Workshop Day 2</span>
                 </div>
                 <div className="day-pill day-pill--event">
-                  <span className="day-pill-date">30 Sept</span>
+                  <span className="day-pill-date">7 Oct</span>
                   <span className="day-pill-label">Dept. Signature Event</span>
                 </div>
               </div>
@@ -147,7 +147,7 @@ export default function Timeline() {
                   <h3 className="timeline-dept">CSE</h3>
                 </div>
                 <div className="timeline-header-right">
-                  <span className="timeline-dates">5 &ndash; 7 Oct 2026</span>
+                  <span className="timeline-dates">5 &ndash; 8 Oct 2026</span>
                   <Link to="/departments/cse" className="btn-timeline-register">Register Now</Link>
                 </div>
               </div>
@@ -161,34 +161,10 @@ export default function Timeline() {
                   <span className="day-pill-label">Workshop Day 2</span>
                 </div>
                 <div className="day-pill day-pill--event">
-                  <span className="day-pill-date">7 Oct</span>
+                  <span className="day-pill-date">8 Oct</span>
                   <span className="day-pill-label">Dept. Signature Event</span>
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Mega Event 2 — Technical Talk */}
-          <div
-            ref={block4Ref}
-            className="timeline-block timeline-block--mega"
-            style={{ position: 'relative' }}
-          >
-            <div className="timeline-block-clip">
-              <CursorGrid color="var(--mega-accent)" targetRef={block4Ref} />
-            </div>
-            <div className="timeline-block-inner">
-              <div className="timeline-block-header">
-                <div className="timeline-block-brand">
-                  <div className="timeline-mega-badge">Mega Event</div>
-                  <h3>Technical Talk</h3>
-                </div>
-                <div className="timeline-header-right">
-                  <span className="timeline-dates">9 Oct 2026</span>
-                  <a href="#events" className="btn-timeline-register btn-timeline-mega">Click Here</a>
-                </div>
-              </div>
-              <span className="timeline-open-badge">Open to all departments</span>
             </div>
           </div>
 
@@ -208,21 +184,17 @@ export default function Timeline() {
                   <h3 className="timeline-dept">ISE</h3>
                 </div>
                 <div className="timeline-header-right">
-                  <span className="timeline-dates">12 &ndash; 14 Oct 2026</span>
+                  <span className="timeline-dates">22 &ndash; 24 Oct 2026</span>
                   <Link to="/departments/ise" className="btn-timeline-register">Register Now</Link>
                 </div>
               </div>
               <div className="timeline-days">
                 <div className="day-pill day-pill--workshop">
-                  <span className="day-pill-date">12 Oct</span>
-                  <span className="day-pill-label">Workshop Day 1</span>
-                </div>
-                <div className="day-pill day-pill--workshop">
-                  <span className="day-pill-date">13 Oct</span>
-                  <span className="day-pill-label">Workshop Day 2</span>
-                </div>
+                  <span className="day-pill-date">22 Oct</span>
+                  <span className="day-pill-label">1 Day Workshop</span>
+                </div>                
                 <div className="day-pill day-pill--event">
-                  <span className="day-pill-date">14 Oct</span>
+                  <span className="day-pill-date">24 Oct</span>
                   <span className="day-pill-label">Dept. Signature Event</span>
                 </div>
               </div>
@@ -245,28 +217,28 @@ export default function Timeline() {
                   <h3 className="timeline-dept">ECE</h3>
                 </div>
                 <div className="timeline-header-right">
-                  <span className="timeline-dates">26 &ndash; 28 Oct 2026</span>
+                  <span className="timeline-dates">22 &ndash; 29 Oct 2026</span>
                   <Link to="/departments/ece" className="btn-timeline-register">Register Now</Link>
                 </div>
               </div>
               <div className="timeline-days">
                 <div className="day-pill day-pill--workshop">
-                  <span className="day-pill-date">26 Oct</span>
+                  <span className="day-pill-date">22 Oct</span>
                   <span className="day-pill-label">Workshop Day 1</span>
                 </div>
                 <div className="day-pill day-pill--workshop">
-                  <span className="day-pill-date">27 Oct</span>
+                  <span className="day-pill-date">23 Oct</span>
                   <span className="day-pill-label">Workshop Day 2</span>
                 </div>
                 <div className="day-pill day-pill--event">
-                  <span className="day-pill-date">28 Oct</span>
+                  <span className="day-pill-date">29 Oct</span>
                   <span className="day-pill-label">Dept. Signature Event</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Mega Event 3 — Hackathon */}
+          {/* Mega Event 2 — Hackathon */}
           <div
             ref={block7Ref}
             className="timeline-block timeline-block--mega"
@@ -307,7 +279,7 @@ export default function Timeline() {
                   <h3 className="timeline-dept">EEE</h3>
                 </div>
                 <div className="timeline-header-right">
-                  <span className="timeline-dates">2 &ndash; 4 Nov 2026</span>
+                  <span className="timeline-dates">2 &ndash; 5 Nov 2026</span>
                   <Link to="/departments/eee" className="btn-timeline-register">Register Now</Link>
                 </div>
               </div>
@@ -321,10 +293,33 @@ export default function Timeline() {
                   <span className="day-pill-label">Workshop Day 2</span>
                 </div>
                 <div className="day-pill day-pill--event">
-                  <span className="day-pill-date">4 Nov</span>
+                  <span className="day-pill-date">5 Nov</span>
                   <span className="day-pill-label">Dept. Signature Event</span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Mega Event 3 — Technical Talk */}
+          <div
+            ref={block4Ref}
+            className="timeline-block timeline-block--mega"
+            style={{ position: 'relative' }}
+          >
+            <div className="timeline-block-clip">
+              <CursorGrid color="var(--mega-accent)" targetRef={block4Ref} />
+            </div>
+            <div className="timeline-block-inner">
+              <div className="timeline-block-header">
+                <div className="timeline-block-brand">
+                  <div className="timeline-mega-badge">Mega Event</div>
+                  <h3>Coming Soon !!</h3>
+                </div>
+                <div className="timeline-header-right">
+                  <span className="timeline-dates">Stay tuned!</span>
+                </div>
+              </div>
+              <span className="timeline-open-badge">Open to all departments</span>
             </div>
           </div>
 

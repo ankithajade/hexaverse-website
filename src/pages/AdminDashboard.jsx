@@ -554,7 +554,7 @@ export default function AdminDashboard() {
                   {(selectedEvent === 'all' || !selectedEvent.endsWith('-workshop')) &&
                     filteredTeams.map((t) => {
                       const lead = t.team_members?.find((m) => m.is_lead) || t.team_members?.[0];
-                      const isManual = t.payments?.some((p) => p.gateway === 'manual_override') || t.payment_ref === null;
+                      const isManual = t.payments?.gateway === 'manual_override' || t.payment_ref === null;
 
                       return (
                         <tr key={t.id} style={{ borderBottom: '1px solid var(--bg-card-border)' }}>

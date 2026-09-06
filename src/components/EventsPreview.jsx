@@ -35,19 +35,7 @@ export default function EventsPreview() {
             </div>
             <Link to="/events/treasure-hunt" className="btn-register">Details</Link>
           </div>
-
-          {/* Technical Talk */}
-          <div className="mega-card">
-            <div className="mega-card-label">After Week 3</div>
-            <h4>Technical Talk</h4>
-            <p>Insights from industry professionals and thought leaders.</p>
-            <div className="mega-card-date">9 Oct 2026</div>
-            <div className="mega-card-badges">
-              <span className="open-badge">Open to all departments</span>
-            </div>
-            <Link to="/events/technical-talk" className="btn-register">Details</Link>
-          </div>
-
+          
           {/* Hackathon */}
           <div className="mega-card">
             <div className="mega-card-label">After Week 5</div>
@@ -63,6 +51,18 @@ export default function EventsPreview() {
             </div>
             <Link to="/events/hackathon" className="btn-register">Details</Link>
           </div>
+
+          {/* Technical Talk */}
+          <div className="mega-card">
+            <div className="mega-card-label">Mega Event 3</div>
+            <h4>Coming Soon !!</h4>
+            <p>Stay tuned!</p>
+            <div className="mega-card-date"></div>
+            <div className="mega-card-badges">
+              <span className="open-badge">Open to all departments</span>
+            </div>
+          </div>
+
         </ScrollReveal>
       </div>
     </section>
