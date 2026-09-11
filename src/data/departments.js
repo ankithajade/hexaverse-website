@@ -22,7 +22,7 @@ export const departments = {
         type: 'Workshop',
         title: 'Workshop Title TBD',
         description:
-          'A hands-on workshop covering AWS Cloud fundamentals, core services like IAM, EC2 and S3, along with AI/ML tools such as SageMaker Canvas and Amazon Bedrock. Participants will explore Generative AI, MLOps workflows, model deployment and cloud cost management through practical sessions.',
+          'A hands-on workshop covering AWS Cloud fundamentals, core services like IAM, EC2 and S3, along with AI/ML tools such as SageMaker Canvas and Amazon Bedrock. \n Participants will explore Generative AI, MLOps workflows, model deployment and cloud cost management through practical sessions.',
         dates: '21 – 22 Sept 2026',
         venue: 'Venue TBD',
         eventId: 'aiml-workshop',
