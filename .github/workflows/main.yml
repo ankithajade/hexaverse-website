@@ -1,0 +1,43 @@
+name: Deploy Website
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AWS_SSH_PRIVATE_KEY }}" > ~/.ssh/awsevents_deploy
+          chmod 600 ~/.ssh/awsevents_deploy
+          ssh-keyscan -H 3.6.239.164 >> ~/.ssh/known_hosts
+
+      - name: Upload website source
+        run: |
+          rsync -az \
+            --exclude='.git/' \
+            --exclude='.env' \
+            --exclude='.env.local' \
+            --exclude='.env.production' \
+            --exclude='node_modules/' \
+            --exclude='dist/' \
+            ./ \
+            agencydeploy@3.6.239.164:/var/www/awsevents/
+
+      - name: Build website on server
+        run: |
+          ssh -i ~/.ssh/awsevents_deploy agencydeploy@3.6.239.164 << 'EOF'
+            set -e
+            cd /var/www/awsevents
+            npm ci
+            npm run build
+          EOF
