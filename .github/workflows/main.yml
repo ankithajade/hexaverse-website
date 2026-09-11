@@ -32,6 +32,8 @@ jobs:
             --exclude='.env.production' \
             --exclude='node_modules/' \
             --exclude='dist/' \
+            --exclude='dist-old/' \
+            --exclude='dist-backup-before-update/' \
             ./ \
             agencydeploy@3.6.239.164:/var/www/awsevents/
 
