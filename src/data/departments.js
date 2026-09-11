@@ -20,11 +20,11 @@ export const departments = {
     events: [
       {
         type: 'Workshop',
-        title: 'Workshop Title TBD',
+        title: 'AWS Builders Lab',
         description:
-          'A hands-on workshop covering AWS Cloud fundamentals, core services like IAM, EC2 and S3, along with AI/ML tools such as SageMaker Canvas and Amazon Bedrock. \n Participants will explore Generative AI, MLOps workflows, model deployment and cloud cost management through practical sessions.',
+          'A hands-on workshop covering AWS Cloud fundamentals, core services like IAM, EC2 and S3, along with AI/ML tools such as SageMaker Canvas and Amazon Bedrock.\n\nParticipants will explore Generative AI, MLOps workflows, model deployment and cloud cost management through practical sessions.',
         dates: '21 – 22 Sept 2026',
-        venue: 'Venue TBD',
+        venue: 'B-311 & B-312',
         eventId: 'aiml-workshop',
         eventTitle: 'AI & ML Workshop',
         isTeam: false,
@@ -34,11 +34,11 @@ export const departments = {
       },
       {
         type: 'Signature Event',
-        title: 'Dept. Signature Event TBD',
+        title: 'The PartyRock Hack',
         description:
-          'A three-round AI innovation competition that tests \n participants’ knowledge, creativity and application-building skills.',
+          'A three-round AI innovation competition that tests participants’ knowledge, creativity and application-building skills. \n\n Round 1 – Cloud Blitz: AWS, cloud computing and dataset-based quiz to test participants’ technical knowledge.\n Round 2 – BuildForge: Dataset summarisation and AI application development using AWS PartyRock.\n Round 3 – Campus Innovator: Development and presentation of a campus-focused AI solution, followed by expert evaluation.',
         dates: '23 Sept 2026',
-        venue: 'Venue TBD',
+        venue: 'A-001',
         eventId: 'aiml-event',
         eventTitle: 'AI & ML Signature Event',
         isTeam: true,
@@ -70,11 +70,11 @@ export const departments = {
     events: [
       {
         type: 'Workshop',
-        title: 'Workshop Title TBD',
+        title: 'Franchise Forge Labs',
         description:
-          'A 2-day hands-on workshop exploring key concepts and practical applications in AI & Data Science.',
+          'A hands-on workshop introducing participants to Amazon Bedrock, AI-assisted creativity, prompt engineering, and Amazon S3 through a practical studio-building workflow. \n\nParticipants learn how to use AI tools to develop, organize, and prepare creative assets for the franchise they are creating.',
         dates: '5 – 6 Oct 2026',
-        venue: 'Venue TBD',
+        venue: 'B-218 & B-219',
         eventId: 'aids-workshop',
         eventTitle: 'AI & DS Workshop',
         isTeam: false,
@@ -84,11 +84,11 @@ export const departments = {
       },
       {
         type: 'Signature Event',
-        title: 'Dept. Signature Event TBD',
+        title: 'Franchise Forge: The Studio Challenge',
         description:
-          'A department-curated competition or activity showcasing the best of AI & Data Science.',
+          'a team-based AI and creativity competition where participants build an original entertainment franchise through \n\n Round 1: Greenlight \n Round 2: Character & Visual Forge \n Round 3: Marketing & Adaptation, followed by a Final Pitch.',
         dates: '7 Oct 2026',
-        venue: 'Venue TBD',
+        venue: 'A-001 ',
         eventId: 'aids-event',
         eventTitle: 'AI & DS Signature Event',
         isTeam: true,
@@ -168,9 +168,9 @@ export const departments = {
     events: [
       {
         type: 'Workshop',
-        title: 'Workshop Title TBD',
+        title: 'The RAG Builder Session',
         description:
-          'A 2-day hands-on workshop exploring key concepts in information science and engineering.',
+          'The workshop will provide a hands-on introduction to Amazon Bedrock and Knowledge Bases, covering how to create and use a RAG-based AI assistant. \n\n Participants will learn to connect documents, retrieve relevant information, and build their own Knowledge Base.',
         dates: '22 Oct 2026',
         venue: 'Venue TBD',
         eventId: 'ise-workshop',
@@ -182,11 +182,11 @@ export const departments = {
       },
       {
         type: 'Signature Event',
-        title: 'Dept. Signature Event TBD',
+        title: 'Beyond Search : The Intelligence Challenge',
         description:
-          'A department-curated competition showcasing the best of information science and engineering.',
+          'Beyond Search: The Intelligence Challenge is a two-round competition featuring \n\n Round 1: Rapid Retrieval Challenge and \n Round 2: AWS Solution Architect Challenge, where participants use RAG and AWS knowledge to solve real-world problems.',
         dates: '24 Oct 2026',
-        venue: 'Venue TBD',
+        venue: 'A-001',
         eventId: 'ise-event',
         eventTitle: 'ISE Signature Event',
         isTeam: true,
