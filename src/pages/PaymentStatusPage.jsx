@@ -30,7 +30,7 @@ export default function PaymentStatusPage() {
     try {
       const res = await verifyPayment({ order_id: orderId });
 
-      if (res.status === 'success' || res.success) {
+      if (res.status === 'success') {
         setResultData(res);
         setStatus('success');
       } else if (res.status === 'pending') {

@@ -72,6 +72,19 @@ serve(async (req) => {
       });
     }
 
+    // Reject webhooks that are too old (replay protection)
+    const webhookTimestamp = Number(timestamp);
+    const currentTime = Date.now();
+    const webhookAge = Math.abs(currentTime - webhookTimestamp);
+
+    if (!Number.isFinite(webhookTimestamp) || webhookAge > 5 * 60 * 1000) {
+      console.warn('Webhook rejected: Timestamp is missing, invalid, or too old');
+      return new Response(JSON.stringify({ error: 'Invalid or expired webhook timestamp' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // 2. Verify Signature
     const isValid = await verifyWebhookSignature(rawBody, timestamp, signature, cashfreeSecretKey);
     if (!isValid) {

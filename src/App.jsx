@@ -12,6 +12,7 @@ import PaymentStatusPage from './pages/PaymentStatusPage';
 import AdminAuthGate from './pages/admin/AdminAuthGate';
 import AdminLayout from './pages/admin/AdminLayout';
 import AdminHome from './pages/admin/AdminHome';
+import AdminDepartmentPage from './pages/admin/AdminDepartmentPage';
 
 function ScrollToHash() {
   const { pathname, hash } = useLocation();
@@ -60,8 +61,8 @@ export default function App() {
             <Route path="/payment-status" element={<PaymentStatusPage />} />
             <Route path="/ops/console" element={<AdminAuthGate><AdminLayout /></AdminAuthGate>}>
               <Route index element={<AdminHome />} />
-              {/* Department pages — content added in later batch */}
-              <Route path="departments/:deptId" element={<div style={{ padding: '32px', color: 'var(--text-dim)' }}>Department detail — coming soon</div>} />
+              {/* Department pages */}
+              <Route path="departments/:deptId" element={<AdminDepartmentPage />} />
               {/* Mega event pages — content added in later batch */}
               <Route path="events/:eventId" element={<div style={{ padding: '32px', color: 'var(--text-dim)' }}>Event detail — coming soon</div>} />
             </Route>
