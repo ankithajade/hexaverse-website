@@ -24,6 +24,7 @@ jobs:
       - name: Upload website source
         run: |
           rsync -az \
+            -e "ssh -i ~/.ssh/awsevents_deploy" \
             --exclude='.git/' \
             --exclude='.env' \
             --exclude='.env.local' \
