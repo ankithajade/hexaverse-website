@@ -71,7 +71,7 @@ serve(async (req) => {
         }
       }
 
-      // Check duplicates
+      // Check duplicate email
       const { data: existingEmail } = await supabase
         .from('workshop_registrations')
         .select('id')
@@ -135,7 +135,7 @@ serve(async (req) => {
       );
     }
 
-    // 3. Handle Team Event (Signature or Treasure Hunt)
+    // 3. Handle Team Event (Signature or Mega Events)
     const members = team_members || [];
     const totalMembers = members.length;
 
@@ -216,7 +216,7 @@ serve(async (req) => {
     }
 
     // Insert team members
-    const memberRows = members.map((m, idx) => ({
+    const memberRows = members.map((m: any, idx: number) => ({
       team_id: team.id,
       is_lead: idx === 0,
       name: m.name.trim(),
@@ -237,42 +237,170 @@ serve(async (req) => {
       });
     }
 
-    // Create payments row
-    const mockOrderId = `ORD_${event_slug}_${team.id.slice(0, 8)}_${Date.now()}`;
+    // 4. Create Cashfree UPI-only order
+    const cashfreeAppId = Deno.env.get('CASHFREE_APP_ID');
+    const cashfreeSecretKey = Deno.env.get('CASHFREE_SECRET_KEY');
+
+    if (!cashfreeAppId || !cashfreeSecretKey) {
+      // Clean up team and members
+      await supabase.from('team_members').delete().eq('team_id', team.id);
+      await supabase.from('teams').delete().eq('id', team.id);
+      return new Response(JSON.stringify({
+        error: 'Cashfree credentials are not configured on the server',
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Cashfree order IDs must be alphanumeric with underscores/hyphens and max 45 chars.
+    const cashfreeOrderId = `HEX_${team.id.replace(/-/g, '').slice(0, 18)}_${Date.now()}`;
+
+    const customerName =
+      registrant?.name?.trim() ||
+      members[0]?.name?.trim() ||
+      team_name.trim();
+
+    const customerEmail =
+      registrant?.email?.trim().toLowerCase() ||
+      members[0]?.email?.trim().toLowerCase();
+
+    const customerPhone =
+      registrant?.phone?.trim() ||
+      members[0]?.phone?.trim();
+
+    if (!customerEmail || !customerPhone) {
+      await supabase.from('team_members').delete().eq('team_id', team.id);
+      await supabase.from('teams').delete().eq('id', team.id);
+      return new Response(JSON.stringify({
+        error: 'Customer email and phone are required for payment',
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // 5. Create internal payment record
     const { data: payment, error: payErr } = await supabase
       .from('payments')
       .insert({
         registration_type: 'team',
         registration_id: team.id,
         amount_expected,
+        amount_paid: 0,
         currency: 'INR',
-        status: 'created',
-        gateway: 'mock_gateway',
-        gateway_order_id: mockOrderId,
+        status: 'pending',
+        gateway: 'cashfree',
+        gateway_order_id: cashfreeOrderId,
       })
       .select()
       .single();
 
-    if (payErr) {
-      return new Response(JSON.stringify({ error: payErr.message }), {
+    if (payErr || !payment) {
+      console.error('Failed to create payment record:', payErr);
+      await supabase.from('team_members').delete().eq('team_id', team.id);
+      await supabase.from('teams').delete().eq('id', team.id);
+
+      return new Response(JSON.stringify({
+        error: 'Unable to create payment record',
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Update team with payment reference
-    await supabase.from('teams').update({ payment_ref: payment.id }).eq('id', team.id);
+    // 6. Request Cashfree Create Order API
+    const notifyWebhookUrl = `${supabaseUrl}/functions/v1/cashfree-webhook`;
+    const returnUrl = `https://awsevents.dbit.edu.in/payment-status?order_id={order_id}`;
+
+    const cashfreeResponse = await fetch(
+      'https://sandbox.cashfree.com/pg/orders',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-client-id': cashfreeAppId,
+          'x-client-secret': cashfreeSecretKey,
+          'x-api-version': '2023-08-01',
+          'x-idempotency-key': crypto.randomUUID(),
+        },
+        body: JSON.stringify({
+          order_id: cashfreeOrderId,
+          order_amount: Number(amount_expected.toFixed(2)),
+          order_currency: 'INR',
+          customer_details: {
+            customer_id: team.id,
+            customer_name: customerName,
+            customer_email: customerEmail,
+            customer_phone: customerPhone,
+          },
+          order_meta: {
+            return_url: returnUrl,
+            notify_url: notifyWebhookUrl,
+            payment_methods: 'upi',
+          },
+          order_note: `Registration for ${event.title} - ${team_name.trim()}`,
+          order_tags: {
+            team_id: team.id,
+            event_slug: event_slug,
+            payment_reference: payment.id,
+          },
+        }),
+      }
+    );
+
+    const cashfreeData = await cashfreeResponse.json();
+
+    if (!cashfreeResponse.ok || !cashfreeData?.payment_session_id) {
+      console.error('Cashfree order creation failed:', cashfreeData);
+
+      // Clean up internal records
+      await supabase.from('payments').delete().eq('id', payment.id);
+      await supabase.from('team_members').delete().eq('team_id', team.id);
+      await supabase.from('teams').delete().eq('id', team.id);
+
+      return new Response(JSON.stringify({
+        error: 'Unable to create Cashfree payment order',
+        details: cashfreeData?.message || 'Cashfree API error',
+      }), {
+        status: 502,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // 7. Update payment and team with payment references
+    await supabase
+      .from('payments')
+      .update({
+        gateway_order_id: cashfreeData.order_id,
+        status: 'pending',
+      })
+      .eq('id', payment.id);
+
+    await supabase
+      .from('teams')
+      .update({
+        payment_ref: payment.id,
+      })
+      .eq('id', team.id);
 
     return new Response(
       JSON.stringify({
         success: true,
         is_free: false,
         payment_reference: payment.id,
-        gateway_order_id: mockOrderId,
+        gateway: 'cashfree',
+        gateway_order_id: cashfreeData.order_id,
+        payment_session_id: cashfreeData.payment_session_id,
         amount_expected,
         team_id: team.id,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+      }
     );
   } catch (err: any) {
     return new Response(JSON.stringify({ error: err.message }), {

@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import DepartmentPage from './pages/DepartmentPage';
 import EventPage from './pages/EventPage';
 import RegisterPage from './pages/RegisterPage';
+import PaymentStatusPage from './pages/PaymentStatusPage';
 import AdminAuthGate from './pages/admin/AdminAuthGate';
 import AdminLayout from './pages/admin/AdminLayout';
 import AdminHome from './pages/admin/AdminHome';
@@ -56,6 +57,7 @@ export default function App() {
             <Route path="/departments/:deptId" element={<DepartmentPage />} />
             <Route path="/events/:eventId" element={<EventPage />} />
             <Route path="/register/:eventId" element={<RegisterPage />} />
+            <Route path="/payment-status" element={<PaymentStatusPage />} />
             <Route path="/ops/console" element={<AdminAuthGate><AdminLayout /></AdminAuthGate>}>
               <Route index element={<AdminHome />} />
               {/* Department pages — content added in later batch */}

@@ -246,6 +246,19 @@ export default function RegisterPage() {
 
       setPaymentData(res);
       setStep('payment_checkout');
+
+      // Seamlessly trigger Cashfree Hosted Checkout if SDK is ready
+      if (res.payment_session_id && typeof window.Cashfree === 'function') {
+        try {
+          const cashfree = window.Cashfree({ mode: 'sandbox' });
+          cashfree.checkout({
+            paymentSessionId: res.payment_session_id,
+            redirectTarget: '_self',
+          });
+        } catch (cfErr) {
+          console.warn('Auto checkout trigger deferred:', cfErr);
+        }
+      }
     } catch (err) {
       console.error('Submit error:', err);
       setErrorMsg(err.message || 'An error occurred during submission.');
@@ -253,27 +266,28 @@ export default function RegisterPage() {
     }
   };
 
-  // ── Payment Simulation Handler ───────────────────────────────────────────
+  // ── Cashfree Payment Launcher ───────────────────────────────────────────
 
-  const handleSimulatePayment = async () => {
-    setStep('verifying_payment');
-    setErrorMsg('');
+  const handleLaunchPayment = () => {
+    if (!paymentData?.payment_session_id) {
+      setErrorMsg('Payment session ID is missing. Please try submitting again.');
+      return;
+    }
+
+    if (typeof window.Cashfree !== 'function') {
+      setErrorMsg('Payment gateway SDK is loading. Please click Pay again in a moment.');
+      return;
+    }
 
     try {
-      await verifyPayment({
-        payment_reference: paymentData.payment_reference,
-        gateway_order_id: paymentData.gateway_order_id,
-        gateway_payment_id: `PAY_MOCK_${Date.now()}`,
-        gateway_signature: 'mock_valid_signature',
-        amount_paid: paymentData.amount_expected,
-        simulate_success: true,
+      const cashfree = window.Cashfree({ mode: 'sandbox' });
+      cashfree.checkout({
+        paymentSessionId: paymentData.payment_session_id,
+        redirectTarget: '_self',
       });
-
-      setStep('success');
     } catch (err) {
-      console.error('Payment verify error:', err);
-      setErrorMsg(err.message || 'Payment verification failed.');
-      setStep('payment_checkout');
+      console.error('Payment checkout error:', err);
+      setErrorMsg(err.message || 'Failed to open Cashfree payment checkout.');
     }
   };
 
@@ -301,22 +315,20 @@ export default function RegisterPage() {
 
       <main className="container" style={{ maxWidth: '820px', marginBottom: '80px' }}>
 
-        {/* ── Success View ── */}
+        {/* ── Success View (Free Workshops only from this form) ── */}
         {step === 'success' ? (
           <ScrollReveal className="mega-card" style={{ textAlign: 'center', padding: '48px 32px' }}>
             <div style={{ fontSize: '3rem', color: '#10b981', marginBottom: '16px' }}>✓</div>
             <h2 style={{ fontFamily: 'var(--font-display)', marginBottom: '12px' }}>Registration Confirmed!</h2>
             <p style={{ color: 'var(--text-dim)', fontSize: '1.05rem', marginBottom: '28px' }}>
-              {isWorkshop
-                ? 'Your workshop seat has been reserved successfully. No registration fee required.'
-                : 'Your team registration and payment verification are complete!'}
+              Your workshop seat has been reserved successfully. No registration fee required.
             </p>
             <Link to="/" className="btn-register" style={{ padding: '12px 32px' }}>
               Back to Home
             </Link>
           </ScrollReveal>
-        ) : step === 'payment_checkout' || step === 'verifying_payment' ? (
-          /* ── Payment Checkout Step ── */
+        ) : step === 'payment_checkout' ? (
+          /* ── Cashfree Payment Checkout Step ── */
           <ScrollReveal className="mega-card" style={{ padding: '36px' }}>
             <div style={{ marginBottom: '24px' }}>
               <div className="section-label">Checkout</div>
@@ -352,17 +364,16 @@ export default function RegisterPage() {
             )}
 
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '24px' }}>
-              Payment Gateway Abstraction Layer (Razorpay / PayU / Cashfree). Click below to complete checkout simulation.
+              🔒 Powered by Cashfree Payments (UPI Only). You will be redirected to complete your payment securely.
             </p>
 
             <button
               type="button"
               className="btn-register"
-              onClick={handleSimulatePayment}
-              disabled={step === 'verifying_payment'}
-              style={{ width: '100%', padding: '14px', fontSize: '1.05rem' }}
+              onClick={handleLaunchPayment}
+              style={{ width: '100%', padding: '14px', fontSize: '1.05rem', cursor: 'pointer' }}
             >
-              {step === 'verifying_payment' ? 'Verifying Payment...' : `Pay ₹${paymentData?.amount_expected} & Confirm`}
+              Pay ₹{paymentData?.amount_expected} via UPI
             </button>
           </ScrollReveal>
         ) : (
