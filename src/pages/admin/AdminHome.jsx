@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useAdminSession } from './AdminAuthGate';
+import { downloadSiteWideExcel } from '../../lib/exportUtils';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
@@ -148,6 +149,25 @@ export default function AdminHome() {
     a.click();
   };
 
+  // ── Excel Export (site-wide multi-tab workbook) ──
+  const [exportingExcel, setExportingExcel] = useState(false);
+  const handleExportExcel = async () => {
+    setExportingExcel(true);
+    try {
+      await downloadSiteWideExcel(workshops, teams, {
+        totalWorkshops,
+        totalTeams,
+        paidTeams,
+        totalRevenue,
+      });
+    } catch (err) {
+      console.error('Excel export failed:', err);
+      alert('Excel export failed: ' + (err.message || 'Unknown error'));
+    } finally {
+      setExportingExcel(false);
+    }
+  };
+
   return (
     <div>
       {/* Page header */}
@@ -166,6 +186,14 @@ export default function AdminHome() {
           </button>
           <button className="btn-register" onClick={handleExportCSV} style={{ fontSize: '0.82rem', padding: '8px 16px' }}>
             📥 Export All CSV
+          </button>
+          <button
+            className="btn-register"
+            onClick={handleExportExcel}
+            disabled={exportingExcel || loading}
+            style={{ fontSize: '0.82rem', padding: '8px 16px', opacity: exportingExcel ? 0.6 : 1 }}
+          >
+            {exportingExcel ? '⏳ Building…' : '📊 Export All Excel'}
           </button>
         </div>
       </div>

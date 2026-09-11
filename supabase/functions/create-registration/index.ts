@@ -197,6 +197,7 @@ serve(async (req) => {
     const amount_expected = Number(event.fee_per_head) * totalMembers;
 
     // Create team
+    const teamCollege = body.college || registrant?.college || 'DBIT';
     const { data: team, error: teamErr } = await supabase
       .from('teams')
       .insert({
@@ -204,6 +205,7 @@ serve(async (req) => {
         team_name: team_name.trim(),
         team_size: totalMembers,
         payment_status: 'pending',
+        college: teamCollege,
       })
       .select()
       .single();
@@ -223,6 +225,7 @@ serve(async (req) => {
       usn: m.usn.trim().toUpperCase(),
       email: m.email ? m.email.trim().toLowerCase() : (idx === 0 ? registrant?.email : null),
       phone: m.phone ? m.phone.trim() : (idx === 0 ? registrant?.phone : null),
+      dept: m.dept ? m.dept.trim() : (idx === 0 ? registrant?.dept : null),
       position: idx + 1,
     }));
 

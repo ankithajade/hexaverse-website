@@ -212,12 +212,14 @@ export default function RegisterPage() {
               usn: form.usn.trim().toUpperCase(),
               email: form.email.trim(),
               phone: form.phone.trim(),
+              dept: finalDept || null,
             },
             ...members.map((m) => ({
               name: m.name.trim(),
               usn: m.usn.trim().toUpperCase(),
               email: m.email?.trim() || null,
               phone: m.phone?.trim() || null,
+              dept: m.dept?.trim() || (lockedDept ? lockedDept.name : null),
             })),
           ]
         : [];
@@ -231,9 +233,10 @@ export default function RegisterPage() {
           phone: form.phone.trim(),
           semester: sem,
           dept: finalDept,
-          college: form.college || 'DBIT',
+          college: form.college ? form.college.trim() : 'DBIT',
         },
         team_name: isTeam ? form.teamName.trim() : null,
+        college: form.college ? form.college.trim() : 'DBIT',
         team_members: allMembers,
       };
 
@@ -668,6 +671,24 @@ export default function RegisterPage() {
                               onChange={(e) => setMemberField(i, 'phone', e.target.value)}
                             />
                           </div>
+                        </div>
+                        <div className="form-group" style={{ marginTop: '4px' }}>
+                          {lockedDept ? (
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
+                              Department: <strong style={{ color: 'var(--text)' }}>{lockedDept.name}</strong>
+                            </div>
+                          ) : (
+                            <select
+                              className="form-select"
+                              value={m.dept || ''}
+                              onChange={(e) => setMemberField(i, 'dept', e.target.value)}
+                            >
+                              <option value="">Select Member Department</option>
+                              {DEPARTMENTS.map((d) => (
+                                <option key={d} value={d}>{d}</option>
+                              ))}
+                            </select>
+                          )}
                         </div>
                       </div>
                     ))}
