@@ -36,7 +36,7 @@ export const departments = {
         type: 'Signature Event',
         title: 'Dept. Signature Event TBD',
         description:
-          'A three-round AI innovation competition that tests participants’ knowledge, creativity and application-building skills.',
+          'A three-round AI innovation competition that tests \n participants’ knowledge, creativity and application-building skills.',
         dates: '23 Sept 2026',
         venue: 'Venue TBD',
         eventId: 'aiml-event',
