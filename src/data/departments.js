@@ -59,8 +59,8 @@ export const departments = {
     cssVar: 'var(--aids)',
     week: 'Week 02',
     badge: 'Week 02 · Department of AI & DS, DBIT',
-    dates: '28 – 30 September 2026',
-    displayDates: '28–30 Sept',
+    dates: '5 – 7 October 2026',
+    displayDates: '5–7 Oct',
     logoSrc: '/assets/aids-sbg-logo.svg',
     description:
       'Dive into data science, analytics, and AI-driven insights through hands-on workshops and a signature department event.',
@@ -73,7 +73,7 @@ export const departments = {
         title: 'Workshop Title TBD',
         description:
           'A 2-day hands-on workshop exploring key concepts and practical applications in AI & Data Science.',
-        dates: '28 – 29 Sept 2026',
+        dates: '5 – 6 Oct 2026',
         venue: 'Venue TBD',
         eventId: 'aids-workshop',
         eventTitle: 'AI & DS Workshop',
@@ -87,7 +87,7 @@ export const departments = {
         title: 'Dept. Signature Event TBD',
         description:
           'A department-curated competition or activity showcasing the best of AI & Data Science.',
-        dates: '30 Sept 2026',
+        dates: '7 Oct 2026',
         venue: 'Venue TBD',
         eventId: 'aids-event',
         eventTitle: 'AI & DS Signature Event',
@@ -108,8 +108,8 @@ export const departments = {
     cssVar: 'var(--cse)',
     week: 'Week 03',
     badge: 'Week 03 · Department of CSE, DBIT',
-    dates: '5 – 7 October 2026',
-    displayDates: '5–7 Oct',
+    dates: '5 – 8 October 2026',
+    displayDates: '5–8 Oct',
     logoSrc: '/assets/cse-sbg-logo.svg',
     description:
       'Core computing, software engineering, and systems design — through workshops and a department signature event.',
@@ -136,7 +136,7 @@ export const departments = {
         title: 'Dept. Signature Event TBD',
         description:
           'A department-curated competition showcasing the best of computer science and engineering.',
-        dates: '7 Oct 2026',
+        dates: '8 Oct 2026',
         venue: 'Venue TBD',
         eventId: 'cse-event',
         eventTitle: 'CSE Signature Event',
@@ -157,8 +157,8 @@ export const departments = {
     cssVar: 'var(--ise)',
     week: 'Week 04',
     badge: 'Week 04 · Department of ISE, DBIT',
-    dates: '12 – 14 October 2026',
-    displayDates: '12–14 Oct',
+    dates: '22 – 24 October 2026',
+    displayDates: '22–24 Oct',
     logoSrc: '/assets/ise-sbg-logo.svg',
     description:
       'Information systems, web technologies, and digital innovation — through workshops and a department signature event.',
@@ -171,7 +171,7 @@ export const departments = {
         title: 'Workshop Title TBD',
         description:
           'A 2-day hands-on workshop exploring key concepts in information science and engineering.',
-        dates: '12 – 13 Oct 2026',
+        dates: '22 Oct 2026',
         venue: 'Venue TBD',
         eventId: 'ise-workshop',
         eventTitle: 'ISE Workshop',
@@ -185,7 +185,7 @@ export const departments = {
         title: 'Dept. Signature Event TBD',
         description:
           'A department-curated competition showcasing the best of information science and engineering.',
-        dates: '14 Oct 2026',
+        dates: '24 Oct 2026',
         venue: 'Venue TBD',
         eventId: 'ise-event',
         eventTitle: 'ISE Signature Event',
@@ -206,8 +206,8 @@ export const departments = {
     cssVar: 'var(--ece)',
     week: 'Week 05',
     badge: 'Week 05 · Department of ECE, DBIT',
-    dates: '26 – 28 October 2026',
-    displayDates: '26–28 Oct',
+    dates: '22 – 29 October 2026',
+    displayDates: '22–29 Oct',
     logoSrc: '/assets/ece-sbg-logo.svg',
     description:
       'Electronics, communication systems, and embedded systems — through workshops and a department signature event.',
@@ -220,7 +220,7 @@ export const departments = {
         title: 'Workshop Title TBD',
         description:
           'A 2-day hands-on workshop exploring key concepts and practical applications in electronics and communications engineering.',
-        dates: '26 – 27 Oct 2026',
+        dates: '22 – 23 Oct 2026',
         venue: 'Venue TBD',
         eventId: 'ece-workshop',
         eventTitle: 'ECE Workshop',
@@ -234,7 +234,7 @@ export const departments = {
         title: 'Dept. Signature Event TBD',
         description:
           'A department-curated competition showcasing the best of electronics and communications engineering.',
-        dates: '28 Oct 2026',
+        dates: '29 Oct 2026',
         venue: 'Venue TBD',
         eventId: 'ece-event',
         eventTitle: 'ECE Signature Event',
@@ -255,8 +255,8 @@ export const departments = {
     cssVar: 'var(--eee)',
     week: 'Week 06',
     badge: 'Week 06 · Department of EEE, DBIT',
-    dates: '2 – 4 November 2026',
-    displayDates: '2–4 Nov',
+    dates: '2 – 5 November 2026',
+    displayDates: '2–5 Nov',
     logoSrc: '/assets/eee-sbg-logo.svg',
     description:
       'Electrical engineering, power electronics, and energy innovations — through workshops and a department signature event.',
@@ -283,7 +283,7 @@ export const departments = {
         title: 'Dept. Signature Event TBD',
         description:
           'A department-curated competition showcasing the best of electrical and electronics engineering.',
-        dates: '4 Nov 2026',
+        dates: '5 Nov 2026',
         venue: 'Venue TBD',
         eventId: 'eee-event',
         eventTitle: 'EEE Signature Event',

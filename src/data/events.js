@@ -7,7 +7,7 @@ export const events = {
     title: 'Treasure Hunt',
     cssVar: 'var(--mega-accent)',
     badge: 'Mega Event',
-    dates: '25 September 2026',
+    dates: '26 September 2026',
     description:
       'Cross-campus challenge blending logic, speed, and technology. Solve riddles, complete challenges, and scan QR codes to reach the final treasure.',
     metaTitle: "Treasure Hunt | DBIT HexaVerse CloudFest '26",
@@ -50,12 +50,12 @@ export const events = {
     ],
   },
 
-  'technical-talk': {
-    id: 'technical-talk',
-    title: 'Technical Talk',
+  'mega-event-3': {
+    id: 'mega-event-3',
+    title: 'Mega Event 3',
     cssVar: 'var(--mega-accent)',
     badge: 'Mega Event',
-    dates: '9 October 2026',
+    dates: 'TBD',
     description:
       'Keynote address and interactive session featuring prominent cloud architects and tech innovators. Expand your network and domain knowledge.',
     metaTitle: "Technical Talk | DBIT HexaVerse CloudFest '26",
