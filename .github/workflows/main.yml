@@ -6,6 +6,10 @@ on:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+  
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -19,7 +23,8 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.AWS_SSH_PRIVATE_KEY }}" > ~/.ssh/awsevents_deploy
           chmod 600 ~/.ssh/awsevents_deploy
-          ssh-keyscan -H 3.6.239.164 >> ~/.ssh/known_hosts
+          echo "3.6.239.164 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBuHFrRFFgfoQpbBRSXT3dCyvcz7pF2llTzHRMBdFec6" >> ~/.ssh/known_hosts
+         
 
       - name: Upload website source
         run: |
@@ -31,6 +36,8 @@ jobs:
             --exclude='.env.production' \
             --exclude='node_modules/' \
             --exclude='dist/' \
+            --exclude='dist-old/' \
+            --exclude='dist-backup-before-update/' \
             ./ \
             agencydeploy@3.6.239.164:/var/www/awsevents/
 

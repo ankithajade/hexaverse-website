@@ -8,7 +8,9 @@ import Home from './pages/Home';
 import DepartmentPage from './pages/DepartmentPage';
 import EventPage from './pages/EventPage';
 import RegisterPage from './pages/RegisterPage';
-import AdminDashboard from './pages/AdminDashboard';
+import AdminAuthGate from './pages/admin/AdminAuthGate';
+import AdminLayout from './pages/admin/AdminLayout';
+import AdminHome from './pages/admin/AdminHome';
 
 function ScrollToHash() {
   const { pathname, hash } = useLocation();
@@ -54,7 +56,13 @@ export default function App() {
             <Route path="/departments/:deptId" element={<DepartmentPage />} />
             <Route path="/events/:eventId" element={<EventPage />} />
             <Route path="/register/:eventId" element={<RegisterPage />} />
-            <Route path="/ops/console" element={<AdminDashboard />} />
+            <Route path="/ops/console" element={<AdminAuthGate><AdminLayout /></AdminAuthGate>}>
+              <Route index element={<AdminHome />} />
+              {/* Department pages — content added in later batch */}
+              <Route path="departments/:deptId" element={<div style={{ padding: '32px', color: 'var(--text-dim)' }}>Department detail — coming soon</div>} />
+              {/* Mega event pages — content added in later batch */}
+              <Route path="events/:eventId" element={<div style={{ padding: '32px', color: 'var(--text-dim)' }}>Event detail — coming soon</div>} />
+            </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </SpotlightProvider>
