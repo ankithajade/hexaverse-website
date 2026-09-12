@@ -10,12 +10,12 @@ const prefersReducedMotion =
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const TAGLINES = {
-  aiml: 'Machine learning, neural networks, and intelligent systems.',
-  aids: 'Data science, analytics, and AI-driven insights.',
-  cse:  'Core computing, software engineering, and systems design.',
-  ise:  'Information systems, web technologies, and digital innovation.',
-  ece:  'Electronics, communication systems, and embedded tech.',
-  eee:  'Electrical engineering, power systems, and energy innovation.',
+  aiml: 'Turning data into intelligence through artificial intelligence and machine learning.',
+  aids: 'AI & Data Science - where data, intelligence, and innovation come together.',
+  cse: 'CSE — Building the foundations of computing through software engineering, systems, and technology.',
+  ise: 'The Information Science & Engineering department fosters innovation and technical excellence through learning, research, and industry-focused activities.',
+  ece: 'Electronics, communication systems, and embedded tech.',
+  eee: 'Electrical engineering, power systems, and energy innovation.',
 };
 
 /**
