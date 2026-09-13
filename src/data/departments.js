@@ -236,7 +236,7 @@ export const departments = {
     displayDates: '22–24 Oct',
     logoSrc: '/assets/ise-sbg-logo.svg',
     description:
-      'Beyond Search: The Intelligence Challenge — an AWS-powered competition that tests knowledge retrieval, RAG, and cloud architecture skills.',
+      'Step into a week where cloud computing meets Generative AI and practical problem solving. Explore AWS fundamentals, build a RAG-based Knowledge Base with Amazon Bedrock, and put your skills to the test in a competitive challenge. From working with S3 and cloud services to designing solutions for real-world scenarios, the week offers a mix of hands-on exploration, technical thinking, teamwork, and competition.',
     metaTitle: "ISE — Week 04 | DBIT HexaVerse CloudFest '26",
     metaDesc:
       "ISE department week at HexaVerse CloudFest '26, Don Bosco Institute of Technology (DBIT). Workshop and signature event from 12–16 Oct 2026.",
@@ -244,8 +244,22 @@ export const departments = {
       {
         type: 'Workshop',
         title: 'The RAG Builder Session',
-        description:
-          'A hands-on workshop covering AWS fundamentals, S3, Generative AI, RAG, Amazon Bedrock, and Knowledge Bases.',
+        description: `
+        Get hands-on with the AWS ecosystem and explore how cloud services can power modern AI applications. The session takes you from the basics of AWS and S3 to **Retrieval-Augmented Generation (RAG)** and **Amazon Bedrock**.
+
+        Participants will work with AWS services directly, connect documents to a Knowledge Base, and see how relevant information can be retrieved and used to generate grounded responses.
+
+        **What to expect:**
+        * Get familiar with AWS and its core cloud services
+        * Create and work with an Amazon S3 bucket
+        * Explore AI, Generative AI, and RAG concepts
+        * Work with Amazon Bedrock and Knowledge Bases
+        * Build and test a RAG-based Knowledge Base
+        * Gain practical experience that prepares you for the department's signature challenge
+
+        ***No advanced prior knowledge is required. Basic familiarity with cloud or AI concepts is helpful but not essential.***
+        `,
+
         dates: '22 Oct 2026',
         venue: 'Venue TBD',
         eventId: 'ise-workshop',
@@ -257,9 +271,23 @@ export const departments = {
       },
       {
         type: 'Signature Event',
-        title: 'Beyond Search : The Intelligence Challenge',
-        description:
-          'A two-round AWS competition featuring Rapid Retrieval and Solution Architecture challenges, where participants retrieve knowledge and design real-world cloud solutions.',
+        title: 'Beyond Search:The Intelligence Challenge',
+        description: `
+        Go beyond simply finding information. **Beyond Search: The Intelligence Challenge** is a two-round AWS challenge that puts knowledge retrieval and cloud architecture skills to the test. 
+        
+        Participants work with **Amazon Bedrock** and **Knowledge Bases** to retrieve relevant information from **AWS** resources, then use that knowledge to tackle a real-world architecture problem. The challenge moves from finding the right information to making meaningful technical decisions with it.
+
+        **What makes it interesting:**
+        * Two rounds combining retrieval and architecture
+        * Team-based problem solving
+        * Hands-on use of AWS and Amazon Bedrock
+        * Real-world cloud architecture scenarios
+        * Time-bound decision making and technical reasoning
+        * Present and defend your solution before the judges
+
+        ***Prior knowledge: Basic familiarity with AWS, RAG, and Amazon Bedrock is recommended. The pre-event workshop provides a practical foundation for participants.***
+        `,
+
         dates: '24 Oct 2026',
         venue: 'A-001',
         eventId: 'ise-event',
@@ -365,16 +393,33 @@ export const departments = {
     displayDates: '2–5 Nov',
     logoSrc: '/assets/eee-sbg-logo.svg',
     description:
-      'An engaging platform that brings together engineering, technology, and innovation through hands-on learning, collaboration, and real-world problem solving.',
+      'EEE Week brings together technology, engineering, and competition in an experience designed for curious students. Explore how cloud technologies can connect with engineering applications, get hands-on with practical concepts, and put your skills to the test through a three-round technical challenge. Whether you enjoy building, experimenting, solving problems, or competing under pressure, there’s something here to keep you engaged.',
     metaTitle: "EEE — Week 06 | DBIT HexaVerse CloudFest '26",
     metaDesc:
       "EEE department week at HexaVerse CloudFest '26, Don Bosco Institute of Technology (DBIT). Workshop and signature event from 2–5 Nov 2026.",
     events: [
       {
         type: 'Workshop',
-        title: 'Workshop Title TBD',
-        description:
-          'AWS × EEE — From Engineering Problems to Cloud Solutions is a hands-on workshop introducing students to AWS cloud technologies and their applications in electrical and electronics engineering.',
+        title: 'Grid2Cloud: The Workshop',
+        description: `
+        **AWS × EEE — From Engineering Problems to Cloud Solutions**
+
+        Discover how cloud computing can be applied to real engineering scenarios in your domain through an interactive, beginner-friendly experience. The workshop takes students beyond theory and into practical exploration of AWS services and their role in building connected and scalable solutions.
+
+        **Participants can look forward to:**
+
+        * Exploring the fundamentals of cloud computing and AWS
+        * Understanding AWS services such as IoT Core, SQS, Lambda, S3, SNS, CloudWatch, and EC2
+        * Connecting cloud concepts with Electrical and Electronics Engineering applications
+        * Working through practical examples and hands-on activities
+        * Understanding how different cloud services can work together as a complete solution
+        * Designing and exploring a practical Smart Energy Monitoring System
+
+        **No cloud background is required.** The workshop is designed to make cloud technology approachable while giving students a chance to experiment, build, and think like engineers.
+
+        The workshop also gives participants a strong foundation for the signature event by introducing them to relevant technologies, concepts, and problem-solving approaches. Attending the workshop can help participants approach the competition with greater confidence and a better understanding of the challenges they may encounter.
+        `,
+
         dates: '2 – 3 Nov 2026',
         venue: 'Venue TBD',
         eventId: 'eee-workshop',
@@ -387,8 +432,21 @@ export const departments = {
       {
         type: 'Signature Event',
         title: 'FetchNFix:Spot before it Sparks',
-        description:
-          'A high-energy competitive event that brings together enthusiastic minds through three exciting rounds, challenging participants on their technical knowledge, problem-solving skills, creativity, and teamwork. Get ready to learn, compete, and prove your skills!',
+        description: `
+        Get ready for a fast-paced technical challenge where knowledge meets problem-solving, creativity, and teamwork. The signature event brings students together in an engaging three-round competition, with each stage putting a different aspect of their technical thinking to the test.
+
+Participants will face challenges that encourage them to think quickly, apply what they know, collaborate effectively, and make decisions under pressure.
+
+* Three competitive rounds designed to keep the challenge engaging from start to finish
+* Questions and challenges that test technical knowledge and problem-solving
+* Opportunities to demonstrate creativity, teamwork, and quick thinking
+* A competitive environment where every decision can make a difference
+* An accessible experience for students who enjoy technology, engineering, and challenges
+
+The workshop and signature event are designed to complement each other. The workshop provides participants with useful exposure to cloud technologies and engineering applications, giving them a stronger foundation before stepping into the competition.
+
+***Whether you come to compete, collaborate, or simply test your skills, expect an energetic experience filled with challenges, strategy, teamwork, and healthy competition!***
+        `,
         dates: '4 Nov 2026',
         venue: 'A-001',
         eventId: 'eee-event',

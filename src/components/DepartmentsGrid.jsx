@@ -13,9 +13,9 @@ const TAGLINES = {
   aiml: 'Explore AI, ML, and cloud technologies through hands-on experiences, practical problem-solving, and creative technical challenges.',
   aids: 'Dive into cloud and generative AI, unleash your creativity, and turn original ideas into something worth putting in the spotlight.',
   cse: 'Explore AWS, experiment with Amazon Q, sharpen your coding skills, and take on a simulated system compromise where teamwork and quick thinking lead to recovery.',
-  ise: 'Discover Generative AI, RAG, and Amazon Bedrock while experimenting with intelligent solutions and tackling real-world challenges.',
+  ise: 'Explore AWS, cloud computing, Generative AI, RAG, and Amazon Bedrock through hands-on learning,experimentation, and a competitive challenge built around real-world problem solving.',
   ece: 'Explore Electronics, intelligent systems, and real-world challenges - where circuits, AI, cloud, and creativity come together.',
-  eee: 'Step into cloud technologies, tackle engineering challenges, and put your knowledge, creativity, and teamwork to the test.',
+  eee: 'Step into EEE Week for hands-on cloud exploration, engineering challenges, creative problem-solving, and exciting competition designed to test both knowledge and teamwork.',
 };
 
 /**
