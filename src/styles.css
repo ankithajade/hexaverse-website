@@ -1665,9 +1665,16 @@ body {
 .dept-hero-desc {
   font-size: 1.05rem;
   color: var(--text-dim);
-  max-width: 65ch;
+  max-width: 85ch;
   line-height: 1.7;
-  white-space: pre-line;
+}
+
+.dept-hero-desc p {
+  margin-bottom: 14px;
+}
+
+.dept-hero-desc p:last-child {
+  margin-bottom: 0;
 }
 
 .event-cards {
@@ -1711,13 +1718,26 @@ body {
   /* Bumped size */
 }
 
+.event-card-desc,
+.event-card-desc p,
 .event-card p {
   font-size: 1rem;
   color: var(--text-dim);
   line-height: 1.7;
-  margin-bottom: 20px;
   max-width: 65ch;
-  white-space: pre-line;
+}
+
+.event-card-desc,
+.event-card > p {
+  margin-bottom: 20px;
+}
+
+.event-card-desc p {
+  margin-bottom: 12px;
+}
+
+.event-card-desc p:last-child {
+  margin-bottom: 0;
 }
 
 /* Bumped size */
@@ -1807,10 +1827,67 @@ body {
   border: 1px solid var(--bg-card-border);
 }
 
-.accordion-inner p {
+.accordion-inner p,
+.accordion-inner .rich-text,
+.accordion-inner .rich-text p {
   font-size: 0.9rem;
   color: var(--text-dim);
   line-height: 1.7;
+}
+
+.accordion-inner .rich-text p {
+  margin-bottom: 10px;
+}
+
+.accordion-inner .rich-text p:last-child {
+  margin-bottom: 0;
+}
+
+/* ─── RICH TEXT (MARKDOWN OUTPUT) ─── */
+.rich-text {
+  font-size: inherit;
+}
+
+.rich-text p {
+  font-size: inherit;
+  line-height: 1.7;
+  margin-bottom: 0.85rem;
+}
+
+.rich-text p:last-child {
+  margin-bottom: 0;
+}
+
+.rich-text strong {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.rich-text em {
+  font-style: italic;
+  color: var(--text);
+}
+
+.rich-text ul,
+.rich-text ol {
+  padding-left: 20px;
+  margin: 10px 0;
+  color: inherit;
+}
+
+.rich-text li {
+  line-height: 1.7;
+  margin-bottom: 4px;
+}
+
+.rich-text li:last-child {
+  margin-bottom: 0;
+}
+
+.rich-text a {
+  color: var(--cyan);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* Bumped size */

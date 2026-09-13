@@ -10,12 +10,12 @@ const prefersReducedMotion =
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const TAGLINES = {
-  aiml: 'Turning data into intelligence through artificial intelligence and machine learning.',
-  aids: 'AI & Data Science - where data, intelligence, and innovation come together.',
-  cse: 'CSE — Building the foundations of computing through software engineering, systems, and technology.',
-  ise: 'The Information Science & Engineering department fosters innovation and technical excellence through learning, research, and industry-focused activities.',
-  ece: 'Electronics, communication systems, and embedded tech.',
-  eee: 'Electrical engineering, power systems, and energy innovation.',
+  aiml: 'Explore AI, ML, and cloud technologies through hands-on experiences, practical problem-solving, and creative technical challenges.',
+  aids: 'Dive into cloud and generative AI, unleash your creativity, and turn original ideas into something worth putting in the spotlight.',
+  cse: 'Sharpen your coding skills, explore cloud technologies and intelligent tools, and tackle challenges that put your problem-solving to the test',
+  ise: 'Discover Generative AI, RAG, and Amazon Bedrock while experimenting with intelligent solutions and tackling real-world challenges.',
+  ece: 'Explore Electronics, intelligent systems, and real-world challenges - where circuits, AI, cloud, and creativity come together.',
+  eee: 'Step into cloud technologies, tackle engineering challenges, and put your knowledge, creativity, and teamwork to the test.',
 };
 
 /**

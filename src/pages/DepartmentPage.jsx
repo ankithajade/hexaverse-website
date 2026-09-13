@@ -7,6 +7,7 @@ import BackToTop from '../components/BackToTop';
 import BackButton from '../components/BackButton';
 import DeptAccordionCard from '../components/DeptAccordionCard';
 import ScrollReveal from '../components/ScrollReveal';
+import RichText from '../components/RichText';
 
 /**
  * Single dynamic component for all 6 department pages.
@@ -49,7 +50,7 @@ export default function DepartmentPage() {
           <div className="dept-hero-badge">{dept.badge}</div>
           <h1>{dept.name}</h1>
           <p className="dept-hero-dates">{dept.dates}</p>
-          <p className="dept-hero-desc">{dept.description}</p>
+          <RichText className="dept-hero-desc">{dept.description}</RichText>
         </div>
       </ScrollReveal>
 

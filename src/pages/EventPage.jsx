@@ -6,6 +6,7 @@ import Footer from '../components/Footer';
 import BackToTop from '../components/BackToTop';
 import BackButton from '../components/BackButton';
 import ScrollReveal from '../components/ScrollReveal';
+import RichText from '../components/RichText';
 
 // ── SVG icons ────────────────────────────────────────────────────────────────
 function CalendarIcon() {
@@ -90,7 +91,7 @@ export default function EventPage() {
             <div className="dept-hero-badge">{event.badge}</div>
             <h1>{event.title}</h1>
             <p className="dept-hero-dates">{event.dates}</p>
-            <p className="dept-hero-desc">{event.description}</p>
+            <RichText className="dept-hero-desc">{event.description}</RichText>
           </div>
           <div style={{ alignSelf: 'center', marginTop: '12px' }}>
             {event.id === 'hackathon' ? (

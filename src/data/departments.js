@@ -13,7 +13,7 @@ export const departments = {
     displayDates: '21–23 Sept',
     logoSrc: '/assets/aiml-sbg-logo.svg',
     description:
-      'A week of hands-on workshops, AI challenges, and innovative experiences exploring artificial intelligence and machine learning.',
+      'Step into AIML Week for a practical journey across artificial intelligence, machine learning, and cloud technologies. Explore AWS services, work with real datasets, build and deploy machine learning models, and experiment with modern AI tools. The week also brings a competitive edge through a multi-round challenge where technical knowledge meets creativity, problem-solving, and application building.',
     metaTitle: "AI & ML — Week 01 | DBIT HexaVerse CloudFest '26",
     metaDesc:
       "AI & ML department week at HexaVerse CloudFest '26, Don Bosco Institute of Technology (DBIT). Workshop and signature event from 21–24 Sept 2026.",
@@ -21,8 +21,24 @@ export const departments = {
       {
         type: 'Workshop',
         title: 'AWS Builders Lab',
-        description:
-          'AWS Builders Lab brings cloud computing and machine learning together through hands-on AWS services, model training, deployment, and MLOps.',
+        description:`
+        AWS Builders Lab brings cloud computing and machine learning together through guided, hands-on experiences. Participants work directly with AWS services and explore how a machine learning workflow moves from data to a trained, deployed, and testable model.
+
+        The workshop is designed to be approachable for students who are new to AWS while still giving experienced learners plenty to experiment with.
+
+        *Participants can look forward to:*
+        - Exploring core AWS services such as **IAM, EC2, and S3**
+        - Experimenting with **Amazon Bedrock** and cloud-based AI capabilities
+        - Working with **SageMaker Canvas** and real datasets
+        - Training and evaluating a **machine learning model**
+        - Registering, deploying, and testing a model through a practical workflow
+        - Getting a hands-on introduction to **MLOps, monitoring, and cloud resource management**
+
+        &nbsp;
+
+        Rather than stopping at concepts, the workshop lets participants actually work through the technology and see how the pieces connect.
+        ***Join us through the link below!***
+        `,
         dates: '21 – 22 Sept 2026',
         venue: 'B-311 & B-312',
         eventId: 'aiml-workshop',
@@ -34,9 +50,18 @@ export const departments = {
       },
       {
         type: 'Signature Event',
-        title: 'The PartyRock Hack',
-        description:
-          'PartyRockHack is a three-round AI challenge that takes participants from testing their AWS and cloud knowledge to building applications with PartyRock and creating innovative solutions for campus life.',
+        title: 'The PartyRock Hack: Building the Future with AI',
+        description:`
+        **PartyRockHack** is a three-round individual challenge that takes participants from testing their AWS and cloud knowledge to building practical AI-powered applications. Each stage introduces a different kind of problem-solving, making the experience progressively more hands-on.
+
+        Participants will work with **AWS PartyRock** to explore data, experiment with AI-powered applications, and develop a solution to a campus-focused challenge — all while making decisions under time constraints. Solutions will be evaluated on **functionality, usability, innovation, and practical value**, with participants getting the opportunity to showcase both their technical understanding and creativity.
+
+        Whether you're already comfortable with cloud technologies or curious about building with AI tools, PartyRockHack offers a progressive challenge that takes you from **knowledge → experimentation → creation.**
+
+        &nbsp;
+
+        ***Ready to build? Register below for PartyRockHack and put your ideas to the test!***
+        `,
         dates: '23 Sept 2026',
         venue: 'A-001',
         eventId: 'aiml-event',
@@ -63,16 +88,34 @@ export const departments = {
     displayDates: '5–7 Oct',
     logoSrc: '/assets/aids-sbg-logo.svg',
     description:
-      'Step into Franchise Forge, where AI meets imagination and creativity.Build your story, forge your franchise, and survive the spotlight.',
+      'Step into an AI&DS experience that moves from exploring AWS and generative AI to putting those tools into action. Start with Amazon Bedrock, prompt engineering and Amazon S3 through a hands-on preparation workshop, then take those skills into Franchise Forge: The Studio Challenge. Work with a team to create an original franchise, develop its characters and visuals, respond to unexpected changes and pitch your final vision.',
     metaTitle: "AI & DS — Week 02 | DBIT HexaVerse CloudFest '26",
     metaDesc:
-      "AI & DS department week at HexaVerse CloudFest '26, Don Bosco Institute of Technology (DBIT). Workshop and signature event from 28 Sept – 1 Oct 2026.",
+      "AI & DS department week at HexaVerse CloudFest '26, Don Bosco Institute of Technology (DBIT). Workshop and signature event from 5-7 Oct 2026.",
     events: [
       {
         type: 'Workshop',
         title: 'Franchise Forge Labs',
-        description:
-          'This hands-on workshop introduces participants to Amazon Bedrock, prompt engineering, and AI-assisted creative development, followed by using Amazon S3 to organize and store their project assets. Participants will learn how to turn ideas into structured creative outputs using AI while developing practical skills in prompt design, content generation, AWS workflow, and digital asset management. The workshop prepares participants to confidently build and manage their franchise during the Franchise Forge: The Studio Challenge.',
+        description:`
+        **Build with AWS. Create with AI. Compete with Creativity.**
+
+        **Franchise Forge** Workshop introduces participants to the AWS workflow they will use during the Studio Challenge. Starting with AWS and cloud fundamentals, the workshop moves into Amazon Bedrock, prompt engineering and Amazon S3 through practical, hands-on activities. Participants learn how to use **Bedrock** to brainstorm and refine creative ideas, then organise their working assets in an **S3 Studio Vault**.
+
+        The focus is on getting participants comfortable with the complete workflow before entering the competition.
+
+        - AWS account and Management Console basics
+        - Cloud and AWS fundamentals
+        - Amazon Bedrock for creative development
+        - Prompt engineering for generating and refining ideas
+        - Amazon S3 for organising project assets
+        - Bedrock → Create/Refine → S3 → Submission workflow
+
+        &nbsp;
+
+        The workshop is accessible to beginners while giving participants the practical foundation needed for Franchise Forge.
+        
+        ***Explore AWS, experiment with AI, and build something of your own. Register now!***
+        `,
         dates: '5 – 6 Oct 2026',
         venue: 'B-218 & B-219',
         eventId: 'aids-workshop',
@@ -85,8 +128,17 @@ export const departments = {
       {
         type: 'Signature Event',
         title: 'Franchise Forge: The Studio Challenge',
-        description:
-          'Franchise Forge puts every team in charge of a Studio, building an original entertainment franchise from the ground up — concept, cast, visual identity and marketing — using Amazon Bedrock and AWS tools at each stage. ',
+        description:`
+        **The Studio Challenge** puts teams in the role of entertainment Studios and challenges them to build an original franchise from the ground up. Across three rounds, teams develop their franchise concept, create its characters and visual identity, build a marketing strategy and adapt their work when an unexpected Breaking News scenario changes the situation.
+
+        **Amazon Bedrock** supports brainstorming and refinement, while **Amazon S3** helps teams organise their working assets throughout the challenge. After the **three rounds**, the *Top 5 teams* advance to the final pitch, where they present their complete franchise, explain their creative decisions and respond to judges' questions.
+
+        It brings together cloud tools, creative thinking, teamwork, rapid decision-making and the pressure of adapting an idea when the situation suddenly changes.
+
+        &nbsp;
+
+        ***Put your creativity to the test and turn ideas into something real. Join the challenge!***
+        `,
         dates: '7 Oct 2026',
         venue: 'A-001 ',
         eventId: 'aids-event',
@@ -210,16 +262,34 @@ export const departments = {
     displayDates: '22–29 Oct',
     logoSrc: '/assets/ece-sbg-logo.svg',
     description:
-      'Electronics, communication systems, and embedded systems — through workshops and a department signature event.',
+      'Get ready for a week built around electronics, intelligent systems, and hands-on problem solving. \nExplore how AI, sensors, communication protocols, embedded systems, and interactive hardware come together to create smarter solutions. Whether you enjoy building circuits, experimenting with technology, or solving challenges under pressure, ECE Week brings you opportunities to learn, build, and compete.',
     metaTitle: "ECE — Week 05 | DBIT HexaVerse CloudFest '26",
     metaDesc:
       "ECE department week at HexaVerse CloudFest '26, Don Bosco Institute of Technology (DBIT). Workshop and signature event from 26–29 Oct 2026.",
     events: [
       {
         type: 'Workshop',
-        title: 'Workshop Title TBD',
-        description:
-          'A 2-day hands-on workshop exploring key concepts and practical applications in electronics and communications engineering.',
+        title: 'Edge‑to‑Cloud Workshop',
+        description: `
+          **Design, Train & Bring Intelligent Systems to Life**
+          
+          Take your electronics knowledge beyond conventional circuits and explore how ***ML, embedded systems, sensors, gestures, and connected communication*** can come together to create intelligent, interactive solutions.
+          
+          *What you'll explore:*
+          - Train ML models for component and gesture recognition 
+          - Build MQTT-based communication between system components 
+          - Design and validate virtual circuits 
+          - Control circuit behaviour using gesture recognition 
+          - Integrate ML, communication, and circuit logic into a working system
+          
+          &nbsp;
+
+          No long lectures. No passive demonstrations. 
+          
+          You'll train, build, experiment, test, troubleshoot, and integrate - getting a glimpse of how modern intelligent embedded systems are designed.
+
+          ***Come join us to experiment, build, and turn ideas into working systems!***
+          `,
         dates: '22 – 23 Oct 2026',
         venue: 'Venue TBD',
         eventId: 'ece-workshop',
@@ -231,9 +301,22 @@ export const departments = {
       },
       {
         type: 'Signature Event',
-        title: 'Dept. Signature Event TBD',
-        description:
-          'A department-curated competition showcasing the best of electronics and communications engineering.',
+        title: 'Wave \'n\' Wire: The Smart System Challenge',
+        description:`
+          **Build the System. Master the Challenge.**
+          
+          *What if your team was given a real-world problem and you had to engineer the solution from scratch?*
+
+          Take on a real-world engineering challenge where **electronics, ML, communication, and embedded systems** come together.
+
+          Work in teams to analyse a unique scenario, design your approach, train recognition models, build virtual circuits, establish MQTT communication, and integrate everything into a working system.
+
+          Progress through **four challenging levels**, each with new tasks and constraints. There are no step-by-step solutions - *your team has to think, build, troubleshoot, and make it work.*
+
+          &nbsp;
+
+          ***How far can you take your system? Register now and show your potential!***
+          `,
         dates: '29 Oct 2026',
         venue: 'Venue TBD',
         eventId: 'ece-event',

@@ -13,6 +13,7 @@ import Footer from '../components/Footer';
 import BackToTop from '../components/BackToTop';
 import BackButton from '../components/BackButton';
 import ScrollReveal from '../components/ScrollReveal';
+import RichText from '../components/RichText';
 
 const DEPARTMENTS = ['AI & ML', 'AI & DS', 'CSE', 'ISE', 'ECE', 'EEE'];
 const SEMESTERS = ['1', '3', '5', '7'];
@@ -419,7 +420,9 @@ export default function RegisterPage() {
               </h4>
               <ul style={{ paddingLeft: '20px', color: 'var(--text-dim)', fontSize: '0.9rem', lineHeight: '1.7' }}>
                 {event.registrationRules.map((rule, idx) => (
-                  <li key={idx} style={{ marginBottom: '6px' }}>{rule}</li>
+                  <li key={idx} style={{ marginBottom: '6px' }}>
+                    <RichText>{rule}</RichText>
+                  </li>
                 ))}
               </ul>
             </ScrollReveal>

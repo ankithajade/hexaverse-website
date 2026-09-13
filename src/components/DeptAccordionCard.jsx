@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import RichText from './RichText';
 
 // SVG icon helpers
 function CalendarIcon() {
@@ -53,7 +54,7 @@ export default function DeptAccordionCard({
     <div className="event-card">
       <div className="event-card-type">{type}</div>
       <h2>{title}</h2>
-      <p>{description}</p>
+      <RichText className="event-card-desc">{description}</RichText>
 
       <div className="event-card-meta">
         <span>
@@ -82,7 +83,7 @@ export default function DeptAccordionCard({
         style={{ maxHeight }}
       >
         <div className="accordion-inner">
-          <p>{accordionContent}</p>
+          <RichText>{accordionContent}</RichText>
         </div>
       </div>
     </div>
