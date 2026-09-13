@@ -21,7 +21,7 @@ export const departments = {
       {
         type: 'Workshop',
         title: 'AWS Builders Lab',
-        description:`
+        description: `
         AWS Builders Lab brings cloud computing and machine learning together through guided, hands-on experiences. Participants work directly with AWS services and explore how a machine learning workflow moves from data to a trained, deployed, and testable model.
 
         The workshop is designed to be approachable for students who are new to AWS while still giving experienced learners plenty to experiment with.
@@ -51,7 +51,7 @@ export const departments = {
       {
         type: 'Signature Event',
         title: 'The PartyRock Hack: Building the Future with AI',
-        description:`
+        description: `
         **PartyRockHack** is a three-round individual challenge that takes participants from testing their AWS and cloud knowledge to building practical AI-powered applications. Each stage introduces a different kind of problem-solving, making the experience progressively more hands-on.
 
         Participants will work with **AWS PartyRock** to explore data, experiment with AI-powered applications, and develop a solution to a campus-focused challenge — all while making decisions under time constraints. Solutions will be evaluated on **functionality, usability, innovation, and practical value**, with participants getting the opportunity to showcase both their technical understanding and creativity.
@@ -96,7 +96,7 @@ export const departments = {
       {
         type: 'Workshop',
         title: 'Franchise Forge Labs',
-        description:`
+        description: `
         **Build with AWS. Create with AI. Compete with Creativity.**
 
         **Franchise Forge** Workshop introduces participants to the AWS workflow they will use during the Studio Challenge. Starting with AWS and cloud fundamentals, the workshop moves into Amazon Bedrock, prompt engineering and Amazon S3 through practical, hands-on activities. Participants learn how to use **Bedrock** to brainstorm and refine creative ideas, then organise their working assets in an **S3 Studio Vault**.
@@ -128,7 +128,7 @@ export const departments = {
       {
         type: 'Signature Event',
         title: 'Franchise Forge: The Studio Challenge',
-        description:`
+        description: `
         **The Studio Challenge** puts teams in the role of entertainment Studios and challenges them to build an original franchise from the ground up. Across three rounds, teams develop their franchise concept, create its characters and visual identity, build a marketing strategy and adapt their work when an unexpected Breaking News scenario changes the situation.
 
         **Amazon Bedrock** supports brainstorming and refinement, while **Amazon S3** helps teams organise their working assets throughout the challenge. After the **three rounds**, the *Top 5 teams* advance to the final pitch, where they present their complete franchise, explain their creative decisions and respond to judges' questions.
@@ -164,7 +164,7 @@ export const departments = {
     displayDates: '5–8 Oct',
     logoSrc: '/assets/cse-sbg-logo.svg',
     description:
-      'Explore the world of computing and software engineering through hands-on workshops, technical challenges, and innovative experiences.',
+      'The Computer Science and Engineering week takes you from exploring cloud technologies to applying them in a high-pressure system recovery challenge. Get handson with Amazon Q and commonly used AWS services, test your understanding, and then put those skills into action as your team works through a simulated hacker attack. Solve coding challenges, recover compromised system components, and race against the clock to restore what was lost.',
     metaTitle: "CSE — Week 03 | DBIT HexaVerse CloudFest '26",
     metaDesc:
       "CSE department week at HexaVerse CloudFest '26, Don Bosco Institute of Technology (DBIT). Workshop and signature event from 5–8 Oct 2026.",
@@ -172,8 +172,21 @@ export const departments = {
       {
         type: 'Workshop',
         title: 'Breaking Bug: The Debugging Masterclass',
-        description:
-          'A two-day, hands-on workshop covering Cloud Computing, AWS fundamentals, Git & GitHub, prompt engineering, Amazon Q Developer, debugging, logging, and monitoring — designed to help participants build, debug, and deploy with confidence.',
+        description: `
+        Get introduced to the technologies that power the challenge ahead. **THE BREAKING BUG** is a day-long, hands-on experience focused on **Amazon Q and commonly used AWS services**, helping participants understand how these tools can be applied in practical cloud-based scenarios. 
+        
+        The workshop is designed to take participants from the fundamentals to actively working with the concepts, making it accessible even without prior AWS experience. An interactive end-of-day quiz brings the experience together, giving participants a chance to apply what they have explored while offering a glimpse of what awaits in the signature challenge. 
+        
+        **What to look forward to:**
+        - Explore Amazon Q and its practical applications
+        - Get familiar with commonly used AWS services
+        - Understand how cloud services can work together in real-world scenarios
+        - Apply concepts through hands-on activities
+        - Test your understanding through an interactive quiz
+        - Build familiarity with the tools and concepts used in the upcoming challenge
+
+        ***No prior knowledge is required — the workshop begins with the fundamentals and builds from there.***
+        `,
         dates: '5 – 6 Oct 2026',
         venue: 'Venue TBD',
         eventId: 'cse-workshop',
@@ -186,8 +199,18 @@ export const departments = {
       {
         type: 'Signature Event',
         title: 'The Breaking Bug: The Amazon Q Debugging Challenge',
-        description:
-          'Breaking Bug immerses every team in a live hacker simulation, where they become engineers racing to stop a cyberattack through debugging challenges, AI-assisted coding missions, and interconnected system recovery stages—testing technical skills, teamwork, accuracy, and speed under pressure.',
+        description: `
+        A system has been compromised. Critical components are down, and your team has to bring them back. 
+        
+        **THE BREAKING BUG** is a ***three-round***, team-based system recovery challenge built around a simulated hacker attack. Participants must work through **code-based challenges using Amazon Q**, solving problems to progress through the system and gradually recover compromised components such as the dashboard and login pages. 
+        
+        The challenge brings together **coding, cloud technology, logical problem-solving, and teamwork**, with every decision made under time pressure. Rather than simply answering questions, teams must use their technical understanding to move through a scenario where each solved challenge brings the system closer to recovery. 
+        
+        With three rounds designed to test both individual thinking and team coordination, **THE BREAKING BUG** turns system recovery into a race against the clock. 
+        
+        ***Prior knowledge is required, with a basic understanding of programming and the concepts covered in the workshop recommended for participants.***
+        `,
+
         dates: '8 Oct 2026',
         venue: 'A-001',
         eventId: 'cse-event',
@@ -302,7 +325,7 @@ export const departments = {
       {
         type: 'Signature Event',
         title: 'Wave \'n\' Wire: The Smart System Challenge',
-        description:`
+        description: `
           **Build the System. Master the Challenge.**
           
           *What if your team was given a real-world problem and you had to engineer the solution from scratch?*
