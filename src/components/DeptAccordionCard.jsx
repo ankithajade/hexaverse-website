@@ -33,11 +33,12 @@ export default function DeptAccordionCard({
   eventTitle,
   isTeam = false,
   isInterCollege = false,
+  className = '',
 }) {
   const navigate = useNavigate();
 
   return (
-    <div className="event-card">
+    <div className={`event-card ${className}`.trim()}>
       <div className="event-card-type">{type}</div>
       <h2>{title}</h2>
       <RichText className="event-card-desc">{description}</RichText>

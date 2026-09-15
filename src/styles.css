@@ -1927,14 +1927,53 @@ body {
   text-underline-offset: 3px;
 }
 
+.dept-mobile-tabs {
+  display: none;
+}
+
 /* Bumped size */
 @media(max-width:768px) {
   .dept-hero-media {
     display: none;
   }
 
+  .dept-mobile-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    background: var(--bg-card);
+    padding: 6px;
+    border-radius: 8px;
+    border: 1px solid var(--bg-card-border);
+  }
+
+  .dept-tab-btn {
+    flex: 1;
+    padding: 10px 14px;
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+
+  .dept-tab-btn.active {
+    background: var(--dept-accent, var(--cyan));
+    color: #ffffff;
+    font-weight: 700;
+  }
+
   .event-cards {
     grid-template-columns: 1fr;
+  }
+
+  .event-card.dept-card--mobile-hidden {
+    display: none !important;
   }
 }
 

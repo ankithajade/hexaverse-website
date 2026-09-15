@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
 import { departments } from '../data/departments';
 import Nav from '../components/Nav';
@@ -17,6 +17,7 @@ import RichText from '../components/RichText';
 export default function DepartmentPage() {
   const { deptId } = useParams();
   const dept = departments[deptId];
+  const [activeTab, setActiveTab] = useState('Workshop');
 
   // 404 if unknown dept id
   if (!dept) return <Navigate to="/" replace />;
@@ -27,6 +28,7 @@ export default function DepartmentPage() {
     if (meta) meta.setAttribute('content', dept.metaDesc);
     // Scroll to top on dept page load
     window.scrollTo(0, 0);
+    setActiveTab('Workshop');
   }, [dept]);
 
   return (
@@ -67,6 +69,24 @@ export default function DepartmentPage() {
 
       {/* Event cards */}
       <section className="container">
+        {/* Mobile-only tab toggle */}
+        <div className="dept-mobile-tabs">
+          <button
+            type="button"
+            className={`dept-tab-btn ${activeTab === 'Workshop' ? 'active' : ''}`}
+            onClick={() => setActiveTab('Workshop')}
+          >
+            Workshop
+          </button>
+          <button
+            type="button"
+            className={`dept-tab-btn ${activeTab === 'Signature Event' ? 'active' : ''}`}
+            onClick={() => setActiveTab('Signature Event')}
+          >
+            Signature Event
+          </button>
+        </div>
+
         <ScrollReveal stagger className="event-cards">
           {dept.events.map((ev) => (
             <DeptAccordionCard
@@ -80,7 +100,7 @@ export default function DepartmentPage() {
               eventTitle={ev.eventTitle}
               isTeam={ev.isTeam}
               isInterCollege={ev.isInterCollege}
-              accordionContent={ev.accordionContent}
+              className={ev.type !== activeTab ? 'dept-card--mobile-hidden' : ''}
             />
           ))}
         </ScrollReveal>
