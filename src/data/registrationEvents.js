@@ -44,43 +44,29 @@ Object.values(departments).forEach((dept) => {
   });
 });
 
-// 2. Map all mega events
+// 2. Map mega events with active registrations (only Treasure Hunt)
 Object.values(megaEvents).forEach((ev) => {
+  if (ev.id !== 'treasure-hunt') return; // Hackathon and Mega Event 3 do not have public registration
+
   const eventId = ev.registrationEventId || ev.id;
-  let rules = DEFAULT_SIGNATURE_RULES;
-  if (eventId === 'treasure-hunt') {
-    rules = [
-      'Teams must consist of 2 to 3 members from any department.',
-      'Registration fee is ₹80 per head, payable during the online checkout flow.',
-      'At least one smartphone with active internet and working camera is required per team.',
-      'Any disruption of campus activities or damage to college property results in instant disqualification.',
-      'The first team to scan the final checkpoint QR code and submit the answer at the control desk wins.',
-    ];
-  } else if (eventId === 'hackathon') {
-    rules = [
-      'Teams can consist of 2 to 4 members. Inter-college and cross-department teams are allowed.',
-      'Registration fee is ₹50 per head, payable during online checkout.',
-      'All code must be written during the 24-hour hackathon duration; pre-built projects are disqualified.',
-      'Laptops, chargers, and hardware kits must be brought by the participants.',
-    ];
-  } else if (eventId === 'technical-talk') {
-    rules = [
-      'Open to all DBIT students and external college attendees.',
-      'Individual registration, free of cost.',
-      'Please arrive at the venue 15 minutes prior to the scheduled keynote time.',
-    ];
-  }
+  const rules = [
+    'Teams must consist of exactly 3 members from any department.',
+    'Registration fee is ₹80 per head (₹240 total per team), payable during the online checkout flow.',
+    'At least one smartphone with active internet and working camera is required per team.',
+    'Any disruption of campus activities or damage to college property results in instant disqualification.',
+    'The first team to scan the final checkpoint QR code and submit the answer at the control desk wins.',
+  ];
 
   registrationEvents[eventId] = {
     eventId,
     eventTitle: ev.registrationTitle || ev.title,
-    isTeam: !!ev.isTeam,
-    isInterCollege: !!ev.isInterCollege,
-    teamMin: ev.id === 'treasure-hunt' ? 2 : 2,
-    teamMax: ev.id === 'treasure-hunt' ? 3 : 4,
-    fee: ev.id === 'treasure-hunt' ? 80 : (ev.id === 'technical-talk' ? 0 : 50),
-    lockedDepartment: null, // Free choice dropdown for mega events
-    registrationRules: ev.registrationRules || rules,
+    isTeam: true,
+    isInterCollege: false,
+    teamMin: 3,
+    teamMax: 3,
+    fee: 80,
+    lockedDepartment: null, // Cross-department allowed
+    registrationRules: rules,
     dates: ev.dates,
     description: ev.description,
   };

@@ -20,32 +20,37 @@ export const events = {
     isInterCollege: false,
     // Detail card meta items
     metaItems: [
-      { icon: 'calendar', text: '25 September 2026, 2:00 PM \u2014 5:00 PM' },
-      { icon: 'location', text: 'Starting Point: DBIT Main Seminar Hall' },
-      { icon: 'people', text: 'Teams of 2\u20133 members' },
+      { icon: 'calendar', text: '26 September 2026, 9:30 AM \u2014 2:00 PM' },
+      { icon: 'location', text: 'Starting Point: A-001' },
+      { icon: 'people', text: 'Teams of 3 members' },
     ],
     // Content sections inside the detail card
     sections: [
       {
         heading: 'About the Hunt',
         type: 'paragraph',
-        text: 'Get ready for the ultimate race across the DBIT campus! The HexaVerse Treasure Hunt combines cryptographic puzzles, riddle-solving, and physical navigation. Teams will receive their starting clue at the Seminar Hall, leading them to various checkpoints scattered throughout the campus buildings. At each checkpoint, a challenge must be completed to unlock the QR code representing the next clue.',
+        text: `
+        Get ready for **The Convergence**, a campus-wide treasure hunt that puts your problem-solving, teamwork, observation, and speed to the test. Teams begin at the designated starting point, where the first clue and its corresponding code entry are revealed. Each clue leads to the next location, where teams must find the designated sticker and complete the challenge associated with that checkpoint. At every checkpoint, participants must enter the correct code to record their progress and unlock the information needed to continue the hunt. Follow the trail, crack the challenges, and stay ahead of the other teams — because every second counts. The hunt continues through multiple checkpoints until teams reach the final hand-in, where the completed solution must be submitted.
+        `,
       },
       {
         heading: 'Rules \u0026 Format',
         type: 'list',
         items: [
-          'Each team must consist of 2 to 3 members.',
-          'At least one smartphone with active internet connection and a working camera (for scanning QR codes) is required per team.',
-          'Any form of damage to campus property or disruption of classes will result in immediate disqualification.',
-          'Decisions of the volunteers and coordinators at checkpoints are final.',
-          'The first team to scan the final QR code and present the solution at the control desk wins the grand prize.',
+          'Each team must consist of exactly 3 members.',
+          'Teams must follow the clues and checkpoints in the designated order.',
+          'The correct code must be entered at each stage to record progress and reveal the next part of the hunt.',
+          'Teams must complete the required challenge at each checkpoint before proceeding.',
+          'Participants must not damage, move, or tamper with campus property or event materials.',
+          'Any form of disruption to classes or campus activities may result in disqualification.',
+          'Teams must follow the instructions given by volunteers and coordinators at checkpoints.',
+          'The first team to successfully complete the final hand-in with the required solution wins the treasure hunt.',
         ],
       },
       {
         heading: 'Eligibility',
         type: 'paragraph',
-        text: 'Open to all undergraduate students of Don Bosco Institute of Technology across all departments and academic years. Cross-departmental team formulation is highly encouraged!',
+        text: 'Open to all undergraduate students of Don Bosco Institute of Technology, across departments and academic years. Cross-departmental team formation is encouraged.',
       },
     ],
   },
@@ -55,41 +60,26 @@ export const events = {
     title: 'Mega Event 3',
     cssVar: 'var(--mega-accent)',
     badge: 'Mega Event',
-    dates: 'TBD',
+    dates: 'Coming Soon',
     description:
-      'Keynote address and interactive session featuring prominent cloud architects and tech innovators. Expand your network and domain knowledge.',
-    metaTitle: "Technical Talk | DBIT HexaVerse CloudFest '26",
+      'Stay tuned! Details for Mega Event 3 will be announced soon.',
+    metaTitle: "Mega Event 3 | DBIT HexaVerse CloudFest '26",
     metaDesc:
-      "Technical Talk mega event at HexaVerse CloudFest '26, Don Bosco Institute of Technology (DBIT). Keynote session with industry leaders.",
-    registrationEventId: 'technical-talk',
-    registrationTitle: 'Technical Talk',
+      "Mega Event 3 at HexaVerse CloudFest '26, Don Bosco Institute of Technology (DBIT). Coming Soon.",
+    registrationEventId: null,
+    registrationTitle: 'Mega Event 3',
     isTeam: false,
     isInterCollege: false,
     metaItems: [
-      { icon: 'calendar', text: '9 October 2026, 11:00 AM \u2014 1:00 PM' },
-      { icon: 'location', text: 'Location: DBIT Auditorium' },
-      { icon: 'people', text: 'Individual Registration' },
+      { icon: 'calendar', text: 'Date: To Be Announced' },
+      { icon: 'location', text: 'Location: Coming Soon' },
+      { icon: 'people', text: 'Coming Soon' },
     ],
     sections: [
       {
-        heading: 'About the Session',
+        heading: 'About Mega Event 3',
         type: 'paragraph',
-        text: 'As part of the HexaVerse series, this technical talk is designed to connect students with the realities of modern software engineering. We host industry leaders to talk about scalable cloud architectures, AI systems integration, and what companies expect from next-generation tech graduates. Learn about the transition from academic programming to production-level systems design.',
-      },
-      {
-        heading: 'Format \u0026 Certification',
-        type: 'list',
-        items: [
-          'Interactive presentation: 60 minutes.',
-          'Live Q&A session: 30 minutes. Students can ask questions directly to the speaker.',
-          'Registration is mandatory. Attendance will be recorded via QR codes scanned at the venue entrance.',
-          'E-certificates will be issued to all registered attendees.',
-        ],
-      },
-      {
-        heading: 'Eligibility',
-        type: 'paragraph',
-        text: 'Open to all students of DBIT across all engineering disciplines, computer application courses, and semesters. Faculty members and researchers are also welcome to attend.',
+        text: 'Details for Mega Event 3 are currently under wraps and will be revealed soon. Stay tuned for announcements!',
       },
     ],
   },
@@ -105,17 +95,17 @@ export const events = {
     metaTitle: "Hackathon | DBIT HexaVerse CloudFest '26",
     metaDesc:
       "Hackathon mega event at HexaVerse CloudFest '26, Don Bosco Institute of Technology (DBIT). Flagship 24-hour inter-college programming marathon.",
-    registrationEventId: 'hackathon',
+    registrationEventId: null,
     registrationTitle: 'Hackathon',
     isTeam: true,
-    isInterCollege: true,
+    isInterCollege: false,
     metaItems: [
       {
         icon: 'calendar',
         text: 'Starts: 30 Oct, 9:00 AM \u2014 Closes: 31 Oct, 1:00 PM (24 Hours Active Coding)',
       },
       { icon: 'location', text: 'Location: DBIT IT Lab Block' },
-      { icon: 'people', text: 'Teams of 2\u20134 members (Inter-College allowed)' },
+      { icon: 'people', text: 'Teams of 2\u20134 members' },
     ],
     sections: [
       {
@@ -134,10 +124,9 @@ export const events = {
         ],
       },
       {
-        heading: 'Eligibility \u0026 Registration',
+        heading: 'Eligibility',
         type: 'paragraph',
-        strongPrefix: '\uD83C\uDF10 Inter-College Event:',
-        text: 'Open to all undergraduate engineering, computing, and IT students from any recognized institution. Inter-college teams (members from different colleges) are fully eligible and encouraged to register.',
+        text: 'Open to all undergraduate engineering, computing, and IT students. Cross-department teams are fully eligible and encouraged to participate.',
       },
     ],
   },

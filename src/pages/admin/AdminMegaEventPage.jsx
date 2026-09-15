@@ -718,7 +718,8 @@ export default function AdminMegaEventPage() {
                                       <th style={{ padding: '6px 8px', width: '32px' }}>#</th>
                                       <th style={{ padding: '6px 12px' }}>Role</th>
                                       <th style={{ padding: '6px 12px' }}>Member Name</th>
-                                      <th style={{ padding: '6px 12px' }}>USN</th>
+                                      <th style={{ padding: '6px 12px' }}>Sem / Sec</th>
+                                      <th style={{ padding: '6px 12px' }}>USN / Roll No</th>
                                       <th style={{ padding: '6px 12px' }}>Department</th>
                                       <th style={{ padding: '6px 12px' }}>Email</th>
                                       <th style={{ padding: '6px 12px' }}>Phone</th>
@@ -882,6 +883,7 @@ export default function AdminMegaEventPage() {
         <TeamEditModal
           team={editingTeam}
           eventSlug={eventId}
+          teamMin={eventId === 'treasure-hunt' ? 3 : 2}
           teamMax={teamMax}
           accentColor={eventAccentColor}
           onSaved={fetchData}

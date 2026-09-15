@@ -93,18 +93,8 @@ export default function EventPage() {
             <p className="dept-hero-dates">{event.dates}</p>
             <RichText className="dept-hero-desc">{event.description}</RichText>
           </div>
-          <div style={{ alignSelf: 'center', marginTop: '12px' }}>
-            {event.id === 'hackathon' ? (
-              <a
-                href="https://forms.example.com/hexaverse-hackathon-details"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-dept-register"
-                style={{ padding: '14px 28px', fontSize: '1.05rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                Details
-              </a>
-            ) : (
+          {event.id === 'treasure-hunt' && (
+            <div style={{ alignSelf: 'center', marginTop: '12px' }}>
               <button
                 className="btn-dept-register"
                 style={{ padding: '14px 28px', fontSize: '1.05rem' }}
@@ -112,8 +102,8 @@ export default function EventPage() {
               >
                 Register Now!
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </ScrollReveal>
 
@@ -185,25 +175,15 @@ export default function EventPage() {
           </div>
 
           {/* Bottom register CTA */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              paddingTop: '24px',
-              borderTop: '1px solid var(--bg-card-border)',
-            }}
-          >
-            {event.id === 'hackathon' ? (
-              <a
-                href="https://forms.example.com/hexaverse-hackathon-details"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-dept-register"
-                style={{ padding: '14px 40px', fontSize: '1.1rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                Details
-              </a>
-            ) : (
+          {event.id === 'treasure-hunt' && (
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                paddingTop: '24px',
+                borderTop: '1px solid var(--bg-card-border)',
+              }}
+            >
               <button
                 className="btn-dept-register"
                 style={{ padding: '14px 40px', fontSize: '1.1rem' }}
@@ -211,8 +191,8 @@ export default function EventPage() {
               >
                 Register Now!
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </ScrollReveal>
       </section>
 

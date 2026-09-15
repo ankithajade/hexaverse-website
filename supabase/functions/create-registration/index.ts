@@ -8,6 +8,40 @@ const corsHeaders = {
 };
 
 const USN_REGEX = /^1DB(23|24|25)(CS|IS|AD|CI|EC|EE)(00[1-9]|0[1-9]\d|[1-9]\d{2})$/i;
+const PHONE_REGEX = /^[6-9]\d{9}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const DEPT_USN_PREFIXES: Record<string, string[]> = {
+  aiml: ['CI'],
+  aids: ['AD'],
+  cse: ['CS'],
+  ise: ['IS'],
+  ece: ['EC'],
+  eee: ['EE'],
+};
+
+// Map full/variant department names to ID
+function normalizeDeptId(deptStr: string | null | undefined): string {
+  if (!deptStr) return '';
+  const s = deptStr.trim().toLowerCase();
+  if (s === 'aiml' || s.includes('machine learning')) return 'aiml';
+  if (s === 'aids' || s.includes('data science')) return 'aids';
+  if (s === 'cse' || (s.includes('computer science') && !s.includes('iot'))) return 'cse';
+  if (s === 'ise' || s.includes('information science')) return 'ise';
+  if (s === 'ece' || (s.includes('electronics and communication') && !s.includes('electrical'))) return 'ece';
+  if (s === 'eee' || s.includes('electrical')) return 'eee';
+  if (s === 'iot_cyber' || s.includes('iot') || s.includes('cybersecurity')) return 'iot_cyber';
+  return s;
+}
+
+function isUsnEligibleForDept(usn: string, deptSlug: string): boolean {
+  if (!usn || !deptSlug) return false;
+  const match = usn.trim().match(/^1DB(?:23|24|25)([A-Z]{2})/i);
+  if (!match) return false;
+  const branchCode = match[1].toUpperCase();
+  const allowed = DEPT_USN_PREFIXES[deptSlug.toLowerCase()];
+  return Array.isArray(allowed) && allowed.includes(branchCode);
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -20,7 +54,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await req.json();
-    const { event_slug, registrant, team_members, team_name, section, cycle, selected_dept, roll_number } = body;
+    const { event_slug, registrant, team_members, team_name } = body;
 
     if (!event_slug) {
       return new Response(JSON.stringify({ error: 'event_slug is required' }), {
@@ -58,40 +92,59 @@ serve(async (req) => {
         usn,
         email,
         phone,
-        cycle: regCycle,
-        selected_dept: regSelectedDept,
-        roll_number: regRollNumber,
-        section: regSection,
+        cycle,
+        selected_dept,
+        roll_number,
+        section,
       } = registrant || {};
 
-      if (!name || !semester || !email || !phone) {
+      if (!name || !semester || !email || !phone || !section) {
         return new Response(JSON.stringify({ error: 'Missing required workshop fields' }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
-      // Server-side USN validation for Semesters 3, 5, 7
-      if ([3, 5, 7].includes(Number(semester))) {
+      if (!PHONE_REGEX.test(phone.trim())) {
+        return new Response(JSON.stringify({ error: 'Invalid 10-digit mobile number' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!EMAIL_REGEX.test(email.trim())) {
+        return new Response(JSON.stringify({ error: 'Invalid email address' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const semNum = Number(semester);
+      const isSem1 = semNum === 1;
+
+      // Server-side USN & Dept eligibility validation
+      if ([3, 5, 7].includes(semNum)) {
         if (!usn || !USN_REGEX.test(usn.trim())) {
           return new Response(JSON.stringify({ error: `Invalid USN format for Semester ${semester}` }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
-      } else if (Number(semester) === 1 && event.department) {
-        const finalCycle = regCycle || cycle;
-        const finalSection = regSection || section;
-        const finalSelectedDept = regSelectedDept || selected_dept;
-        const finalRollNumber = regRollNumber || roll_number;
-
-        if (!finalCycle || !finalSection || !finalSelectedDept || !finalRollNumber) {
-          return new Response(JSON.stringify({ error: 'Missing required Semester 1 registration fields' }), {
+        if (event.department && !isUsnEligibleForDept(usn.trim(), event.department)) {
+          return new Response(JSON.stringify({ error: 'You are not eligible for this department workshop' }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
-        const isEligible = finalSelectedDept === event.department || (event.department === 'ece' && finalSelectedDept === 'iot_cyber');
+      } else if (isSem1 && event.department) {
+        if (!cycle || !roll_number || !selected_dept) {
+          return new Response(JSON.stringify({ error: 'Missing required Semester 1 registration fields (Cycle, Roll Number, Department)' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        const normDept = normalizeDeptId(selected_dept);
+        const isEligible = normDept === event.department || (event.department === 'ece' && normDept === 'iot_cyber');
         if (!isEligible) {
           return new Response(JSON.stringify({ error: 'You are not eligible for this event' }), {
             status: 400,
@@ -137,12 +190,12 @@ serve(async (req) => {
         .insert({
           event_slug,
           name: name.trim(),
-          semester: Number(semester),
-          usn: usn ? usn.trim().toUpperCase() : null,
-          roll_number: regRollNumber || roll_number || null,
-          cycle: regCycle || cycle || null,
-          selected_dept: regSelectedDept || selected_dept || null,
-          section: regSection || section || null,
+          semester: semNum,
+          usn: isSem1 ? null : (usn ? usn.trim().toUpperCase() : null),
+          roll_number: isSem1 ? (roll_number?.trim() || null) : null,
+          cycle: isSem1 ? (cycle?.trim() || null) : null,
+          selected_dept: isSem1 ? (selected_dept?.trim() || null) : null,
+          section: section?.trim() || null,
           email: email.trim().toLowerCase(),
           phone: phone.trim(),
           status: 'confirmed',
@@ -171,7 +224,6 @@ serve(async (req) => {
     // 3. Handle Team Event (Signature or Mega Events)
     const members = team_members || [];
     const totalMembers = members.length;
-    const isLeadSem1 = Number(registrant?.semester) === 1;
 
     if (!team_name || !team_name.trim()) {
       return new Response(JSON.stringify({ error: 'Team name is required' }), {
@@ -181,39 +233,130 @@ serve(async (req) => {
     }
 
     // Validate team size
-    if (event.team_min && totalMembers < event.team_min) {
-      return new Response(JSON.stringify({ error: `Minimum ${event.team_min} members required for ${event.title}` }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    if (event_slug === 'treasure-hunt') {
+      if (totalMembers !== 3) {
+        return new Response(JSON.stringify({ error: 'Treasure Hunt requires exactly 3 members per team' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    } else {
+      if (event.team_min && totalMembers < event.team_min) {
+        return new Response(JSON.stringify({ error: `Minimum ${event.team_min} members required for ${event.title}` }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (event.team_max && totalMembers > event.team_max) {
+        return new Response(JSON.stringify({ error: `Maximum ${event.team_max} members allowed for ${event.title}` }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
-    if (event.team_max && totalMembers > event.team_max) {
-      return new Response(JSON.stringify({ error: `Maximum ${event.team_max} members allowed for ${event.title}` }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    // Validate per-member academic & contact fields
+    const seenUsns = new Set<string>();
 
-    // Validate members & USN format
     for (let i = 0; i < members.length; i++) {
       const m = members[i];
-      if (i === 0 && isLeadSem1) {
-        if (!m.name) {
-          return new Response(JSON.stringify({ error: 'Team Lead requires Name' }), {
+      const memberRole = i === 0 ? 'Team Lead' : `Member ${i + 1}`;
+
+      if (!m.name || !m.name.trim()) {
+        return new Response(JSON.stringify({ error: `${memberRole} requires a Name` }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Phone is required for EVERY member
+      if (!m.phone || !PHONE_REGEX.test(m.phone.trim())) {
+        return new Response(JSON.stringify({ error: `${memberRole} (${m.name}) requires a valid 10-digit mobile phone number` }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Email: required for Lead, optional for additional members
+      if (i === 0) {
+        if (!m.email || !EMAIL_REGEX.test(m.email.trim())) {
+          return new Response(JSON.stringify({ error: `Team Lead requires a valid Email address` }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
+        }
+      } else if (m.email && m.email.trim() && !EMAIL_REGEX.test(m.email.trim())) {
+        return new Response(JSON.stringify({ error: `${memberRole} (${m.name}) has an invalid Email address` }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Semester & Section
+      const semNum = Number(m.semester);
+      if (![1, 3, 5, 7].includes(semNum)) {
+        return new Response(JSON.stringify({ error: `${memberRole} (${m.name}) requires a valid Semester (1, 3, 5, 7)` }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!m.section || !m.section.trim()) {
+        return new Response(JSON.stringify({ error: `${memberRole} (${m.name}) requires a Section` }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Academic details per semester
+      if (semNum === 1) {
+        if (!m.cycle || !m.cycle.trim()) {
+          return new Response(JSON.stringify({ error: `${memberRole} (${m.name}) requires Cycle selection (Physics / Chemistry)` }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        if (!m.roll_number || !m.roll_number.trim()) {
+          return new Response(JSON.stringify({ error: `${memberRole} (${m.name}) requires a Roll Number` }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        if (!m.dept || !m.dept.trim()) {
+          return new Response(JSON.stringify({ error: `${memberRole} (${m.name}) requires a Department selection` }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        if (event.department) {
+          const normDept = normalizeDeptId(m.dept);
+          const isEligible = normDept === event.department || (event.department === 'ece' && normDept === 'iot_cyber');
+          if (!isEligible) {
+            return new Response(JSON.stringify({ error: `${memberRole} (${m.name}) is not eligible for this department event` }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
         }
       } else {
-        if (!m.name || !m.usn) {
-          return new Response(JSON.stringify({ error: `Member ${i + 1} requires Name and USN` }), {
+        // Sem 3, 5, 7
+        if (!m.usn || !USN_REGEX.test(m.usn.trim())) {
+          return new Response(JSON.stringify({ error: `${memberRole} (${m.name}) requires a valid USN` }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
-        if (!USN_REGEX.test(m.usn.trim())) {
-          return new Response(JSON.stringify({ error: `Member ${i + 1} (${m.name}) has an invalid USN format (${m.usn})` }), {
+        const normUsn = m.usn.trim().toUpperCase();
+        if (seenUsns.has(normUsn)) {
+          return new Response(JSON.stringify({ error: `Duplicate USN ${normUsn} found in team` }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        seenUsns.add(normUsn);
+
+        if (event.department && !isUsnEligibleForDept(normUsn, event.department)) {
+          return new Response(JSON.stringify({ error: `${memberRole} (${m.name}) is not eligible for this department event` }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
@@ -239,13 +382,7 @@ serve(async (req) => {
     // Server-side fee computation (never trust client fee!)
     const amount_expected = Number(event.fee_per_head) * totalMembers;
 
-    // Create team
-    const teamCollege = body.college || registrant?.college || 'DBIT';
-    const teamSection = section || registrant?.section || null;
-    const teamCycle = cycle || registrant?.cycle || null;
-    const teamSelectedDept = selected_dept || registrant?.selected_dept || null;
-    const teamRollNumber = roll_number || registrant?.roll_number || null;
-
+    // Create team record (academic data is stored in team_members)
     const { data: team, error: teamErr } = await supabase
       .from('teams')
       .insert({
@@ -253,11 +390,7 @@ serve(async (req) => {
         team_name: team_name.trim(),
         team_size: totalMembers,
         payment_status: 'pending',
-        college: teamCollege,
-        section: teamSection,
-        cycle: teamCycle,
-        selected_dept: teamSelectedDept,
-        roll_number: teamRollNumber,
+        college: 'DBIT',
       })
       .select()
       .single();
@@ -269,18 +402,26 @@ serve(async (req) => {
       });
     }
 
-    // Insert team members
-    const memberRows = members.map((m: any, idx: number) => ({
-      team_id: team.id,
-      is_lead: idx === 0,
-      name: m.name.trim(),
-      usn: (idx === 0 && isLeadSem1) ? (m.roll_number || teamRollNumber || 'SEM1') : m.usn.trim().toUpperCase(),
-      roll_number: (idx === 0 && isLeadSem1) ? (m.roll_number || teamRollNumber) : (m.roll_number || null),
-      email: m.email ? m.email.trim().toLowerCase() : (idx === 0 ? registrant?.email : null),
-      phone: m.phone ? m.phone.trim() : (idx === 0 ? registrant?.phone : null),
-      dept: m.dept ? m.dept.trim() : (idx === 0 ? registrant?.dept : null),
-      position: idx + 1,
-    }));
+    // Insert team members with full per-member details
+    const memberRows = members.map((m: any, idx: number) => {
+      const semNum = Number(m.semester);
+      const isMemberSem1 = semNum === 1;
+
+      return {
+        team_id: team.id,
+        is_lead: idx === 0,
+        name: m.name.trim(),
+        semester: semNum,
+        section: m.section ? m.section.trim() : null,
+        dept: m.dept ? m.dept.trim() : (event.department || null),
+        cycle: isMemberSem1 ? (m.cycle ? m.cycle.trim() : null) : null,
+        roll_number: isMemberSem1 ? (m.roll_number ? m.roll_number.trim() : null) : null,
+        usn: isMemberSem1 ? null : (m.usn ? m.usn.trim().toUpperCase() : null),
+        email: m.email ? m.email.trim().toLowerCase() : (idx === 0 ? registrant?.email?.trim().toLowerCase() : null),
+        phone: m.phone ? m.phone.trim() : (idx === 0 ? registrant?.phone?.trim() : null),
+        position: idx + 1,
+      };
+    });
 
     const { error: memErr } = await supabase.from('team_members').insert(memberRows);
 
@@ -312,18 +453,9 @@ serve(async (req) => {
     // Cashfree order IDs must be alphanumeric with underscores/hyphens and max 45 chars.
     const cashfreeOrderId = `HEX_${team.id.replace(/-/g, '').slice(0, 18)}_${Date.now()}`;
 
-    const customerName =
-      registrant?.name?.trim() ||
-      members[0]?.name?.trim() ||
-      team_name.trim();
-
-    const customerEmail =
-      registrant?.email?.trim().toLowerCase() ||
-      members[0]?.email?.trim().toLowerCase();
-
-    const customerPhone =
-      registrant?.phone?.trim() ||
-      members[0]?.phone?.trim();
+    const customerName = members[0]?.name?.trim() || team_name.trim();
+    const customerEmail = members[0]?.email?.trim().toLowerCase() || registrant?.email?.trim().toLowerCase();
+    const customerPhone = members[0]?.phone?.trim() || registrant?.phone?.trim();
 
     if (!customerEmail || !customerPhone) {
       await supabase.from('team_members').delete().eq('team_id', team.id);

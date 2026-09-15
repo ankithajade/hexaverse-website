@@ -77,10 +77,14 @@ export function flattenTeams(teams) {
         shortId,
         teamName: t.team_name || '',
         name: m.name || '',
-        usn: m.usn || '',
         email: m.email || '',
         phone: m.phone || '',
+        semester: m.semester ? `Sem ${m.semester}` : '',
+        section: m.section || '',
         dept: m.dept || '',
+        cycle: m.cycle || '',
+        rollNumber: m.roll_number || '',
+        usn: m.usn || '',
         isLead: m.is_lead ? 'Yes' : 'No',
         paymentStatus: t.payment_status || 'pending',
         registeredAt: t.created_at || '',
@@ -94,21 +98,63 @@ export function flattenTeams(teams) {
 
 // ── Team CSV export (one row per participant) ──
 export function buildTeamCSV(teams) {
-  const HEADERS = ['Team Short ID', 'Team Name', 'Participant Name', 'USN', 'Email', 'Phone', 'Department', 'Is Lead', 'Payment Status', 'Registered At'];
+  const HEADERS = [
+    'Team Short ID',
+    'Team Name',
+    'Participant Name',
+    'Email',
+    'Phone',
+    'Semester',
+    'Section',
+    'Department',
+    'Cycle',
+    'Roll Number',
+    'USN',
+    'Is Lead',
+    'Payment Status',
+    'Registered At',
+  ];
   let csv = csvRow(HEADERS);
   const rows = flattenTeams(teams);
   for (const r of rows) {
-    csv += csvRow([r.shortId, r.teamName, r.name, r.usn, r.email, r.phone, r.dept, r.isLead, r.paymentStatus, r.registeredAt]);
+    csv += csvRow([
+      r.shortId,
+      r.teamName,
+      r.name,
+      r.email,
+      r.phone,
+      r.semester,
+      r.section,
+      r.dept,
+      r.cycle,
+      r.rollNumber,
+      r.usn,
+      r.isLead,
+      r.paymentStatus,
+      r.registeredAt,
+    ]);
   }
   return csv;
 }
 
 // ── Workshop CSV export (one row per registrant) ──
 export function buildWorkshopCSV(workshops) {
-  const HEADERS = ['Name', 'USN', 'Semester', 'Email', 'Phone', 'Status', 'Registered At'];
+  const HEADERS = ['Name', 'Email', 'Phone', 'Semester', 'Section', 'Department', 'Cycle', 'Roll Number', 'USN', 'Status', 'Registered At'];
   let csv = csvRow(HEADERS);
   for (const w of workshops) {
-    csv += csvRow([w.name, w.usn || '', `Sem ${w.semester}`, w.email, w.phone, w.status || 'confirmed', w.created_at]);
+    csv += csvRow([
+      w.name,
+      w.email,
+      w.phone,
+      `Sem ${w.semester}`,
+      w.section || '',
+      w.selected_dept || '',
+      w.cycle || '',
+      w.roll_number || '',
+      w.usn || '',
+      w.status || 'confirmed',
+      w.created_at,
+    ]);
   }
   return csv;
 }
@@ -121,23 +167,31 @@ const TEAM_COLS = [
   { key: 'shortId',        header: 'Team Short ID',    width: 14 },
   { key: 'teamName',       header: 'Team Name',         width: 22 },
   { key: 'name',           header: 'Participant Name',  width: 22 },
-  { key: 'usn',            header: 'USN',               width: 16 },
   { key: 'email',          header: 'Email',             width: 28 },
   { key: 'phone',          header: 'Phone',             width: 14 },
-  { key: 'dept',           header: 'Department',        width: 14 },
+  { key: 'semester',       header: 'Semester',          width: 12 },
+  { key: 'section',        header: 'Section',           width: 10 },
+  { key: 'dept',           header: 'Department',        width: 22 },
+  { key: 'cycle',          header: 'Cycle',             width: 16 },
+  { key: 'rollNumber',     header: 'Roll Number',       width: 14 },
+  { key: 'usn',            header: 'USN',               width: 16 },
   { key: 'isLead',         header: 'Is Lead',           width: 9  },
   { key: 'paymentStatus',  header: 'Payment Status',    width: 14 },
   { key: 'registeredAt',   header: 'Registered At',     width: 22 },
 ];
 
 const WORKSHOP_COLS = [
-  { key: 'name',        header: 'Name',          width: 22 },
-  { key: 'usn',         header: 'USN',           width: 16 },
-  { key: 'semester',    header: 'Semester',      width: 10 },
-  { key: 'email',       header: 'Email',         width: 28 },
-  { key: 'phone',       header: 'Phone',         width: 14 },
-  { key: 'status',      header: 'Status',        width: 12 },
-  { key: 'registeredAt',header: 'Registered At', width: 22 },
+  { key: 'name',         header: 'Name',          width: 22 },
+  { key: 'email',        header: 'Email',         width: 28 },
+  { key: 'phone',        header: 'Phone',         width: 14 },
+  { key: 'semester',     header: 'Semester',      width: 10 },
+  { key: 'section',      header: 'Section',       width: 10 },
+  { key: 'selectedDept', header: 'Department',    width: 22 },
+  { key: 'cycle',        header: 'Cycle',         width: 16 },
+  { key: 'rollNumber',   header: 'Roll Number',   width: 14 },
+  { key: 'usn',          header: 'USN',           width: 16 },
+  { key: 'status',       header: 'Status',        width: 12 },
+  { key: 'registeredAt', header: 'Registered At', width: 22 },
 ];
 
 const SUMMARY_COLS = [
@@ -215,10 +269,14 @@ export function addTeamDetailSheet(wb, sheetName, teams, headerArgb) {
       shortId: r.shortId,
       teamName: r.teamName,
       name: r.name,
-      usn: r.usn,
       email: r.email,
       phone: r.phone,
+      semester: r.semester,
+      section: r.section,
       dept: r.dept,
+      cycle: r.cycle,
+      rollNumber: r.rollNumber,
+      usn: r.usn,
       isLead: r.isLead,
       paymentStatus: r.paymentStatus,
       registeredAt: r.registeredAt ? new Date(r.registeredAt).toLocaleString('en-IN') : '',
@@ -280,10 +338,14 @@ export function addWorkshopSheet(wb, sheetName, workshops, headerArgb) {
   for (const w of workshops) {
     ws.addRow({
       name: w.name,
-      usn: w.usn || '',
-      semester: `Sem ${w.semester}`,
       email: w.email,
       phone: w.phone,
+      semester: `Sem ${w.semester}`,
+      section: w.section || '',
+      selectedDept: w.selected_dept || '',
+      cycle: w.cycle || '',
+      rollNumber: w.roll_number || '',
+      usn: w.usn || '',
       status: w.status || 'confirmed',
       registeredAt: w.created_at ? new Date(w.created_at).toLocaleString('en-IN') : '',
     });

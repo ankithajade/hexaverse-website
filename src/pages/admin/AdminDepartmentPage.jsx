@@ -909,7 +909,7 @@ export default function AdminDepartmentPage() {
                               {lead ? (
                                 <div>
                                   <div style={{ fontWeight: 600, color: 'var(--text)' }}>
-                                    {lead.name} <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 400 }}>({lead.usn})</span>
+                                    {lead.name} <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 400 }}>({lead.usn || (lead.roll_number ? `Roll: ${lead.roll_number}` : '')})</span>
                                   </div>
                                   <div style={{ fontSize: '0.76rem', color: 'var(--text-dim)' }}>
                                     {lead.email} {lead.phone && `· ${lead.phone}`}
@@ -1022,7 +1022,8 @@ export default function AdminDepartmentPage() {
                                         <th style={{ padding: '6px 8px', width: '32px' }}>#</th>
                                         <th style={{ padding: '6px 12px' }}>Role</th>
                                         <th style={{ padding: '6px 12px' }}>Member Name</th>
-                                        <th style={{ padding: '6px 12px' }}>USN</th>
+                                        <th style={{ padding: '6px 12px' }}>Sem / Sec</th>
+                                        <th style={{ padding: '6px 12px' }}>USN / Roll No</th>
                                         <th style={{ padding: '6px 12px' }}>Department</th>
                                         <th style={{ padding: '6px 12px' }}>Email</th>
                                         <th style={{ padding: '6px 12px' }}>Phone</th>
@@ -1057,8 +1058,11 @@ export default function AdminDepartmentPage() {
                                             <td style={{ padding: '8px 12px', fontWeight: 600, color: 'var(--text)' }}>
                                               {m.name}
                                             </td>
+                                            <td style={{ padding: '8px 12px', color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>
+                                              {m.semester ? `Sem ${m.semester}` : '—'}{m.section ? ` (${m.section})` : ''}
+                                            </td>
                                             <td style={{ padding: '8px 12px' }}>
-                                              <code>{m.usn}</code>
+                                              {m.usn ? <code>{m.usn}</code> : (m.roll_number ? <span style={{ color: 'var(--text)' }}>Roll: {m.roll_number}</span> : '—')}
                                             </td>
                                             <td style={{ padding: '8px 12px' }}>
                                               {m.dept ? (
@@ -1071,7 +1075,7 @@ export default function AdminDepartmentPage() {
                                                   border: '1px solid var(--bg-card-border)',
                                                   color: 'var(--text)',
                                                 }}>
-                                                  {m.dept}
+                                                  {m.cycle ? `${m.cycle} · ` : ''}{m.dept}
                                                 </span>
                                               ) : (
                                                 <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>—</span>
@@ -1189,6 +1193,7 @@ export default function AdminDepartmentPage() {
         <TeamEditModal
           team={editingTeam}
           eventSlug={signatureSlug}
+          teamMin={dept?.events?.find(e => e.eventId === signatureSlug)?.teamMin ?? 1}
           teamMax={dept?.events?.find(e => e.eventId === signatureSlug)?.teamMax ?? null}
           accentColor={deptColor}
           onSaved={fetchData}
