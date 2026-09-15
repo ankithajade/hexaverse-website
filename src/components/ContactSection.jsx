@@ -8,7 +8,7 @@ export default function ContactSection() {
           <div className="section-label" style={{ justifyContent: 'center' }}>Reach Out</div>
           <h2 className="section-title">Get in Touch</h2>
           <p className="section-desc" style={{ margin: '0 auto', marginBottom: '24px' }}>
-            Don Bosco Institute of Technology (DBIT)<br />
+            AWS Student Builder Group, DBIT<br />
             Questions, collaborations, or sponsorship inquiries &mdash; we&apos;d love to hear from you.
           </p>
         </ScrollReveal>

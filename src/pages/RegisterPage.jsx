@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { registrationEvents } from '../data/registrationEvents';
-import { isValidUSN, isValidEmail, isValidPhone, findDuplicateUSN } from '../lib/validators';
+import {
+  isValidUSN,
+  isValidEmail,
+  isValidPhone,
+  findDuplicateUSN,
+  isUSNEligibleForDept,
+} from '../lib/validators';
 import {
   getEventConfig,
   checkTeamNameAvailability,
@@ -17,16 +23,32 @@ import RichText from '../components/RichText';
 
 const DEPARTMENTS = ['AI & ML', 'AI & DS', 'CSE', 'ISE', 'ECE', 'EEE'];
 const SEMESTERS = ['1', '3', '5', '7'];
+const SECTIONS = ['A', 'B', 'C', 'D'];
+const CYCLES = ['Physics Cycle', 'Chemistry Cycle'];
+const SEM1_DEPARTMENTS = [
+  { id: 'aiml', label: 'AI & ML' },
+  { id: 'aids', label: 'AI & DS' },
+  { id: 'cse', label: 'CSE' },
+  { id: 'ise', label: 'ISE' },
+  { id: 'ece', label: 'ECE' },
+  { id: 'eee', label: 'EEE' },
+  { id: 'placeholder_1', label: 'Other Program 1 (TBD)' },
+  { id: 'placeholder_2', label: 'Other Program 2 (TBD)' },
+];
 
 const EMPTY_FORM = {
   name: '',
   usn: '',
+  section: '',
   email: '',
   dept: '',
   semester: '',
   phone: '',
   college: '',
   teamName: '',
+  cycle: '',
+  selectedDept: '',
+  rollNumber: '',
 };
 
 const EMPTY_MEMBER = { name: '', usn: '', email: '', dept: '', phone: '' };
@@ -95,6 +117,20 @@ export default function RegisterPage() {
   const maxMembers = eventConfig?.team_max || event.teamMax || (isTeam ? 4 : 1);
   const maxAdditional = maxMembers - 1;
 
+  // Derived: semester checks for locked-dept path
+  const sem = Number(form.semester);
+  const isHighSem = Boolean(lockedDept && [3, 5, 7].includes(sem));
+  const isSem1 = Boolean(lockedDept && sem === 1);
+  const semester1GateComplete = Boolean(form.cycle && form.section && form.selectedDept);
+  const isEligibleSem1 = Boolean(
+    isSem1 &&
+    semester1GateComplete &&
+    lockedDept &&
+    form.selectedDept === lockedDept.id &&
+    form.selectedDept !== 'placeholder_1' &&
+    form.selectedDept !== 'placeholder_2'
+  );
+
   // ── Handlers ─────────────────────────────────────────────────────────────
 
   const setField = (e) => {
@@ -141,17 +177,33 @@ export default function RegisterPage() {
   const validateForm = () => {
     setErrorMsg('');
 
-    if (!form.name.trim()) return 'Full Name is required';
-    if (!isValidEmail(form.email)) return 'Please enter a valid email address';
-    if (!isValidPhone(form.phone)) return 'Please enter a valid 10-digit mobile phone number';
     if (!form.semester) return 'Please select your current semester';
 
-    const sem = Number(form.semester);
-    if ([3, 5, 7].includes(sem)) {
+    // For locked-dept events, apply the enhanced USN check for sems 3/5/7
+    if (lockedDept && isHighSem) {
+      if (!form.usn || !isValidUSN(form.usn)) {
+        return `USN format is invalid for Semester ${sem}. Example: 1DB23${lockedDept.id === 'aiml' ? 'CI' : 'CS'}001 (Must be 1DB + 23/24/25 + Branch + 3 digits)`;
+      }
+      if (!isUSNEligibleForDept(form.usn, lockedDept.id)) {
+        return 'You are not eligible for this event';
+      }
+      if (!form.section) return 'Please select your section';
+    } else if (lockedDept && sem === 1) {
+      if (!form.cycle) return 'Please select your cycle';
+      if (!form.section) return 'Please select your section';
+      if (!form.selectedDept) return 'Please select your department';
+      if (form.selectedDept !== lockedDept.id) return 'You are not eligible for this event';
+      if (!form.rollNumber || !form.rollNumber.trim()) return 'Roll Number is required';
+    } else if (!lockedDept && [3, 5, 7].includes(sem)) {
+      // Mega event path: just format check (unchanged)
       if (!form.usn || !isValidUSN(form.usn)) {
         return `USN format is invalid for Semester ${sem}. Example: 1DB23CS001 (Must be 1DB + 23/24/25 + Branch + 3 digits)`;
       }
     }
+
+    if (!form.name.trim()) return 'Full Name is required';
+    if (!isValidEmail(form.email)) return 'Please enter a valid email address';
+    if (!isValidPhone(form.phone)) return 'Please enter a valid 10-digit mobile phone number';
 
     if (!lockedDept && !form.dept) {
       return 'Please select your department';
@@ -176,7 +228,18 @@ export default function RegisterPage() {
       for (let i = 0; i < members.length; i++) {
         const m = members[i];
         if (!m.name.trim()) return `Member ${i + 2} Name is required`;
-        if (!isValidUSN(m.usn)) return `Member ${i + 2} (${m.name}) USN format is invalid`;
+
+        if (lockedDept && isHighSem) {
+          // Two-tier check for dept-locked events, high semesters
+          if (!isValidUSN(m.usn)) {
+            return `Member ${i + 2} (${m.name}) USN format is invalid`;
+          }
+          if (!isUSNEligibleForDept(m.usn, lockedDept.id)) {
+            return `Member ${i + 2} (${m.name}) is not eligible for this event`;
+          }
+        } else {
+          if (!isValidUSN(m.usn)) return `Member ${i + 2} (${m.name}) USN format is invalid`;
+        }
       }
 
       const allUsns = [form.usn, ...members.map((m) => m.usn)].filter(Boolean);
@@ -203,14 +266,15 @@ export default function RegisterPage() {
     setErrorMsg('');
 
     try {
-      const sem = Number(form.semester);
+      const finalSem = Number(form.semester);
       const finalDept = lockedDept ? lockedDept.name : form.dept;
 
       const allMembers = isTeam
         ? [
             {
               name: form.name.trim(),
-              usn: form.usn.trim().toUpperCase(),
+              usn: sem === 1 ? (form.rollNumber ? form.rollNumber.trim() : null) : (form.usn ? form.usn.trim().toUpperCase() : null),
+              roll_number: sem === 1 ? form.rollNumber.trim() : null,
               email: form.email.trim(),
               phone: form.phone.trim(),
               dept: finalDept || null,
@@ -229,15 +293,23 @@ export default function RegisterPage() {
         event_slug: slug,
         registrant: {
           name: form.name.trim(),
-          usn: form.usn ? form.usn.trim().toUpperCase() : null,
+          usn: sem === 1 ? null : (form.usn ? form.usn.trim().toUpperCase() : null),
+          roll_number: sem === 1 ? form.rollNumber.trim() : null,
+          cycle: sem === 1 ? form.cycle : null,
+          selected_dept: sem === 1 ? form.selectedDept : null,
           email: form.email.trim(),
           phone: form.phone.trim(),
-          semester: sem,
+          semester: finalSem,
           dept: finalDept,
           college: form.college ? form.college.trim() : 'DBIT',
+          section: form.section || null,
         },
         team_name: isTeam ? form.teamName.trim() : null,
         college: form.college ? form.college.trim() : 'DBIT',
+        section: form.section || null,
+        cycle: sem === 1 ? form.cycle : null,
+        selected_dept: sem === 1 ? form.selectedDept : null,
+        roll_number: sem === 1 ? form.rollNumber.trim() : null,
         team_members: allMembers,
       };
 
@@ -293,6 +365,31 @@ export default function RegisterPage() {
       console.error('Payment checkout error:', err);
       setErrorMsg(err.message || 'Failed to open Cashfree payment checkout.');
     }
+  };
+
+  // ── Helpers for form rendering ──────────────────────────────────────────
+
+  // USN inline hint for dept-locked high-sem: show per-field feedback
+  const getUsnHint = (usnValue) => {
+    if (!usnValue) return null;
+    if (!isValidUSN(usnValue)) {
+      return { ok: false, msg: 'Invalid USN format (e.g. 1DB23CS001)' };
+    }
+    if (lockedDept && isHighSem && !isUSNEligibleForDept(usnValue, lockedDept.id)) {
+      return { ok: false, msg: 'You are not eligible for this event' };
+    }
+    return { ok: true, msg: '✓ USN valid' };
+  };
+
+  const getMemberUsnHint = (usnValue) => {
+    if (!usnValue) return null;
+    if (!isValidUSN(usnValue)) {
+      return { ok: false, msg: 'Invalid USN format' };
+    }
+    if (lockedDept && isHighSem && !isUSNEligibleForDept(usnValue, lockedDept.id)) {
+      return { ok: false, msg: 'Not eligible for this event' };
+    }
+    return { ok: true, msg: '✓ Valid' };
   };
 
   return (
@@ -383,7 +480,7 @@ export default function RegisterPage() {
         ) : (
           /* ── Registration Form & Rules View ── */
           <div>
-            {/* ── Rules & Registration Details Block (Item D3 / D4) ── */}
+            {/* ── Rules & Registration Details Block ── */}
             <ScrollReveal
               className="mega-card"
               style={{
@@ -446,266 +543,821 @@ export default function RegisterPage() {
 
               <form className="modal-form" onSubmit={handleSubmit}>
 
-                {/* Team Name (if team event) */}
-                {isTeam && (
-                  <div className="form-group">
-                    <label htmlFor="reg-teamName">Team Name *</label>
-                    <input
-                      id="reg-teamName"
-                      name="teamName"
-                      type="text"
-                      className="form-input"
-                      placeholder="Enter unique team name"
-                      required
-                      value={form.teamName}
-                      onChange={setField}
-                    />
-                    {checkingTeamName && <span className="form-hint">Checking team name availability...</span>}
-                    {teamNameAvailable === true && <span className="form-hint" style={{ color: '#10b981' }}>✓ Team name available</span>}
-                    {teamNameAvailable === false && <span className="form-hint" style={{ color: '#ef4444' }}>✕ Team name already taken</span>}
-                  </div>
-                )}
-
-                {/* Participant / Lead Details Header */}
-                <div className="team-section-title" style={{ marginTop: 0, paddingTop: 0, borderTop: 'none', fontWeight: 700 }}>
-                  {isTeam ? 'Team Lead Details' : 'Participant Details'}
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="reg-name">Full Name *</label>
-                  <input
-                    id="reg-name"
-                    name="name"
-                    type="text"
-                    className="form-input"
-                    placeholder="Your full name"
-                    required
-                    value={form.name}
-                    onChange={setField}
-                  />
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="reg-usn">USN *</label>
-                    <input
-                      id="reg-usn"
-                      name="usn"
-                      type="text"
-                      className="form-input"
-                      placeholder="e.g. 1DB23CS001"
-                      required
-                      value={form.usn}
-                      onChange={setField}
-                    />
-                  </div>
-
-                  {/* Item D2: Semester Select (1, 3, 5, 7) */}
-                  <div className="form-group">
-                    <label htmlFor="reg-semester">Semester *</label>
-                    <select
-                      id="reg-semester"
-                      name="semester"
-                      className="form-select"
-                      required
-                      value={form.semester}
-                      onChange={setField}
-                    >
-                      <option value="">Select Semester</option>
-                      {SEMESTERS.map((s) => (
-                        <option key={s} value={s}>Semester {s}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="reg-email">Email *</label>
-                    <input
-                      id="reg-email"
-                      name="email"
-                      type="email"
-                      className="form-input"
-                      placeholder="your@email.com"
-                      required
-                      value={form.email}
-                      onChange={setField}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="reg-phone">Phone *</label>
-                    <input
-                      id="reg-phone"
-                      name="phone"
-                      type="tel"
-                      className="form-input"
-                      placeholder="10-digit mobile"
-                      required
-                      value={form.phone}
-                      onChange={setField}
-                    />
-                  </div>
-                </div>
-
-                {/* Item D1: Locked Department display vs Free Choice dropdown */}
-                <div className="form-group">
-                  <label htmlFor="reg-dept">Department *</label>
-                  {lockedDept ? (
-                    <div
-                      style={{
-                        padding: '12px 16px',
-                        background: 'var(--bg)',
-                        border: '1.5px solid var(--bg-card-border)',
-                        borderRadius: '8px',
-                        fontWeight: 600,
-                        color: 'var(--text)',
-                        fontSize: '0.95rem',
-                      }}
-                    >
-                      {lockedDept.name} (Locked for this department event)
-                    </div>
-                  ) : (
-                    <select
-                      id="reg-dept"
-                      name="dept"
-                      className="form-select"
-                      required
-                      value={form.dept}
-                      onChange={setField}
-                    >
-                      <option value="">Select department</option>
-                      {DEPARTMENTS.map((d) => (
-                        <option key={d} value={d}>{d}</option>
-                      ))}
-                    </select>
-                  )}
-                </div>
-
-                {/* Inter-College field */}
-                {isInterCollege && (
-                  <div className="form-group">
-                    <label htmlFor="reg-college">College Name *</label>
-                    <input
-                      id="reg-college"
-                      name="college"
-                      type="text"
-                      className="form-input"
-                      placeholder="Your college name"
-                      required
-                      value={form.college}
-                      onChange={setField}
-                    />
-                  </div>
-                )}
-
-                {/* Additional Team Members */}
-                {isTeam && (
-                  <div className="team-section" style={{ marginTop: '28px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                      <div className="team-section-title" style={{ margin: 0, padding: 0, border: 'none', fontWeight: 700 }}>
-                        Additional Members ({members.length} added · {minMembers - 1} min required)
-                      </div>
-                      <button
-                        type="button"
-                        className="btn-add-member"
-                        onClick={addMember}
-                        disabled={members.length >= maxAdditional}
-                        style={{ width: 'auto', margin: 0, padding: '6px 14px' }}
+                {/* ══════════════════════════════════════════════════
+                    LOCKED-DEPT PATH: Semester-first flow
+                    ══════════════════════════════════════════════════ */}
+                {lockedDept ? (
+                  <>
+                    {/* 1. Semester — FIRST for dept-locked events */}
+                    <div className="form-group">
+                      <label htmlFor="reg-semester">Semester *</label>
+                      <select
+                        id="reg-semester"
+                        name="semester"
+                        className="form-select"
+                        required
+                        value={form.semester}
+                        onChange={setField}
                       >
-                        + Add Member
-                      </button>
+                        <option value="">Select Semester</option>
+                        {SEMESTERS.map((s) => (
+                          <option key={s} value={s}>Semester {s}</option>
+                        ))}
+                      </select>
                     </div>
 
-                    {members.map((m, i) => (
-                      <div key={i} className="team-member-row" style={{ marginBottom: '16px', padding: '16px', background: 'var(--bg)', borderRadius: '8px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem', fontWeight: 600 }}>
-                          <span>Member {i + 2}</span>
-                          {i >= (minMembers - 1) && (
-                            <button
-                              type="button"
-                              className="btn-remove-member"
-                              onClick={() => removeMember(i)}
-                              style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
-                            >
-                              Remove
-                            </button>
-                          )}
+                    {/* 2. Semester 1 Flow */}
+                    {isSem1 && (
+                      <>
+                        {/* Cycle dropdown */}
+                        <div className="form-group">
+                          <label htmlFor="reg-cycle">Cycle *</label>
+                          <select
+                            id="reg-cycle"
+                            name="cycle"
+                            className="form-select"
+                            required
+                            value={form.cycle}
+                            onChange={setField}
+                          >
+                            <option value="">Select Cycle</option>
+                            {CYCLES.map((c) => (
+                              <option key={c} value={c}>{c}</option>
+                            ))}
+                          </select>
                         </div>
-                        <div className="form-row">
+
+                        {/* Section dropdown */}
+                        <div className="form-group">
+                          <label htmlFor="reg-section">Section *</label>
+                          <select
+                            id="reg-section"
+                            name="section"
+                            className="form-select"
+                            required
+                            value={form.section}
+                            onChange={setField}
+                          >
+                            <option value="">Select Section</option>
+                            {SECTIONS.map((s) => (
+                              <option key={s} value={s}>Section {s}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Department dropdown */}
+                        <div className="form-group">
+                          <label htmlFor="reg-selectedDept">Department *</label>
+                          <select
+                            id="reg-selectedDept"
+                            name="selectedDept"
+                            className="form-select"
+                            required
+                            value={form.selectedDept}
+                            onChange={setField}
+                          >
+                            <option value="">Select Department</option>
+                            {SEM1_DEPARTMENTS.map((d) => (
+                              <option key={d.id} value={d.id}>{d.label}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Immediate Eligibility Feedback if Gate Complete & Ineligible */}
+                        {semester1GateComplete && !isEligibleSem1 && (
+                          <div
+                            style={{
+                              background: 'rgba(239, 68, 68, 0.1)',
+                              border: '1px solid #ef4444',
+                              color: '#dc2626',
+                              padding: '16px 20px',
+                              borderRadius: '8px',
+                              fontSize: '0.95rem',
+                              fontWeight: 600,
+                              marginTop: '16px',
+                              textAlign: 'center',
+                            }}
+                          >
+                            You are not eligible for this event
+                          </div>
+                        )}
+
+                        {/* Rest of Form: Revealed only when Gate Complete AND Eligible */}
+                        {isEligibleSem1 && (
+                          <>
+                            {/* Team Name (if team event) */}
+                            {isTeam && (
+                              <div className="form-group">
+                                <label htmlFor="reg-teamName">Team Name *</label>
+                                <input
+                                  id="reg-teamName"
+                                  name="teamName"
+                                  type="text"
+                                  className="form-input"
+                                  placeholder="Enter unique team name"
+                                  required
+                                  value={form.teamName}
+                                  onChange={setField}
+                                />
+                                {checkingTeamName && <span className="form-hint">Checking team name availability...</span>}
+                                {teamNameAvailable === true && <span className="form-hint" style={{ color: '#10b981' }}>✓ Team name available</span>}
+                                {teamNameAvailable === false && <span className="form-hint" style={{ color: '#ef4444' }}>✕ Team name already taken</span>}
+                              </div>
+                            )}
+
+                            {/* Participant / Lead Details Header */}
+                            <div className="team-section-title" style={{ marginTop: 0, paddingTop: 0, borderTop: 'none', fontWeight: 700 }}>
+                              {isTeam ? 'Team Lead Details' : 'Participant Details'}
+                            </div>
+
+                            {/* Full Name */}
+                            <div className="form-group">
+                              <label htmlFor="reg-name">Full Name *</label>
+                              <input
+                                id="reg-name"
+                                name="name"
+                                type="text"
+                                className="form-input"
+                                placeholder="Your full name"
+                                required
+                                value={form.name}
+                                onChange={setField}
+                              />
+                            </div>
+
+                            {/* Roll Number (plain text input, no format restriction) */}
+                            <div className="form-group">
+                              <label htmlFor="reg-rollNumber">Roll Number *</label>
+                              <input
+                                id="reg-rollNumber"
+                                name="rollNumber"
+                                type="text"
+                                className="form-input"
+                                placeholder="Enter your roll number"
+                                required
+                                value={form.rollNumber}
+                                onChange={setField}
+                              />
+                            </div>
+
+                            {/* Email + Phone */}
+                            <div className="form-row">
+                              <div className="form-group">
+                                <label htmlFor="reg-email">Email *</label>
+                                <input
+                                  id="reg-email"
+                                  name="email"
+                                  type="email"
+                                  className="form-input"
+                                  placeholder="your@email.com"
+                                  required
+                                  value={form.email}
+                                  onChange={setField}
+                                />
+                              </div>
+                              <div className="form-group">
+                                <label htmlFor="reg-phone">Phone *</label>
+                                <input
+                                  id="reg-phone"
+                                  name="phone"
+                                  type="tel"
+                                  className="form-input"
+                                  placeholder="10-digit mobile"
+                                  required
+                                  value={form.phone}
+                                  onChange={setField}
+                                />
+                              </div>
+                            </div>
+
+                            {/* Locked Department display */}
+                            <div className="form-group">
+                              <label htmlFor="reg-dept">Department *</label>
+                              <div
+                                style={{
+                                  padding: '12px 16px',
+                                  background: 'var(--bg)',
+                                  border: '1.5px solid var(--bg-card-border)',
+                                  borderRadius: '8px',
+                                  fontWeight: 600,
+                                  color: 'var(--text)',
+                                  fontSize: '0.95rem',
+                                }}
+                              >
+                                {lockedDept.name} (Locked for this department event)
+                              </div>
+                            </div>
+
+                            {/* Inter-College field */}
+                            {isInterCollege && (
+                              <div className="form-group">
+                                <label htmlFor="reg-college">College Name *</label>
+                                <input
+                                  id="reg-college"
+                                  name="college"
+                                  type="text"
+                                  className="form-input"
+                                  placeholder="Your college name"
+                                  required
+                                  value={form.college}
+                                  onChange={setField}
+                                />
+                              </div>
+                            )}
+
+                            {/* Additional Team Members */}
+                            {isTeam && (
+                              <div className="team-section" style={{ marginTop: '28px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                  <div className="team-section-title" style={{ margin: 0, padding: 0, border: 'none', fontWeight: 700 }}>
+                                    Additional Members ({members.length} added · {minMembers - 1} min required)
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="btn-add-member"
+                                    onClick={addMember}
+                                    disabled={members.length >= maxAdditional}
+                                    style={{ width: 'auto', margin: 0, padding: '6px 14px' }}
+                                  >
+                                    + Add Member
+                                  </button>
+                                </div>
+
+                                {members.map((m, i) => {
+                                  const memberHint = getMemberUsnHint(m.usn);
+                                  return (
+                                    <div key={i} className="team-member-row" style={{ marginBottom: '16px', padding: '16px', background: 'var(--bg)', borderRadius: '8px' }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem', fontWeight: 600 }}>
+                                        <span>Member {i + 2}</span>
+                                        {i >= (minMembers - 1) && (
+                                          <button
+                                            type="button"
+                                            className="btn-remove-member"
+                                            onClick={() => removeMember(i)}
+                                            style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
+                                          >
+                                            Remove
+                                          </button>
+                                        )}
+                                      </div>
+                                      <div className="form-row">
+                                        <div className="form-group">
+                                          <input
+                                            type="text"
+                                            className="form-input"
+                                            placeholder="Full Name *"
+                                            required
+                                            value={m.name}
+                                            onChange={(e) => setMemberField(i, 'name', e.target.value)}
+                                          />
+                                        </div>
+                                        <div className="form-group">
+                                          <input
+                                            type="text"
+                                            className="form-input"
+                                            placeholder="USN *"
+                                            required
+                                            value={m.usn}
+                                            onChange={(e) => setMemberField(i, 'usn', e.target.value)}
+                                          />
+                                          {memberHint && (
+                                            <span className="form-hint" style={{ color: memberHint.ok ? '#10b981' : '#ef4444' }}>
+                                              {memberHint.msg}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <div className="form-row">
+                                        <div className="form-group">
+                                          <input
+                                            type="email"
+                                            className="form-input"
+                                            placeholder="Email (Optional)"
+                                            value={m.email}
+                                            onChange={(e) => setMemberField(i, 'email', e.target.value)}
+                                          />
+                                        </div>
+                                        <div className="form-group">
+                                          <input
+                                            type="tel"
+                                            className="form-input"
+                                            placeholder="Phone (Optional)"
+                                            value={m.phone}
+                                            onChange={(e) => setMemberField(i, 'phone', e.target.value)}
+                                          />
+                                        </div>
+                                      </div>
+                                      <div className="form-group" style={{ marginTop: '4px' }}>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
+                                          Department: <strong style={{ color: 'var(--text)' }}>{lockedDept.name}</strong>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </>
+                    )}
+
+                    {/* 3. Semesters 3, 5, 7: USN + Section + rest of form */}
+                    {isHighSem && (
+                      <>
+                        {/* USN */}
+                        <div className="form-group">
+                          <label htmlFor="reg-usn">USN *</label>
+                          <input
+                            id="reg-usn"
+                            name="usn"
+                            type="text"
+                            className="form-input"
+                            placeholder="e.g. 1DB23CS001"
+                            required
+                            value={form.usn}
+                            onChange={setField}
+                          />
+                          {(() => {
+                            const hint = getUsnHint(form.usn);
+                            if (!hint) return null;
+                            return (
+                              <span className="form-hint" style={{ color: hint.ok ? '#10b981' : '#ef4444' }}>
+                                {hint.msg}
+                              </span>
+                            );
+                          })()}
+                        </div>
+
+                        {/* Section dropdown */}
+                        <div className="form-group">
+                          <label htmlFor="reg-section">Section *</label>
+                          <select
+                            id="reg-section"
+                            name="section"
+                            className="form-select"
+                            required
+                            value={form.section}
+                            onChange={setField}
+                          >
+                            <option value="">Select Section</option>
+                            {SECTIONS.map((s) => (
+                              <option key={s} value={s}>Section {s}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Team Name (if team event) */}
+                        {isTeam && (
                           <div className="form-group">
+                            <label htmlFor="reg-teamName">Team Name *</label>
                             <input
+                              id="reg-teamName"
+                              name="teamName"
                               type="text"
                               className="form-input"
-                              placeholder="Full Name *"
+                              placeholder="Enter unique team name"
                               required
-                              value={m.name}
-                              onChange={(e) => setMemberField(i, 'name', e.target.value)}
+                              value={form.teamName}
+                              onChange={setField}
                             />
+                            {checkingTeamName && <span className="form-hint">Checking team name availability...</span>}
+                            {teamNameAvailable === true && <span className="form-hint" style={{ color: '#10b981' }}>✓ Team name available</span>}
+                            {teamNameAvailable === false && <span className="form-hint" style={{ color: '#ef4444' }}>✕ Team name already taken</span>}
                           </div>
-                          <div className="form-group">
-                            <input
-                              type="text"
-                              className="form-input"
-                              placeholder="USN *"
-                              required
-                              value={m.usn}
-                              onChange={(e) => setMemberField(i, 'usn', e.target.value)}
-                            />
-                          </div>
+                        )}
+
+                        {/* Participant / Lead Details Header */}
+                        <div className="team-section-title" style={{ marginTop: 0, paddingTop: 0, borderTop: 'none', fontWeight: 700 }}>
+                          {isTeam ? 'Team Lead Details' : 'Participant Details'}
                         </div>
+
+                        {/* Full Name */}
+                        <div className="form-group">
+                          <label htmlFor="reg-name">Full Name *</label>
+                          <input
+                            id="reg-name"
+                            name="name"
+                            type="text"
+                            className="form-input"
+                            placeholder="Your full name"
+                            required
+                            value={form.name}
+                            onChange={setField}
+                          />
+                        </div>
+
+                        {/* Email + Phone */}
                         <div className="form-row">
                           <div className="form-group">
+                            <label htmlFor="reg-email">Email *</label>
                             <input
+                              id="reg-email"
+                              name="email"
                               type="email"
                               className="form-input"
-                              placeholder="Email (Optional)"
-                              value={m.email}
-                              onChange={(e) => setMemberField(i, 'email', e.target.value)}
+                              placeholder="your@email.com"
+                              required
+                              value={form.email}
+                              onChange={setField}
                             />
                           </div>
                           <div className="form-group">
+                            <label htmlFor="reg-phone">Phone *</label>
                             <input
+                              id="reg-phone"
+                              name="phone"
                               type="tel"
                               className="form-input"
-                              placeholder="Phone (Optional)"
-                              value={m.phone}
-                              onChange={(e) => setMemberField(i, 'phone', e.target.value)}
+                              placeholder="10-digit mobile"
+                              required
+                              value={form.phone}
+                              onChange={setField}
                             />
                           </div>
                         </div>
-                        <div className="form-group" style={{ marginTop: '4px' }}>
-                          {lockedDept ? (
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
-                              Department: <strong style={{ color: 'var(--text)' }}>{lockedDept.name}</strong>
-                            </div>
-                          ) : (
-                            <select
-                              className="form-select"
-                              value={m.dept || ''}
-                              onChange={(e) => setMemberField(i, 'dept', e.target.value)}
-                            >
-                              <option value="">Select Member Department</option>
-                              {DEPARTMENTS.map((d) => (
-                                <option key={d} value={d}>{d}</option>
-                              ))}
-                            </select>
-                          )}
+
+                        {/* Locked Department display */}
+                        <div className="form-group">
+                          <label htmlFor="reg-dept">Department *</label>
+                          <div
+                            style={{
+                              padding: '12px 16px',
+                              background: 'var(--bg)',
+                              border: '1.5px solid var(--bg-card-border)',
+                              borderRadius: '8px',
+                              fontWeight: 600,
+                              color: 'var(--text)',
+                              fontSize: '0.95rem',
+                            }}
+                          >
+                            {lockedDept.name} (Locked for this department event)
+                          </div>
                         </div>
+
+                        {/* Inter-College field */}
+                        {isInterCollege && (
+                          <div className="form-group">
+                            <label htmlFor="reg-college">College Name *</label>
+                            <input
+                              id="reg-college"
+                              name="college"
+                              type="text"
+                              className="form-input"
+                              placeholder="Your college name"
+                              required
+                              value={form.college}
+                              onChange={setField}
+                            />
+                          </div>
+                        )}
+
+                        {/* Additional Team Members */}
+                        {isTeam && (
+                          <div className="team-section" style={{ marginTop: '28px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                              <div className="team-section-title" style={{ margin: 0, padding: 0, border: 'none', fontWeight: 700 }}>
+                                Additional Members ({members.length} added · {minMembers - 1} min required)
+                              </div>
+                              <button
+                                type="button"
+                                className="btn-add-member"
+                                onClick={addMember}
+                                disabled={members.length >= maxAdditional}
+                                style={{ width: 'auto', margin: 0, padding: '6px 14px' }}
+                              >
+                                + Add Member
+                              </button>
+                            </div>
+
+                            {members.map((m, i) => {
+                              const memberHint = getMemberUsnHint(m.usn);
+                              return (
+                                <div key={i} className="team-member-row" style={{ marginBottom: '16px', padding: '16px', background: 'var(--bg)', borderRadius: '8px' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem', fontWeight: 600 }}>
+                                    <span>Member {i + 2}</span>
+                                    {i >= (minMembers - 1) && (
+                                      <button
+                                        type="button"
+                                        className="btn-remove-member"
+                                        onClick={() => removeMember(i)}
+                                        style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
+                                      >
+                                        Remove
+                                      </button>
+                                    )}
+                                  </div>
+                                  <div className="form-row">
+                                    <div className="form-group">
+                                      <input
+                                        type="text"
+                                        className="form-input"
+                                        placeholder="Full Name *"
+                                        required
+                                        value={m.name}
+                                        onChange={(e) => setMemberField(i, 'name', e.target.value)}
+                                      />
+                                    </div>
+                                    <div className="form-group">
+                                      <input
+                                        type="text"
+                                        className="form-input"
+                                        placeholder="USN *"
+                                        required
+                                        value={m.usn}
+                                        onChange={(e) => setMemberField(i, 'usn', e.target.value)}
+                                      />
+                                      {memberHint && (
+                                        <span className="form-hint" style={{ color: memberHint.ok ? '#10b981' : '#ef4444' }}>
+                                          {memberHint.msg}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="form-row">
+                                    <div className="form-group">
+                                      <input
+                                        type="email"
+                                        className="form-input"
+                                        placeholder="Email (Optional)"
+                                        value={m.email}
+                                        onChange={(e) => setMemberField(i, 'email', e.target.value)}
+                                      />
+                                    </div>
+                                    <div className="form-group">
+                                      <input
+                                        type="tel"
+                                        className="form-input"
+                                        placeholder="Phone (Optional)"
+                                        value={m.phone}
+                                        onChange={(e) => setMemberField(i, 'phone', e.target.value)}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="form-group" style={{ marginTop: '4px' }}>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
+                                      Department: <strong style={{ color: 'var(--text)' }}>{lockedDept.name}</strong>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </>
+                ) : (
+                  /* ══════════════════════════════════════════════════
+                      MEGA EVENT PATH (lockedDept === null)
+                      Completely unchanged from original form structure.
+                      ══════════════════════════════════════════════════ */
+                  <>
+                    {/* Team Name (if team event) */}
+                    {isTeam && (
+                      <div className="form-group">
+                        <label htmlFor="reg-teamName">Team Name *</label>
+                        <input
+                          id="reg-teamName"
+                          name="teamName"
+                          type="text"
+                          className="form-input"
+                          placeholder="Enter unique team name"
+                          required
+                          value={form.teamName}
+                          onChange={setField}
+                        />
+                        {checkingTeamName && <span className="form-hint">Checking team name availability...</span>}
+                        {teamNameAvailable === true && <span className="form-hint" style={{ color: '#10b981' }}>✓ Team name available</span>}
+                        {teamNameAvailable === false && <span className="form-hint" style={{ color: '#ef4444' }}>✕ Team name already taken</span>}
                       </div>
-                    ))}
-                  </div>
+                    )}
+
+                    {/* Participant / Lead Details Header */}
+                    <div className="team-section-title" style={{ marginTop: 0, paddingTop: 0, borderTop: 'none', fontWeight: 700 }}>
+                      {isTeam ? 'Team Lead Details' : 'Participant Details'}
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="reg-name">Full Name *</label>
+                      <input
+                        id="reg-name"
+                        name="name"
+                        type="text"
+                        className="form-input"
+                        placeholder="Your full name"
+                        required
+                        value={form.name}
+                        onChange={setField}
+                      />
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label htmlFor="reg-usn">USN *</label>
+                        <input
+                          id="reg-usn"
+                          name="usn"
+                          type="text"
+                          className="form-input"
+                          placeholder="e.g. 1DB23CS001"
+                          required
+                          value={form.usn}
+                          onChange={setField}
+                        />
+                      </div>
+
+                      {/* Semester Select (1, 3, 5, 7) */}
+                      <div className="form-group">
+                        <label htmlFor="reg-semester">Semester *</label>
+                        <select
+                          id="reg-semester"
+                          name="semester"
+                          className="form-select"
+                          required
+                          value={form.semester}
+                          onChange={setField}
+                        >
+                          <option value="">Select Semester</option>
+                          {SEMESTERS.map((s) => (
+                            <option key={s} value={s}>Semester {s}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label htmlFor="reg-email">Email *</label>
+                        <input
+                          id="reg-email"
+                          name="email"
+                          type="email"
+                          className="form-input"
+                          placeholder="your@email.com"
+                          required
+                          value={form.email}
+                          onChange={setField}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="reg-phone">Phone *</label>
+                        <input
+                          id="reg-phone"
+                          name="phone"
+                          type="tel"
+                          className="form-input"
+                          placeholder="10-digit mobile"
+                          required
+                          value={form.phone}
+                          onChange={setField}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Department: free-choice dropdown for mega events */}
+                    <div className="form-group">
+                      <label htmlFor="reg-dept">Department *</label>
+                      <select
+                        id="reg-dept"
+                        name="dept"
+                        className="form-select"
+                        required
+                        value={form.dept}
+                        onChange={setField}
+                      >
+                        <option value="">Select department</option>
+                        {DEPARTMENTS.map((d) => (
+                          <option key={d} value={d}>{d}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Inter-College field */}
+                    {isInterCollege && (
+                      <div className="form-group">
+                        <label htmlFor="reg-college">College Name *</label>
+                        <input
+                          id="reg-college"
+                          name="college"
+                          type="text"
+                          className="form-input"
+                          placeholder="Your college name"
+                          required
+                          value={form.college}
+                          onChange={setField}
+                        />
+                      </div>
+                    )}
+
+                    {/* Additional Team Members */}
+                    {isTeam && (
+                      <div className="team-section" style={{ marginTop: '28px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                          <div className="team-section-title" style={{ margin: 0, padding: 0, border: 'none', fontWeight: 700 }}>
+                            Additional Members ({members.length} added · {minMembers - 1} min required)
+                          </div>
+                          <button
+                            type="button"
+                            className="btn-add-member"
+                            onClick={addMember}
+                            disabled={members.length >= maxAdditional}
+                            style={{ width: 'auto', margin: 0, padding: '6px 14px' }}
+                          >
+                            + Add Member
+                          </button>
+                        </div>
+
+                        {members.map((m, i) => (
+                          <div key={i} className="team-member-row" style={{ marginBottom: '16px', padding: '16px', background: 'var(--bg)', borderRadius: '8px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem', fontWeight: 600 }}>
+                              <span>Member {i + 2}</span>
+                              {i >= (minMembers - 1) && (
+                                <button
+                                  type="button"
+                                  className="btn-remove-member"
+                                  onClick={() => removeMember(i)}
+                                  style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
+                                >
+                                  Remove
+                                </button>
+                              )}
+                            </div>
+                            <div className="form-row">
+                              <div className="form-group">
+                                <input
+                                  type="text"
+                                  className="form-input"
+                                  placeholder="Full Name *"
+                                  required
+                                  value={m.name}
+                                  onChange={(e) => setMemberField(i, 'name', e.target.value)}
+                                />
+                              </div>
+                              <div className="form-group">
+                                <input
+                                  type="text"
+                                  className="form-input"
+                                  placeholder="USN *"
+                                  required
+                                  value={m.usn}
+                                  onChange={(e) => setMemberField(i, 'usn', e.target.value)}
+                                />
+                              </div>
+                            </div>
+                            <div className="form-row">
+                              <div className="form-group">
+                                <input
+                                  type="email"
+                                  className="form-input"
+                                  placeholder="Email (Optional)"
+                                  value={m.email}
+                                  onChange={(e) => setMemberField(i, 'email', e.target.value)}
+                                />
+                              </div>
+                              <div className="form-group">
+                                <input
+                                  type="tel"
+                                  className="form-input"
+                                  placeholder="Phone (Optional)"
+                                  value={m.phone}
+                                  onChange={(e) => setMemberField(i, 'phone', e.target.value)}
+                                />
+                              </div>
+                            </div>
+                            <div className="form-group" style={{ marginTop: '4px' }}>
+                              <select
+                                className="form-select"
+                                value={m.dept || ''}
+                                onChange={(e) => setMemberField(i, 'dept', e.target.value)}
+                              >
+                                <option value="">Select Member Department</option>
+                                {DEPARTMENTS.map((d) => (
+                                  <option key={d} value={d}>{d}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
 
-                <button
-                  type="submit"
-                  className="btn-register"
-                  disabled={step === 'submitting'}
-                  style={{ width: '100%', marginTop: '24px', padding: '14px', fontSize: '1.05rem' }}
-                >
-                  {step === 'submitting' ? 'Processing...' : isWorkshop ? 'Confirm Free Workshop Seat' : 'Proceed to Payment'}
-                </button>
+                {/* Submit button — shown only when form fields are visible */}
+                {/* For locked-dept: show when sem 3/5/7 (isHighSem) or sem 1 eligible (isEligibleSem1) */}
+                {/* For mega: always show */}
+                {(!lockedDept || isHighSem || isEligibleSem1) && (
+                  <button
+                    type="submit"
+                    className="btn-register"
+                    disabled={step === 'submitting'}
+                    style={{ width: '100%', marginTop: '24px', padding: '14px', fontSize: '1.05rem' }}
+                  >
+                    {step === 'submitting' ? 'Processing...' : isWorkshop ? 'Confirm Free Workshop Seat' : 'Proceed to Payment'}
+                  </button>
+                )}
               </form>
             </ScrollReveal>
           </div>

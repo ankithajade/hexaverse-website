@@ -20,7 +20,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await req.json();
-    const { event_slug, registrant, team_members, team_name } = body;
+    const { event_slug, registrant, team_members, team_name, section, cycle, selected_dept, roll_number } = body;
 
     if (!event_slug) {
       return new Response(JSON.stringify({ error: 'event_slug is required' }), {
@@ -52,7 +52,17 @@ serve(async (req) => {
 
     // 2. Handle Workshop (Individual, Free)
     if (event.event_type === 'workshop') {
-      const { name, semester, usn, email, phone } = registrant || {};
+      const {
+        name,
+        semester,
+        usn,
+        email,
+        phone,
+        cycle: regCycle,
+        selected_dept: regSelectedDept,
+        roll_number: regRollNumber,
+        section: regSection,
+      } = registrant || {};
 
       if (!name || !semester || !email || !phone) {
         return new Response(JSON.stringify({ error: 'Missing required workshop fields' }), {
@@ -65,6 +75,24 @@ serve(async (req) => {
       if ([3, 5, 7].includes(Number(semester))) {
         if (!usn || !USN_REGEX.test(usn.trim())) {
           return new Response(JSON.stringify({ error: `Invalid USN format for Semester ${semester}` }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      } else if (Number(semester) === 1 && event.department) {
+        const finalCycle = regCycle || cycle;
+        const finalSection = regSection || section;
+        const finalSelectedDept = regSelectedDept || selected_dept;
+        const finalRollNumber = regRollNumber || roll_number;
+
+        if (!finalCycle || !finalSection || !finalSelectedDept || !finalRollNumber) {
+          return new Response(JSON.stringify({ error: 'Missing required Semester 1 registration fields' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        if (finalSelectedDept !== event.department) {
+          return new Response(JSON.stringify({ error: 'You are not eligible for this event' }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
@@ -110,6 +138,10 @@ serve(async (req) => {
           name: name.trim(),
           semester: Number(semester),
           usn: usn ? usn.trim().toUpperCase() : null,
+          roll_number: regRollNumber || roll_number || null,
+          cycle: regCycle || cycle || null,
+          selected_dept: regSelectedDept || selected_dept || null,
+          section: regSection || section || null,
           email: email.trim().toLowerCase(),
           phone: phone.trim(),
           status: 'confirmed',
@@ -138,6 +170,7 @@ serve(async (req) => {
     // 3. Handle Team Event (Signature or Mega Events)
     const members = team_members || [];
     const totalMembers = members.length;
+    const isLeadSem1 = Number(registrant?.semester) === 1;
 
     if (!team_name || !team_name.trim()) {
       return new Response(JSON.stringify({ error: 'Team name is required' }), {
@@ -164,17 +197,26 @@ serve(async (req) => {
     // Validate members & USN format
     for (let i = 0; i < members.length; i++) {
       const m = members[i];
-      if (!m.name || !m.usn) {
-        return new Response(JSON.stringify({ error: `Member ${i + 1} requires Name and USN` }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      if (!USN_REGEX.test(m.usn.trim())) {
-        return new Response(JSON.stringify({ error: `Member ${i + 1} (${m.name}) has an invalid USN format (${m.usn})` }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+      if (i === 0 && isLeadSem1) {
+        if (!m.name) {
+          return new Response(JSON.stringify({ error: 'Team Lead requires Name' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      } else {
+        if (!m.name || !m.usn) {
+          return new Response(JSON.stringify({ error: `Member ${i + 1} requires Name and USN` }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        if (!USN_REGEX.test(m.usn.trim())) {
+          return new Response(JSON.stringify({ error: `Member ${i + 1} (${m.name}) has an invalid USN format (${m.usn})` }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
       }
     }
 
@@ -198,6 +240,11 @@ serve(async (req) => {
 
     // Create team
     const teamCollege = body.college || registrant?.college || 'DBIT';
+    const teamSection = section || registrant?.section || null;
+    const teamCycle = cycle || registrant?.cycle || null;
+    const teamSelectedDept = selected_dept || registrant?.selected_dept || null;
+    const teamRollNumber = roll_number || registrant?.roll_number || null;
+
     const { data: team, error: teamErr } = await supabase
       .from('teams')
       .insert({
@@ -206,6 +253,10 @@ serve(async (req) => {
         team_size: totalMembers,
         payment_status: 'pending',
         college: teamCollege,
+        section: teamSection,
+        cycle: teamCycle,
+        selected_dept: teamSelectedDept,
+        roll_number: teamRollNumber,
       })
       .select()
       .single();
@@ -222,7 +273,8 @@ serve(async (req) => {
       team_id: team.id,
       is_lead: idx === 0,
       name: m.name.trim(),
-      usn: m.usn.trim().toUpperCase(),
+      usn: (idx === 0 && isLeadSem1) ? (m.roll_number || teamRollNumber || 'SEM1') : m.usn.trim().toUpperCase(),
+      roll_number: (idx === 0 && isLeadSem1) ? (m.roll_number || teamRollNumber) : (m.roll_number || null),
       email: m.email ? m.email.trim().toLowerCase() : (idx === 0 ? registrant?.email : null),
       phone: m.phone ? m.phone.trim() : (idx === 0 ? registrant?.phone : null),
       dept: m.dept ? m.dept.trim() : (idx === 0 ? registrant?.dept : null),

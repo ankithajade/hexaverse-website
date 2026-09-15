@@ -47,10 +47,19 @@ export default function DepartmentPage() {
       {/* Hero */}
       <ScrollReveal as="section" className="dept-hero">
         <div className="container">
-          <div className="dept-hero-badge">{dept.badge}</div>
-          <h1>{dept.name}</h1>
-          <p className="dept-hero-dates">{dept.dates}</p>
-          <RichText className="dept-hero-desc">{dept.description}</RichText>
+          <div className="dept-hero-layout">
+            <div className="dept-hero-content">
+              <div className="dept-hero-badge">{dept.badge}</div>
+              <h1>{dept.name}</h1>
+              <p className="dept-hero-dates">{dept.dates}</p>
+              <RichText className="dept-hero-desc">{dept.description}</RichText>
+            </div>
+            <div className="dept-hero-media" aria-hidden="true">
+              <div className="dept-hero-placeholder">
+                <span className="dept-hero-placeholder-label">Image</span>
+              </div>
+            </div>
+          </div>
         </div>
       </ScrollReveal>
 

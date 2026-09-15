@@ -17,6 +17,32 @@ export function isValidUSN(usn) {
   return USN_REGEX.test(usn.trim());
 }
 
+/**
+ * Maps department IDs (as used in lockedDepartment.id) to the
+ * branch code embedded in the USN (e.g. 1DB23CS001 → "CS").
+ */
+export const DEPT_USN_CODE = {
+  aiml: 'CI',
+  aids: 'AD',
+  cse:  'CS',
+  ise:  'IS',
+  ece:  'EC',
+  eee:  'EE',
+};
+
+/**
+ * Returns true only if the USN is valid format AND the embedded branch
+ * code matches the required department code for deptId.
+ * Unknown deptId returns true (don't block; shouldn't happen for locked-dept events).
+ */
+export function isUSNEligibleForDept(usn, deptId) {
+  if (!isValidUSN(usn)) return false;
+  const requiredCode = DEPT_USN_CODE[deptId];
+  if (!requiredCode) return true;
+  const match = usn.trim().toUpperCase().match(/^1DB\d{2}([A-Z]{2})\d{3}$/);
+  return !!(match && match[1] === requiredCode);
+}
+
 /** Validate Email format */
 export function isValidEmail(email) {
   if (!email || typeof email !== 'string') return false;

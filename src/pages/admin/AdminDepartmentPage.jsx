@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, Fragment, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { FiPlus, FiChevronUp, FiChevronDown } from 'react-icons/fi';
 import { supabase } from '../../lib/supabaseClient';
 import { departments } from '../../data/departments';
 import TeamEditModal from './TeamEditModal';
@@ -78,6 +79,9 @@ export default function AdminDepartmentPage() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
 
+  // Active tab state: 'workshop' | 'event'
+  const [activeTab, setActiveTab] = useState('workshop');
+
   // Search filter states
   const [workshopSearch, setWorkshopSearch] = useState('');
   const [teamSearch, setTeamSearch] = useState('');
@@ -147,14 +151,6 @@ export default function AdminDepartmentPage() {
       }
       return next;
     });
-  };
-
-  const expandAll = () => {
-    setExpandedTeamIds(new Set(filteredTeams.map((t) => t.id)));
-  };
-
-  const collapseAll = () => {
-    setExpandedTeamIds(new Set());
   };
 
   // ── Audit log helper ──
@@ -233,6 +229,16 @@ export default function AdminDepartmentPage() {
       return matchTeam || matchMember;
     });
   }, [teams, teamSearch]);
+
+  const allTeamsExpanded = filteredTeams.length > 0 && filteredTeams.every((t) => expandedTeamIds.has(t.id));
+
+  const toggleExpandAllTeams = () => {
+    if (allTeamsExpanded) {
+      setExpandedTeamIds(new Set());
+    } else {
+      setExpandedTeamIds(new Set(filteredTeams.map((t) => t.id)));
+    }
+  };
 
   // Calculations
   const totalWorkshopAttendees = workshops.length;
@@ -410,17 +416,89 @@ export default function AdminDepartmentPage() {
           <div style={{ fontSize: '1.2rem', marginBottom: '8px' }}>Loading {dept.name} data…</div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+        <div>
+          {/* ── Tabs Navigation ── */}
+          <div style={{
+            display: 'inline-flex',
+            gap: '6px',
+            background: 'var(--bg-card)',
+            padding: '5px',
+            borderRadius: '10px',
+            marginBottom: '20px',
+            border: '1px solid var(--bg-card-border)',
+          }}>
+            <button
+              type="button"
+              onClick={() => setActiveTab('workshop')}
+              style={{
+                padding: '8px 18px',
+                borderRadius: '7px',
+                border: 'none',
+                background: activeTab === 'workshop' ? 'var(--bg-alt)' : 'transparent',
+                color: activeTab === 'workshop' ? 'var(--text)' : 'var(--text-muted)',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span>Workshop</span>
+              <span style={{
+                fontSize: '0.72rem',
+                padding: '2px 7px',
+                borderRadius: '10px',
+                background: activeTab === 'workshop' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(0,0,0,0.05)',
+                color: activeTab === 'workshop' ? '#10b981' : 'var(--text-muted)',
+                fontWeight: 700,
+              }}>
+                {workshops.length}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('event')}
+              style={{
+                padding: '8px 18px',
+                borderRadius: '7px',
+                border: 'none',
+                background: activeTab === 'event' ? 'var(--bg-alt)' : 'transparent',
+                color: activeTab === 'event' ? 'var(--text)' : 'var(--text-muted)',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span>Signature Event</span>
+              <span style={{
+                fontSize: '0.72rem',
+                padding: '2px 7px',
+                borderRadius: '10px',
+                background: activeTab === 'event' ? 'var(--cyan-dim)' : 'rgba(0,0,0,0.05)',
+                color: activeTab === 'event' ? 'var(--cyan)' : 'var(--text-muted)',
+                fontWeight: 700,
+              }}>
+                {teams.length}
+              </span>
+            </button>
+          </div>
 
           {/* ══════════════════════════════════════════════════════════════════ */}
           {/* SECTION A — WORKSHOP REGISTRATIONS                                 */}
           {/* ══════════════════════════════════════════════════════════════════ */}
-          <section style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--bg-card-border)',
-            borderRadius: '12px',
-            overflow: 'hidden',
-          }}>
+          {activeTab === 'workshop' && (
+            <section style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--bg-card-border)',
+              borderRadius: '12px',
+              overflow: 'hidden',
+            }}>
             {/* Header & Controls */}
             <div style={{
               padding: '18px 22px',
@@ -601,10 +679,12 @@ export default function AdminDepartmentPage() {
               </div>
             )}
           </section>
+          )}
 
           {/* ══════════════════════════════════════════════════════════════════ */}
           {/* SECTION B — SIGNATURE EVENT TEAMS                                  */}
           {/* ══════════════════════════════════════════════════════════════════ */}
+          {activeTab === 'event' && (
           <section style={{
             background: 'var(--bg-card)',
             border: '1px solid var(--bg-card-border)',
@@ -667,24 +747,16 @@ export default function AdminDepartmentPage() {
                   }}
                 />
                 {filteredTeams.length > 0 && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={expandAll}
-                      className="btn-details"
-                      style={{ fontSize: '0.75rem', padding: '6px 10px' }}
-                    >
-                      Expand All
-                    </button>
-                    <button
-                      type="button"
-                      onClick={collapseAll}
-                      className="btn-details"
-                      style={{ fontSize: '0.75rem', padding: '6px 10px' }}
-                    >
-                      Collapse All
-                    </button>
-                  </>
+                  <button
+                    type="button"
+                    onClick={toggleExpandAllTeams}
+                    className="btn-details"
+                    style={{ fontSize: '0.75rem', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    title={allTeamsExpanded ? 'Collapse All' : 'Expand All'}
+                  >
+                    {allTeamsExpanded ? <FiChevronUp style={{ fontSize: '0.9rem' }} /> : <FiChevronDown style={{ fontSize: '0.9rem' }} />}
+                    {allTeamsExpanded ? 'Collapse All' : 'Expand All'}
+                  </button>
                 )}
                 <button
                   type="button"
@@ -709,9 +781,17 @@ export default function AdminDepartmentPage() {
                   type="button"
                   onClick={() => setShowAddTeam(true)}
                   className="btn-register"
-                  style={{ fontSize: '0.78rem', padding: '6px 12px' }}
+                  style={{
+                    fontSize: '0.85rem',
+                    padding: '7px 10px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  title="Add Team"
+                  aria-label="Add Team"
                 >
-                  + Add Team
+                  <FiPlus style={{ fontSize: '1.1rem' }} />
                 </button>
               </div>
             </div>
@@ -1041,6 +1121,7 @@ export default function AdminDepartmentPage() {
               </div>
             )}
           </section>
+          )}
 
         </div>
       )}

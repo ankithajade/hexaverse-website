@@ -24,16 +24,23 @@ const EVENT_SLUGS = [
   { slug: 'hackathon',      label: 'Hackathon',  type: 'team' },
 ];
 
-// Bar colours cycling through site accent vars (resolved at runtime)
-const BAR_COLORS = [
-  'var(--aiml)', 'var(--aiml)',
-  'var(--aids)', 'var(--aids)',
-  'var(--cse)',  'var(--cse)',
-  'var(--ise)',  'var(--ise)',
-  'var(--ece)',  'var(--ece)',
-  'var(--eee)',  'var(--eee)',
-  'var(--cyan)', 'var(--orange)',
-];
+// Event colors mapping
+const EVENT_COLORS = {
+  'aiml-workshop': 'var(--aiml)',
+  'aids-workshop': 'var(--aids)',
+  'cse-workshop':  'var(--cse)',
+  'ise-workshop':  'var(--ise)',
+  'ece-workshop':  'var(--ece)',
+  'eee-workshop':  'var(--eee)',
+  'aiml-event':    'var(--aiml)',
+  'aids-event':    'var(--aids)',
+  'cse-event':     'var(--cse)',
+  'ise-event':     'var(--ise)',
+  'ece-event':     'var(--ece)',
+  'eee-event':     'var(--eee)',
+  'treasure-hunt': 'var(--cyan)',
+  'hackathon':     'var(--mega-accent)',
+};
 
 // Resolve a CSS variable to its computed hex/rgb value
 function resolveCssVar(varStr) {
@@ -91,24 +98,34 @@ export default function AdminHome() {
     }
   };
 
-  // ── Same stat calculations as old AdminDashboard ──
+  // ── Stat calculations ──
   const totalWorkshops = workshops.length;
   const totalTeams = teams.length;
   const paidTeams = teams.filter((t) => t.payment_status === 'success').length;
+  const pendingPayments = teams.filter((t) => t.payment_status === 'pending').length;
+  const totalEventAttendees = teams
+    .filter((t) => t.payment_status === 'success')
+    .reduce((sum, t) => sum + (t.team_size || t.team_members?.length || 0), 0);
   const totalRevenue = teams
     .filter((t) => t.payment_status === 'success')
     .reduce((sum, t) => sum + t.team_size * (t.event_slug === 'treasure-hunt' ? 80 : 50), 0);
 
-  // ── Chart data: count per event slug ──
-  const chartData = EVENT_SLUGS.map(({ slug, label, type }) => {
-    const count = type === 'workshop'
-      ? workshops.filter((w) => w.event_slug === slug).length
-      : teams.filter((t) => t.event_slug === slug).length;
-    return { label, count };
-  });
+  // ── Split Chart data: Workshop vs Signature/Mega Events ──
+  const workshopChartData = EVENT_SLUGS
+    .filter((e) => e.type === 'workshop')
+    .map(({ slug, label }) => ({
+      label,
+      count: workshops.filter((w) => w.event_slug === slug).length,
+      color: resolveCssVar(EVENT_COLORS[slug] || '#38bdf8'),
+    }));
 
-  // Resolve CSS vars once for recharts (can't use CSS vars in SVG fill directly)
-  const resolvedColors = BAR_COLORS.map(resolveCssVar);
+  const eventChartData = EVENT_SLUGS
+    .filter((e) => e.type === 'team')
+    .map(({ slug, label }) => ({
+      label,
+      count: teams.filter((t) => t.event_slug === slug).length,
+      color: resolveCssVar(EVENT_COLORS[slug] || '#38bdf8'),
+    }));
 
   // ── CSV Export (same logic as old dashboard, all events) ──
   const handleExportCSV = async () => {
@@ -203,66 +220,130 @@ export default function AdminHome() {
       ) : (
         <>
           {/* ── Stat Cards ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '36px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '32px' }}>
             <StatCard label="Total Registrations" value={totalWorkshops + totalTeams} color="var(--text)" />
             <StatCard label="Total Revenue" value={`₹${totalRevenue}`} color="var(--cyan)" />
             <StatCard label="Free Workshop Attendees" value={totalWorkshops} color="#10b981" />
             <StatCard label="Paid Teams (Success)" value={`${paidTeams} / ${totalTeams}`} color="var(--orange)" />
+            <StatCard label="Total Event Attendees" value={totalEventAttendees} color="#6366f1" />
+            <StatCard label="Pending Payments" value={pendingPayments} color="#f59e0b" />
           </div>
 
-          {/* ── Bar Chart: Registrations per Event ── */}
+          {/* ── Split Bar Charts: Workshop & Signature Event ── */}
           <div style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--bg-card-border)',
-            borderRadius: '12px',
-            padding: '24px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+            gap: '20px',
             marginBottom: '32px',
           }}>
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.06em', marginBottom: '4px' }}>
-                Registrations by Event
+            {/* Workshop Chart */}
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--bg-card-border)',
+              borderRadius: '12px',
+              padding: '22px',
+            }}>
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', fontWeight: 700, color: '#10b981', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                  Workshops
+                </div>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text)' }}>
+                  Workshop Registrations
+                </div>
               </div>
-              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text)' }}>
-                Per-event registration count
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={workshopChartData} margin={{ top: 4, right: 8, left: -16, bottom: 45 }}>
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fontSize: 11, fill: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}
+                    angle={-30}
+                    textAnchor="end"
+                    interval={0}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: 'var(--text-muted)' }}
+                    tickLine={false}
+                    axisLine={false}
+                    allowDecimals={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--bg-card-border)',
+                      borderRadius: '8px',
+                      fontSize: '0.82rem',
+                      color: 'var(--text)',
+                    }}
+                    cursor={{ fill: 'rgba(4,36,43,0.05)' }}
+                    formatter={(value) => [value, 'Workshop Attendees']}
+                  />
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                    {workshopChartData.map((entry, index) => (
+                      <Cell key={index} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                Free individual workshop registrations
               </div>
             </div>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={chartData} margin={{ top: 4, right: 8, left: -16, bottom: 60 }}>
-                <XAxis
-                  dataKey="label"
-                  tick={{ fontSize: 11, fill: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}
-                  angle={-40}
-                  textAnchor="end"
-                  interval={0}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 11, fill: 'var(--text-muted)' }}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--bg-card-border)',
-                    borderRadius: '8px',
-                    fontSize: '0.82rem',
-                    color: 'var(--text)',
-                  }}
-                  cursor={{ fill: 'rgba(4,36,43,0.05)' }}
-                  formatter={(value) => [value, 'Registrations']}
-                />
-                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                  {chartData.map((_, index) => (
-                    <Cell key={index} fill={resolvedColors[index] || '#38bdf8'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-              W/S = Workshop · Sig = Signature Event
+
+            {/* Signature Event Chart */}
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--bg-card-border)',
+              borderRadius: '12px',
+              padding: '22px',
+            }}>
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', fontWeight: 700, color: 'var(--cyan)', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                  Team & Mega Events
+                </div>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text)' }}>
+                  Signature Event Registrations
+                </div>
+              </div>
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={eventChartData} margin={{ top: 4, right: 8, left: -16, bottom: 45 }}>
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fontSize: 11, fill: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}
+                    angle={-30}
+                    textAnchor="end"
+                    interval={0}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: 'var(--text-muted)' }}
+                    tickLine={false}
+                    axisLine={false}
+                    allowDecimals={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--bg-card-border)',
+                      borderRadius: '8px',
+                      fontSize: '0.82rem',
+                      color: 'var(--text)',
+                    }}
+                    cursor={{ fill: 'rgba(4,36,43,0.05)' }}
+                    formatter={(value) => [value, 'Registered Teams']}
+                  />
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                    {eventChartData.map((entry, index) => (
+                      <Cell key={index} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                Department signature events + Treasure Hunt &amp; Hackathon
+              </div>
             </div>
           </div>
 

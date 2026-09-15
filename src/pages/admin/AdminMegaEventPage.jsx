@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, Fragment, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { FiPlus, FiChevronUp, FiChevronDown } from 'react-icons/fi';
 import { supabase } from '../../lib/supabaseClient';
 import { events as megaEvents } from '../../data/events';
 import TeamEditModal from './TeamEditModal';
@@ -127,14 +128,6 @@ export default function AdminMegaEventPage() {
     });
   };
 
-  const expandAll = () => {
-    setExpandedTeamIds(new Set(filteredTeams.map((t) => t.id)));
-  };
-
-  const collapseAll = () => {
-    setExpandedTeamIds(new Set());
-  };
-
   // ── Audit log helper ──
   const writeAuditLog = useCallback(async (action, tableName, recordId, before, after) => {
     try {
@@ -199,6 +192,16 @@ export default function AdminMegaEventPage() {
       return matchTeam || matchMember;
     });
   }, [teams, searchQuery]);
+
+  const allTeamsExpanded = filteredTeams.length > 0 && filteredTeams.every((t) => expandedTeamIds.has(t.id));
+
+  const toggleExpandAllTeams = () => {
+    if (allTeamsExpanded) {
+      setExpandedTeamIds(new Set());
+    } else {
+      setExpandedTeamIds(new Set(filteredTeams.map((t) => t.id)));
+    }
+  };
 
   // Statistics
   const totalTeamsCount = teams.length;
@@ -443,32 +446,32 @@ export default function AdminMegaEventPage() {
                 }}
               />
               {filteredTeams.length > 0 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={expandAll}
-                    className="btn-details"
-                    style={{ fontSize: '0.75rem', padding: '6px 10px' }}
-                  >
-                    Expand All
-                  </button>
-                  <button
-                    type="button"
-                    onClick={collapseAll}
-                    className="btn-details"
-                    style={{ fontSize: '0.75rem', padding: '6px 10px' }}
-                  >
-                    Collapse All
-                  </button>
-                </>
+                <button
+                  type="button"
+                  onClick={toggleExpandAllTeams}
+                  className="btn-details"
+                  style={{ fontSize: '0.75rem', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  title={allTeamsExpanded ? 'Collapse All' : 'Expand All'}
+                >
+                  {allTeamsExpanded ? <FiChevronUp style={{ fontSize: '0.9rem' }} /> : <FiChevronDown style={{ fontSize: '0.9rem' }} />}
+                  {allTeamsExpanded ? 'Collapse All' : 'Expand All'}
+                </button>
               )}
               <button
                 type="button"
                 onClick={() => setShowAddTeam(true)}
                 className="btn-register"
-                style={{ fontSize: '0.78rem', padding: '6px 12px' }}
+                style={{
+                  fontSize: '0.85rem',
+                  padding: '7px 10px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                title="Add Team"
+                aria-label="Add Team"
               >
-                + Add Team
+                <FiPlus style={{ fontSize: '1.1rem' }} />
               </button>
             </div>
           </div>
@@ -477,15 +480,27 @@ export default function AdminMegaEventPage() {
           {filteredTeams.length === 0 ? (
             <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
               {teams.length === 0 ? (
-                <>
-                  <div style={{ fontSize: '1.8rem', marginBottom: '8px' }}>🏆</div>
-                  <div style={{ fontWeight: 600, color: 'var(--text-dim)', fontSize: '1.05rem' }}>
-                    No teams registered yet for {event.title}
-                  </div>
-                  <div style={{ fontSize: '0.82rem', marginTop: '6px', color: 'var(--text-muted)' }}>
-                    Teams registered with event slug <code>{eventId}</code> will appear here in real-time.
-                  </div>
-                </>
+                eventId === 'hackathon' ? (
+                  <>
+                    <div style={{ fontSize: '1.8rem', marginBottom: '8px' }}>🚀</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1.15rem', fontFamily: 'var(--font-subheading)' }}>
+                      Coming Soon
+                    </div>
+                    <div style={{ fontSize: '0.82rem', marginTop: '6px', color: 'var(--text-muted)' }}>
+                      Hackathon registrations will open soon.
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontSize: '1.8rem', marginBottom: '8px' }}>🏆</div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-dim)', fontSize: '1.05rem' }}>
+                      No teams registered yet for {event.title}
+                    </div>
+                    <div style={{ fontSize: '0.82rem', marginTop: '6px', color: 'var(--text-muted)' }}>
+                      Teams registered with event slug <code>{eventId}</code> will appear here in real-time.
+                    </div>
+                  </>
+                )
               ) : (
                 <>
                   <div style={{ fontWeight: 600, color: 'var(--text-dim)' }}>No matching teams found</div>

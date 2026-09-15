@@ -86,8 +86,8 @@ export default function Timeline() {
                   <h3>Treasure Hunt</h3>
                 </div>
                 <div className="timeline-header-right">
-                  <span className="timeline-dates">25 Sept 2026</span>
-                  <a href="#events" className="btn-timeline-register btn-timeline-mega">Click Here</a>
+                  <span className="timeline-dates">26 Sept 2026</span>
+                  <Link to="/events/treasure-hunt" className="btn-timeline-register btn-timeline-mega">Details</Link>
                 </div>
               </div>
               <span className="timeline-open-badge">Open to all departments</span>
@@ -255,7 +255,7 @@ export default function Timeline() {
                 </div>
                 <div className="timeline-header-right">
                   <span className="timeline-dates">30 &ndash; 31 Oct 2026</span>
-                  <a href="#events" className="btn-timeline-register btn-timeline-mega">Click Here</a>
+                  <Link to="/events/hackathon" className="btn-timeline-register btn-timeline-mega">Details</Link>
                 </div>
               </div>
               <span className="timeline-open-badge">Open to all departments</span>
@@ -279,7 +279,7 @@ export default function Timeline() {
                   <h3 className="timeline-dept">EEE</h3>
                 </div>
                 <div className="timeline-header-right">
-                  <span className="timeline-dates">2 &ndash; 5 Nov 2026</span>
+                  <span className="timeline-dates">2 &ndash; 4 Nov 2026</span>
                   <Link to="/departments/eee" className="btn-timeline-register">Register Now</Link>
                 </div>
               </div>
@@ -293,7 +293,7 @@ export default function Timeline() {
                   <span className="day-pill-label">Workshop Day 2</span>
                 </div>
                 <div className="day-pill day-pill--event">
-                  <span className="day-pill-date">5 Nov</span>
+                  <span className="day-pill-date">4 Nov</span>
                   <span className="day-pill-label">Dept. Signature Event</span>
                 </div>
               </div>

@@ -96,13 +96,13 @@ export default function EventPage() {
           <div style={{ alignSelf: 'center', marginTop: '12px' }}>
             {event.id === 'hackathon' ? (
               <a
-                href="https://forms.example.com/hexaverse-hackathon-registration"
+                href="https://forms.example.com/hexaverse-hackathon-details"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-dept-register"
                 style={{ padding: '14px 28px', fontSize: '1.05rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                Register Now!
+                Details
               </a>
             ) : (
               <button
@@ -195,13 +195,13 @@ export default function EventPage() {
           >
             {event.id === 'hackathon' ? (
               <a
-                href="https://forms.example.com/hexaverse-hackathon-registration"
+                href="https://forms.example.com/hexaverse-hackathon-details"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-dept-register"
                 style={{ padding: '14px 40px', fontSize: '1.1rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                Register Now!
+                Details
               </a>
             ) : (
               <button

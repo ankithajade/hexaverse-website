@@ -177,7 +177,7 @@ export const departments = {
         
         The workshop is designed to take participants from the fundamentals to actively working with the concepts, making it accessible even without prior AWS experience. An interactive end-of-day quiz brings the experience together, giving participants a chance to apply what they have explored while offering a glimpse of what awaits in the signature challenge. 
         
-        **What to look forward to:**
+        *What to look forward to:*
         - Explore Amazon Q and its practical applications
         - Get familiar with commonly used AWS services
         - Understand how cloud services can work together in real-world scenarios
@@ -185,7 +185,11 @@ export const departments = {
         - Test your understanding through an interactive quiz
         - Build familiarity with the tools and concepts used in the upcoming challenge
 
-        ***No prior knowledge is required — the workshop begins with the fundamentals and builds from there.***
+        &nbsp;
+
+        No prior knowledge is required — the workshop begins with the fundamentals and builds from there.
+
+        ***Decode the tools. Crack the concepts. Get ready to break the bug. Apply now!***
         `,
         dates: '5 – 6 Oct 2026',
         venue: 'Venue TBD',
@@ -208,7 +212,9 @@ export const departments = {
         
         With three rounds designed to test both individual thinking and team coordination, **THE BREAKING BUG** turns system recovery into a race against the clock. 
         
-        ***Prior knowledge is required, with a basic understanding of programming and the concepts covered in the workshop recommended for participants.***
+        &nbsp;
+
+        ***The system is down. The clock is ticking. Can you bring it back? Register below!***
         `,
 
         dates: '8 Oct 2026',
@@ -249,7 +255,7 @@ export const departments = {
 
         Participants will work with AWS services directly, connect documents to a Knowledge Base, and see how relevant information can be retrieved and used to generate grounded responses.
 
-        **What to expect:**
+        *What to expect:*
         * Get familiar with AWS and its core cloud services
         * Create and work with an Amazon S3 bucket
         * Explore AI, Generative AI, and RAG concepts
@@ -257,7 +263,11 @@ export const departments = {
         * Build and test a RAG-based Knowledge Base
         * Gain practical experience that prepares you for the department's signature challenge
 
-        ***No advanced prior knowledge is required. Basic familiarity with cloud or AI concepts is helpful but not essential.***
+        &nbsp;
+
+        No advanced prior knowledge is required. Basic familiarity with cloud or AI concepts is helpful but not essential.
+
+        ***Retrieve. Understand. Build. Get hands-on with the technology behind the challenge. Join us below!***
         `,
 
         dates: '22 Oct 2026',
@@ -271,21 +281,17 @@ export const departments = {
       },
       {
         type: 'Signature Event',
-        title: 'Beyond Search:The Intelligence Challenge',
+        title: 'Beyond Search: The Intelligence Challenge',
         description: `
-        Go beyond simply finding information. **Beyond Search: The Intelligence Challenge** is a two-round AWS challenge that puts knowledge retrieval and cloud architecture skills to the test. 
-        
-        Participants work with **Amazon Bedrock** and **Knowledge Bases** to retrieve relevant information from **AWS** resources, then use that knowledge to tackle a real-world architecture problem. The challenge moves from finding the right information to making meaningful technical decisions with it.
+        Go beyond simply finding information. **Beyond Search: The Intelligence Challenge** is a **two-round** team challenge that puts participants in situations where the right information is only the starting point. Using **AWS, Amazon Bedrock, and Knowledge Bases,** teams will explore a given scenario, retrieve the information they need, and use it to make meaningful technical decisions.
 
-        **What makes it interesting:**
-        * Two rounds combining retrieval and architecture
-        * Team-based problem solving
-        * Hands-on use of AWS and Amazon Bedrock
-        * Real-world cloud architecture scenarios
-        * Time-bound decision making and technical reasoning
-        * Present and defend your solution before the judges
+        The challenge progresses from **knowledge retrieval to cloud architecture**, requiring teams to analyse the problem, connect the right pieces, and develop a practical solution within a limited time. Along the way, participants will have to balance **technical reasoning, teamwork, and decision-making** before presenting and defending their approach to the judges.
 
-        ***Prior knowledge: Basic familiarity with AWS, RAG, and Amazon Bedrock is recommended. The pre-event workshop provides a practical foundation for participants.***
+        Whether you enjoy solving problems, designing systems, or simply want to see how cloud and AI can be used beyond basic search, **Beyond Search** gives you the opportunity to put your thinking to the test in a challenge where **finding the answer is just the beginning.**
+
+        &nbsp;
+
+        ***Beyond finding answers — can you turn knowledge into the right solution? Register and show us your potential!***
         `,
 
         dates: '24 Oct 2026',
@@ -369,7 +375,7 @@ export const departments = {
           ***How far can you take your system? Register now and show your potential!***
           `,
         dates: '29 Oct 2026',
-        venue: 'Venue TBD',
+        venue: 'A-001',
         eventId: 'ece-event',
         eventTitle: 'ECE Signature Event',
         isTeam: true,
@@ -389,8 +395,8 @@ export const departments = {
     cssVar: 'var(--eee)',
     week: 'Week 06',
     badge: 'Week 06 · Department of EEE, DBIT',
-    dates: '2 – 5 November 2026',
-    displayDates: '2–5 Nov',
+    dates: '2 – 4 November 2026',
+    displayDates: '2–4 Nov',
     logoSrc: '/assets/eee-sbg-logo.svg',
     description:
       'EEE Week brings together technology, engineering, and competition in an experience designed for curious students. Explore how cloud technologies can connect with engineering applications, get hands-on with practical concepts, and put your skills to the test through a three-round technical challenge. Whether you enjoy building, experimenting, solving problems, or competing under pressure, there’s something here to keep you engaged.',
@@ -400,24 +406,26 @@ export const departments = {
     events: [
       {
         type: 'Workshop',
-        title: 'Grid2Cloud: The Workshop',
+        title: 'Grid2Cloud: From Engineering Problems to Cloud Solutions',
         description: `
-        **AWS × EEE — From Engineering Problems to Cloud Solutions**
-
         Discover how cloud computing can be applied to real engineering scenarios in your domain through an interactive, beginner-friendly experience. The workshop takes students beyond theory and into practical exploration of AWS services and their role in building connected and scalable solutions.
 
-        **Participants can look forward to:**
+        *Participants can look forward to:*
 
         * Exploring the fundamentals of cloud computing and AWS
-        * Understanding AWS services such as IoT Core, SQS, Lambda, S3, SNS, CloudWatch, and EC2
-        * Connecting cloud concepts with Electrical and Electronics Engineering applications
+        * Understanding AWS services such as **IoT Core, SQS, Lambda, S3, SNS, CloudWatch, and EC2**
+        * Connecting **cloud concepts** with Electrical and Electronics Engineering applications
         * Working through practical examples and hands-on activities
         * Understanding how different cloud services can work together as a complete solution
-        * Designing and exploring a practical Smart Energy Monitoring System
+        * Designing and exploring a practical **Smart Energy Monitoring System**
 
-        **No cloud background is required.** The workshop is designed to make cloud technology approachable while giving students a chance to experiment, build, and think like engineers.
+        &nbsp;
 
-        The workshop also gives participants a strong foundation for the signature event by introducing them to relevant technologies, concepts, and problem-solving approaches. Attending the workshop can help participants approach the competition with greater confidence and a better understanding of the challenges they may encounter.
+        No cloud background is required. The workshop is designed to make cloud technology approachable while giving students a chance to experiment, build, and think like engineers.
+
+        The workshop also gives participants a strong foundation for the signature event by introducing them to relevant technologies, concepts, and problem-solving approaches.
+
+        ***Connect engineering with the cloud. Learn, explore, and build smarter solutions. Register now!***
         `,
 
         dates: '2 – 3 Nov 2026',
@@ -431,21 +439,19 @@ export const departments = {
       },
       {
         type: 'Signature Event',
-        title: 'FetchNFix:Spot before it Sparks',
+        title: 'FetchNFix: Spot before it Sparks',
         description: `
-        Get ready for a fast-paced technical challenge where knowledge meets problem-solving, creativity, and teamwork. The signature event brings students together in an engaging three-round competition, with each stage putting a different aspect of their technical thinking to the test.
+        **Think fast. Solve smart. Engineer your way through the challenge.**
 
-Participants will face challenges that encourage them to think quickly, apply what they know, collaborate effectively, and make decisions under pressure.
+        The **EEE Signature Event** is a **three-round** team-based technical challenge where participants face a series of engineering problems designed to test how well they can **understand a situation, identify the right approach, and turn their ideas into workable solutions.** Each round introduces a different challenge, pushing teams to apply their technical knowledge while adapting to new constraints and making decisions under time pressure.
 
-* Three competitive rounds designed to keep the challenge engaging from start to finish
-* Questions and challenges that test technical knowledge and problem-solving
-* Opportunities to demonstrate creativity, teamwork, and quick thinking
-* A competitive environment where every decision can make a difference
-* An accessible experience for students who enjoy technology, engineering, and challenges
+        Rather than simply testing what you remember, the challenge focuses on **how you think and respond**. Teams will analyse problems, work through technical challenges, collaborate on solutions, and make strategic choices as they progress through the competition. With every round bringing a new twist, participants will need a **balance of engineering knowledge, creativity, teamwork, and quick thinking** to stay ahead.
 
-The workshop and signature event are designed to complement each other. The workshop provides participants with useful exposure to cloud technologies and engineering applications, giving them a stronger foundation before stepping into the competition.
+        Whether you're someone who enjoys solving technical problems, working with your team, or taking on challenges where there isn't always an obvious answer, **FetchNfix** gives you a chance to put your skills to the test in a competitive and engaging environment.
 
-***Whether you come to compete, collaborate, or simply test your skills, expect an energetic experience filled with challenges, strategy, teamwork, and healthy competition!***
+        &nbsp;
+
+        ***Think you can engineer your way through it? Step up, take the challenge, and see how far your team can go. Register below!***
         `,
         dates: '4 Nov 2026',
         venue: 'A-001',
