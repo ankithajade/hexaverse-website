@@ -74,8 +74,23 @@ export async function submitRegistration(payload) {
   });
 
   if (error) {
-    throw new Error(error.message || 'Failed to communicate with registration server.');
+  let serverMessage = null;
+
+  try {
+    if (error.context) {
+      const errorBody = await error.context.json();
+      serverMessage = errorBody?.error || errorBody?.message || null;
+    }
+  } catch {
+    // Ignore parsing errors and use the generic message below
   }
+
+  throw new Error(
+    serverMessage ||
+    error.message ||
+    'Failed to communicate with registration server.'
+  );
+}
 
   if (data?.error) {
     throw new Error(data.error);
