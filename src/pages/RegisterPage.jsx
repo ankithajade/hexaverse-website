@@ -657,7 +657,7 @@ export default function RegisterPage() {
         if (res.payment_session_id) {
           setPaymentData(res);
           setStep('payment_checkout');
-          launchCashfreeCheckout(res.payment_session_id, res);
+          launchCashfreeCheckout(res.payment_session_id);
         } else if (res.success && res.is_free) {
           setStep('success');
         } else {
@@ -671,7 +671,7 @@ export default function RegisterPage() {
     }
   };
 
-  const launchCashfreeCheckout = async (paymentSessionId, registrationRes) => {
+  const launchCashfreeCheckout = async (paymentSessionId) => {
     try {
       if (!window.Cashfree) {
         const script = document.createElement('script');
@@ -695,11 +695,6 @@ export default function RegisterPage() {
         if (result?.error) {
           setServerError(result.error.message || 'Payment was cancelled or failed.');
           setStep('form');
-        } else if (result?.redirect || result?.paymentDetails) {
-          const orderId = registrationRes?.gateway_order_id;
-          if (orderId) {
-            window.location.href = `/payment-status?order_id=${encodeURIComponent(orderId)}`;
-          }
         }
       }).catch((err) => {
         console.warn('[Cashfree] Checkout interaction notice:', err);

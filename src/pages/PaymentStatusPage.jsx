@@ -92,8 +92,8 @@ export default function PaymentStatusPage() {
                 Securely confirming transaction with Cashfree and updating registration records.
               </p>
               {orderId && (
-                <div style={{ marginTop: '16px', fontSize: '0.8rem', color: 'var(--text-dim)', wordBreak: 'break-all' }}>
-                  Order: <code>{orderId}</code>
+                <div style={{ marginTop: '16px', fontSize: '0.8rem', color: 'var(--text-dim)', wordBreak: 'break-all', overflowWrap: 'anywhere' }}>
+                  Order: <code style={{ wordBreak: 'break-all', overflowWrap: 'anywhere' }}>{orderId}</code>
                 </div>
               )}
             </div>
@@ -155,9 +155,17 @@ export default function PaymentStatusPage() {
                     <strong>{eventInfo.eventTitle}</strong>
                   </div>
                 )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '4px 8px',
+                  marginBottom: '10px',
+                }}>
                   <span style={{ color: 'var(--text-dim)' }}>Order ID:</span>
-                  <code style={{ fontSize: '0.85rem' }}>{orderId}</code>
+                  <code style={{ fontSize: '0.85rem', wordBreak: 'break-all', overflowWrap: 'anywhere', textAlign: 'right' }}>
+                    {orderId}
+                  </code>
                 </div>
                 {resultData?.amount_paid && (
                   <div style={{
@@ -210,8 +218,21 @@ export default function PaymentStatusPage() {
               </p>
 
               {orderId && (
-                <div style={{ background: 'var(--bg)', padding: '12px', borderRadius: '6px', marginBottom: '24px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  Order ID: <code>{orderId}</code>
+                <div style={{
+                  background: 'var(--bg)',
+                  padding: '12px',
+                  borderRadius: '6px',
+                  marginBottom: '24px',
+                  fontSize: '0.85rem',
+                  color: 'var(--text-muted)',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '6px',
+                }}>
+                  <span>Order ID:</span>
+                  <code style={{ wordBreak: 'break-all', overflowWrap: 'anywhere' }}>{orderId}</code>
                 </div>
               )}
 
@@ -258,8 +279,21 @@ export default function PaymentStatusPage() {
               </p>
 
               {orderId && (
-                <div style={{ background: 'var(--bg)', padding: '12px', borderRadius: '6px', marginBottom: '24px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  Order ID: <code>{orderId}</code>
+                <div style={{
+                  background: 'var(--bg)',
+                  padding: '12px',
+                  borderRadius: '6px',
+                  marginBottom: '24px',
+                  fontSize: '0.85rem',
+                  color: 'var(--text-muted)',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '6px',
+                }}>
+                  <span>Order ID:</span>
+                  <code style={{ wordBreak: 'break-all', overflowWrap: 'anywhere' }}>{orderId}</code>
                 </div>
               )}
 

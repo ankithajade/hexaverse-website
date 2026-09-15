@@ -346,7 +346,25 @@ serve(async (req) => {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
+
+        if (!m.dept || !m.dept.trim()) {
+          return new Response(JSON.stringify({ error: `${memberRole} (${m.name}) requires a Department selection` }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
         const normUsn = m.usn.trim().toUpperCase();
+        if (event.department) {
+          const normDept = normalizeDeptId(m.dept);
+          const isEligible = normDept === event.department || (event.department === 'ece' && normDept === 'iot_cyber');
+
+          if (!isEligible) {
+            return new Response(JSON.stringify({ error: `${memberRole} (${m.name}) is not eligible for this department event` }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+        }
         if (seenUsns.has(normUsn)) {
           return new Response(JSON.stringify({ error: `Duplicate USN ${normUsn} found in team` }), {
             status: 400,

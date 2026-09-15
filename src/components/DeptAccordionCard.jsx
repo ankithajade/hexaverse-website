@@ -1,4 +1,3 @@
-import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RichText from './RichText';
 
@@ -22,11 +21,7 @@ function LocationIcon() {
 }
 
 /**
- * A department event card with an accordion "Details" toggle.
- *
- * Replaces the vanilla JS maxHeight accordion from script.js.
- * Uses useState for open/close and a ref to read scrollHeight for
- * smooth CSS max-height transition.
+ * A department event card with a "Details" PDF link.
  */
 export default function DeptAccordionCard({
   type,
@@ -38,17 +33,8 @@ export default function DeptAccordionCard({
   eventTitle,
   isTeam = false,
   isInterCollege = false,
-  accordionContent,
 }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const accordionRef = useRef(null);
   const navigate = useNavigate();
-
-  const toggle = () => setIsOpen((prev) => !prev);
-
-  const maxHeight = isOpen
-    ? (accordionRef.current ? accordionRef.current.scrollHeight + 'px' : '600px')
-    : '0px';
 
   return (
     <div className="event-card">
@@ -66,25 +52,20 @@ export default function DeptAccordionCard({
       </div>
 
       <div className="event-card-actions">
-        <button className="btn-details" onClick={toggle}>
-          {isOpen ? 'Hide Details' : 'Details'}
-        </button>
+        <a
+          href={`/pdfs/${eventId}.pdf`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-details"
+        >
+          Details
+        </a>
         <button
           className="btn-dept-register"
           onClick={() => navigate(`/register/${eventId}`)}
         >
           Register
         </button>
-      </div>
-
-      <div
-        className={`accordion-content${isOpen ? ' open' : ''}`}
-        ref={accordionRef}
-        style={{ maxHeight }}
-      >
-        <div className="accordion-inner">
-          <RichText>{accordionContent}</RichText>
-        </div>
       </div>
     </div>
   );

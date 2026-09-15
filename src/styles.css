@@ -467,6 +467,7 @@ body {
 @media (max-width: 768px) {
   .hero {
     padding-top: 75px;
+    justify-content: flex-start;
   }
 
   .hero-brand-lockups {
@@ -708,6 +709,7 @@ body {
   border-radius: 8px;
   padding: 24px 28px;
   border-left: 3px solid var(--block-accent, var(--cyan));
+  cursor: pointer;
   transition: border-color 0.3s, box-shadow 0.3s;
 }
 
@@ -1657,26 +1659,13 @@ body {
   width: 100%;
 }
 
-.dept-hero-placeholder {
-  width: 100%;
+.dept-hero-img {
+  width: 80%;
   aspect-ratio: 1 / 1;
-  background: var(--bg-card);
-  border: 1px dashed var(--dept-accent, var(--bg-card-border));
-  border-radius: 12px;
-  display: flex;
+  object-fit: cover;
+  display: block;
+  opacity: 0.8;
   align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  box-shadow: inset 0 0 20px rgba(4, 36, 43, 0.03);
-}
-
-.dept-hero-placeholder-label {
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
 }
 
 .dept-hero-badge {
@@ -1825,6 +1814,8 @@ body {
   color: var(--text-dim);
   font-size: 0.9rem;
   font-weight: 600;
+  text-decoration: none;
+  text-align: center;
   /* Bumped size */
   transition: border-color 0.2s, color 0.2s;
 }
@@ -1832,6 +1823,7 @@ body {
 .btn-details:hover {
   border-color: var(--dept-accent, var(--cyan));
   color: var(--text);
+  text-decoration: none;
 }
 
 .btn-dept-register {
@@ -1956,6 +1948,7 @@ body {
 
 .gallery-cell {
   aspect-ratio: 4/3;
+  height: 180px; 
   background: var(--bg-card);
   border: 1px solid var(--bg-card-border);
   display: flex;

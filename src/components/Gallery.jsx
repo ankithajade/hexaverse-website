@@ -3,6 +3,14 @@ import { motion, useMotionValue, useAnimationFrame } from 'motion/react';
 import ScrollReveal from './ScrollReveal';
 import HexGridOverlay from './HexGridOverlay';
 
+const GALLERY_IMAGES = [
+  '/gallery/photo1.jpg',
+  '/gallery/photo2.jpg',
+  '/gallery/photo3.jpg',
+  '/gallery/photo4.jpg',
+  // add as many as you want — not limited to 4
+];
+
 const prefersReducedMotion =
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -38,16 +46,16 @@ function InfiniteSlider({ speed = 50 }) {
   const cellStyle = { width: '260px', flexShrink: 0 };
 
   // Two separate arrays with distinct keys to avoid React key collisions
-  const setA = [0, 1, 2, 3].map((i) => (
-    <div key={`a-${i}`} className="gallery-cell" style={cellStyle}>
-      Coming Soon
-    </div>
-  ));
-  const setB = [0, 1, 2, 3].map((i) => (
-    <div key={`b-${i}`} className="gallery-cell" style={cellStyle}>
-      Coming Soon
-    </div>
-  ));
+  const setA = GALLERY_IMAGES.map((src, i) => (
+  <div key={`a-${i}`} className="gallery-cell" style={cellStyle}>
+    <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+  </div>
+));
+const setB = GALLERY_IMAGES.map((src, i) => (
+  <div key={`b-${i}`} className="gallery-cell" style={cellStyle}>
+    <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+  </div>
+));
 
   return (
     <div style={{ overflow: 'hidden' }}>
@@ -75,9 +83,9 @@ function InfiniteSlider({ speed = 50 }) {
  * Under prefers-reduced-motion: static 4-cell grid (no animation).
  */
 export default function Gallery() {
-  const staticCells = [0, 1, 2, 3].map((i) => (
+  const staticCells = GALLERY_IMAGES.map((src, i) => (
     <div key={i} className="gallery-cell" style={{ width: '260px', flexShrink: 0 }}>
-      Coming Soon
+      <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
     </div>
   ));
 

@@ -55,9 +55,11 @@ export default function DepartmentPage() {
               <RichText className="dept-hero-desc">{dept.description}</RichText>
             </div>
             <div className="dept-hero-media" aria-hidden="true">
-              <div className="dept-hero-placeholder">
-                <span className="dept-hero-placeholder-label">Image</span>
-              </div>
+              <img
+                src={dept.heroImage || '/assets/dept-hero-default.png'}
+                alt=""
+                className="dept-hero-img"
+              />
             </div>
           </div>
         </div>

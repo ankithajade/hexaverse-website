@@ -39,22 +39,19 @@ serve(async (req) => {
 
     const payload = await req.json();
     const order_id = payload?.order_id || payload?.gateway_order_id;
-    const payment_reference = payload?.payment_reference;
 
-    if (!order_id && !payment_reference) {
-      return new Response(JSON.stringify({ error: 'order_id or payment_reference is required' }), {
+    if (!order_id) {
+      return new Response(JSON.stringify({ error: 'order_id or is required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     // 1. Lookup Payment record in Supabase
-    let query = supabase.from('payments').select('*');
-    if (order_id) {
-      query = query.eq('gateway_order_id', order_id);
-    } else {
-      query = query.eq('id', payment_reference);
-    }
+    const query = supabase
+      .from('payments')
+      .select('*')
+      .eq('gateway_order_id', order_id);
 
     const { data: payment, error: fetchErr } = await query.maybeSingle();
 
@@ -69,7 +66,7 @@ serve(async (req) => {
     if (payment.status === 'success') {
       const { data: team } = await supabase
         .from('teams')
-        .select('*, team_members(*)')
+        .select('short_id, team_name, event_slug')
         .eq('id', payment.registration_id)
         .maybeSingle();
 
@@ -242,7 +239,7 @@ serve(async (req) => {
       // Fetch updated team info (includes short_id)
       const { data: updatedTeam, error: teamFetchErr } = await supabase
         .from('teams')
-        .select('*, team_members(*)')
+        .select('short_id, team_name, event_slug')
         .eq('id', payment.registration_id)
         .maybeSingle();
 

@@ -83,13 +83,12 @@ export async function submitRegistration(payload) {
 }
 
 /** Server-side Cashfree payment verification */
-export async function verifyPayment({ order_id, gateway_order_id, payment_reference }) {
+export async function verifyPayment({ order_id, gateway_order_id}) {
   const targetOrderId = order_id || gateway_order_id;
   const { data, error } = await supabase.functions.invoke('verify-payment', {
     body: {
       order_id: targetOrderId,
       gateway_order_id: targetOrderId,
-      payment_reference,
     },
   });
 

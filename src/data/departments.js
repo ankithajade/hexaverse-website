@@ -12,6 +12,7 @@ export const departments = {
     dates: '21 – 23 September 2026',
     displayDates: '21–23 Sept',
     logoSrc: '/assets/aiml-sbg-logo.svg',
+    heroImage: '/cubes/aiml-cube.png',
     description:
       'Step into AIML Week for a practical journey across artificial intelligence, machine learning, and cloud technologies. Explore AWS services, work with real datasets, build and deploy machine learning models, and experiment with modern AI tools. The week also brings a competitive edge through a multi-round challenge where technical knowledge meets creativity, problem-solving, and application building.',
     metaTitle: "AI & ML — Week 01 | DBIT HexaVerse CloudFest '26",
@@ -87,6 +88,7 @@ export const departments = {
     dates: '5 – 7 October 2026',
     displayDates: '5–7 Oct',
     logoSrc: '/assets/aids-sbg-logo.svg',
+    heroImage: '/cubes/aids-cube.png',
     description:
       'Step into an AI&DS experience that moves from exploring AWS and generative AI to putting those tools into action. Start with Amazon Bedrock, prompt engineering and Amazon S3 through a hands-on preparation workshop, then take those skills into Franchise Forge: The Studio Challenge. Work with a team to create an original franchise, develop its characters and visuals, respond to unexpected changes and pitch your final vision.',
     metaTitle: "AI & DS — Week 02 | DBIT HexaVerse CloudFest '26",
@@ -163,6 +165,7 @@ export const departments = {
     dates: '5 – 8 October 2026',
     displayDates: '5–8 Oct',
     logoSrc: '/assets/cse-sbg-logo.svg',
+    heroImage: '/cubes/cse-cube.png',
     description:
       'The Computer Science and Engineering week takes you from exploring cloud technologies to applying them in a high-pressure system recovery challenge. Get handson with Amazon Q and commonly used AWS services, test your understanding, and then put those skills into action as your team works through a simulated hacker attack. Solve coding challenges, recover compromised system components, and race against the clock to restore what was lost.',
     metaTitle: "CSE — Week 03 | DBIT HexaVerse CloudFest '26",
@@ -241,6 +244,7 @@ export const departments = {
     dates: '22 – 24 October 2026',
     displayDates: '22–24 Oct',
     logoSrc: '/assets/ise-sbg-logo.svg',
+    heroImage: '/cubes/ise-cube.png',
     description:
       'Step into a week where cloud computing meets Generative AI and practical problem solving. Explore AWS fundamentals, build a RAG-based Knowledge Base with Amazon Bedrock, and put your skills to the test in a competitive challenge. From working with S3 and cloud services to designing solutions for real-world scenarios, the week offers a mix of hands-on exploration, technical thinking, teamwork, and competition.',
     metaTitle: "ISE — Week 04 | DBIT HexaVerse CloudFest '26",
@@ -318,6 +322,7 @@ export const departments = {
     dates: '22 – 29 October 2026',
     displayDates: '22–29 Oct',
     logoSrc: '/assets/ece-sbg-logo.svg',
+    heroImage: '/cubes/ece-cube.png',
     description:
       'Get ready for a week built around electronics, intelligent systems, and hands-on problem solving. \nExplore how AI, sensors, communication protocols, embedded systems, and interactive hardware come together to create smarter solutions. Whether you enjoy building circuits, experimenting with technology, or solving challenges under pressure, ECE Week brings you opportunities to learn, build, and compete.',
     metaTitle: "ECE — Week 05 | DBIT HexaVerse CloudFest '26",
@@ -398,6 +403,7 @@ export const departments = {
     dates: '2 – 4 November 2026',
     displayDates: '2–4 Nov',
     logoSrc: '/assets/eee-sbg-logo.svg',
+    heroImage: '/cubes/eee-cube.png',
     description:
       'EEE Week brings together technology, engineering, and competition in an experience designed for curious students. Explore how cloud technologies can connect with engineering applications, get hands-on with practical concepts, and put your skills to the test through a three-round technical challenge. Whether you enjoy building, experimenting, solving problems, or competing under pressure, there’s something here to keep you engaged.',
     metaTitle: "EEE — Week 06 | DBIT HexaVerse CloudFest '26",
