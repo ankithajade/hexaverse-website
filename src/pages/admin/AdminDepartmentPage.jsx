@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, Fragment, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FiPlus, FiChevronUp, FiChevronDown } from 'react-icons/fi';
+import { FiPlus, FiChevronUp, FiChevronDown, FiAlertTriangle } from 'react-icons/fi';
 import { supabase } from '../../lib/supabaseClient';
 import { departments } from '../../data/departments';
 import TeamEditModal from './TeamEditModal';
@@ -213,7 +213,6 @@ export default function AdminDepartmentPage() {
       const shortIdObj = formatShortId(t);
       const matchTeam =
         (t.team_name && t.team_name.toLowerCase().includes(q)) ||
-        (t.college && t.college.toLowerCase().includes(q)) ||
         shortIdObj.label.toLowerCase().includes(q) ||
         (t.payment_status && t.payment_status.toLowerCase().includes(q));
 
@@ -824,7 +823,7 @@ export default function AdminDepartmentPage() {
                       <th style={{ width: '38px', padding: '10px 8px 10px 16px' }} />
                       <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-muted)' }}>Short ID</th>
                       <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-muted)' }}>Team Name</th>
-                      <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-muted)' }}>College</th>
+
                       <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-muted)' }}>Lead Contact</th>
                       <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-muted)', textAlign: 'center' }}>Size</th>
                       <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-muted)' }}>Payment</th>
@@ -903,20 +902,7 @@ export default function AdminDepartmentPage() {
                               </div>
                             </td>
 
-                            {/* College */}
-                            <td style={{ padding: '12px 14px', whiteSpace: 'nowrap' }}>
-                              <span style={{
-                                fontSize: '0.78rem',
-                                padding: '2px 8px',
-                                borderRadius: '4px',
-                                background: team.college && team.college !== 'DBIT' ? 'rgba(59, 130, 246, 0.12)' : 'var(--bg-alt)',
-                                color: team.college && team.college !== 'DBIT' ? '#3b82f6' : 'var(--text-dim)',
-                                fontWeight: team.college && team.college !== 'DBIT' ? 600 : 400,
-                                border: '1px solid var(--bg-card-border)',
-                              }}>
-                                {team.college || '—'}
-                              </span>
-                            </td>
+
 
                             {/* Lead Contact */}
                             <td style={{ padding: '12px 14px' }}>
@@ -1138,7 +1124,7 @@ export default function AdminDepartmentPage() {
             borderRadius: '14px', maxWidth: '440px', width: '100%',
             padding: '28px 28px', boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
           }}>
-            <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>⚠️</div>
+            <div style={{ fontSize: '1.5rem', marginBottom: '8px', color: '#ef4444' }}><FiAlertTriangle /></div>
             <h3 style={{ fontFamily: 'var(--font-subheading)', margin: '0 0 8px', color: '#ef4444', fontSize: '1.1rem' }}>
               Delete Team Permanently
             </h3>

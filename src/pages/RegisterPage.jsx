@@ -20,21 +20,38 @@ import BackToTop from '../components/BackToTop';
 import BackButton from '../components/BackButton';
 import ScrollReveal from '../components/ScrollReveal';
 import RichText from '../components/RichText';
+import { FiCheck, FiCheckCircle, FiX, FiLock, FiAlertTriangle } from 'react-icons/fi';
 
-const DEPARTMENTS = ['AI & ML', 'AI & DS', 'CSE', 'ISE', 'ECE', 'EEE'];
+const DEPARTMENTS = [
+  'Artificial Intelligence & Machine Learning',
+  'Artificial Intelligence & Data Science',
+  'Computer Science and Engineering',
+  'Information Science and Engineering',
+  'Electronics and Communication Engineering',
+  'Electrical and Electronics Engineering',
+];
 const SEMESTERS = ['1', '3', '5', '7'];
 const SECTIONS = ['A', 'B', 'C', 'D'];
 const CYCLES = ['Physics Cycle', 'Chemistry Cycle'];
 const SEM1_DEPARTMENTS = [
-  { id: 'aiml', label: 'AI & ML' },
-  { id: 'aids', label: 'AI & DS' },
-  { id: 'cse', label: 'CSE' },
-  { id: 'ise', label: 'ISE' },
-  { id: 'ece', label: 'ECE' },
-  { id: 'eee', label: 'EEE' },
-  { id: 'placeholder_1', label: 'Other Program 1 (TBD)' },
-  { id: 'placeholder_2', label: 'Other Program 2 (TBD)' },
+  { id: 'aiml', label: 'Artificial Intelligence & Machine Learning' },
+  { id: 'aids', label: 'Artificial Intelligence & Data Science' },
+  { id: 'cse', label: 'Computer Science and Engineering' },
+  { id: 'ise', label: 'Information Science and Engineering' },
+  { id: 'ece', label: 'Electronics and Communication Engineering' },
+  { id: 'eee', label: 'Electrical and Electronics Engineering' },
+  { id: 'iot_cyber', label: 'IoT and Cybersecurity including Blockchain' },
 ];
+
+const DEPT_FULL_NAMES = {
+  aiml: 'Artificial Intelligence & Machine Learning',
+  aids: 'Artificial Intelligence & Data Science',
+  cse: 'Computer Science and Engineering',
+  ise: 'Information Science and Engineering',
+  ece: 'Electronics and Communication Engineering',
+  eee: 'Electrical and Electronics Engineering',
+  iot_cyber: 'IoT and Cybersecurity including Blockchain',
+};
 
 const EMPTY_FORM = {
   name: '',
@@ -44,7 +61,6 @@ const EMPTY_FORM = {
   dept: '',
   semester: '',
   phone: '',
-  college: '',
   teamName: '',
   cycle: '',
   selectedDept: '',
@@ -62,22 +78,26 @@ export default function RegisterPage() {
   const slug = eventId;
   const isWorkshop = slug.endsWith('-workshop');
   const isTeam = event.isTeam;
-  const isInterCollege = event.isInterCollege;
   const lockedDept = event.lockedDepartment;
+  const lockedDeptFullName = lockedDept ? (DEPT_FULL_NAMES[lockedDept.id] || lockedDept.name) : '';
 
   // Supabase event config state
   const [eventConfig, setEventConfig] = useState(null);
   const [form, setForm] = useState(() => ({
     ...EMPTY_FORM,
-    dept: lockedDept ? lockedDept.name : '',
+    dept: lockedDeptFullName || '',
   }));
   const [members, setMembers] = useState([]);
   const [teamNameAvailable, setTeamNameAvailable] = useState(null);
   const [checkingTeamName, setCheckingTeamName] = useState(false);
 
+  // Validation & feedback state
+  const [touched, setTouched] = useState({});
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+
   // Flow steps: 'form' | 'submitting' | 'payment_checkout' | 'verifying_payment' | 'success'
   const [step, setStep] = useState('form');
-  const [errorMsg, setErrorMsg] = useState('');
+  const [serverError, setServerError] = useState('');
   const [paymentData, setPaymentData] = useState(null);
 
   useEffect(() => {
@@ -86,11 +106,13 @@ export default function RegisterPage() {
 
     setForm({
       ...EMPTY_FORM,
-      dept: lockedDept ? lockedDept.name : '',
+      dept: lockedDeptFullName || '',
     });
     setMembers([]);
     setStep('form');
-    setErrorMsg('');
+    setServerError('');
+    setTouched({});
+    setHasSubmitted(false);
     setTeamNameAvailable(null);
     setPaymentData(null);
 
@@ -111,7 +133,7 @@ export default function RegisterPage() {
     }
     loadEvent();
     return () => { isMounted = false; };
-  }, [eventId, slug, lockedDept, event.eventTitle]);
+  }, [eventId, slug, lockedDeptFullName, event.eventTitle]);
 
   const minMembers = eventConfig?.team_min || event.teamMin || (isTeam ? 2 : 1);
   const maxMembers = eventConfig?.team_max || event.teamMax || (isTeam ? 4 : 1);
@@ -122,13 +144,15 @@ export default function RegisterPage() {
   const isHighSem = Boolean(lockedDept && [3, 5, 7].includes(sem));
   const isSem1 = Boolean(lockedDept && sem === 1);
   const semester1GateComplete = Boolean(form.cycle && form.section && form.selectedDept);
+  const isEligibleSem1Dept = Boolean(
+    form.selectedDept &&
+    lockedDept &&
+    (form.selectedDept === lockedDept.id || (lockedDept.id === 'ece' && form.selectedDept === 'iot_cyber'))
+  );
   const isEligibleSem1 = Boolean(
     isSem1 &&
     semester1GateComplete &&
-    lockedDept &&
-    form.selectedDept === lockedDept.id &&
-    form.selectedDept !== 'placeholder_1' &&
-    form.selectedDept !== 'placeholder_2'
+    isEligibleSem1Dept
   );
 
   // ── Handlers ─────────────────────────────────────────────────────────────
@@ -136,10 +160,17 @@ export default function RegisterPage() {
   const setField = (e) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    if (serverError) setServerError('');
 
     if (name === 'teamName' && isTeam) {
       checkTeamName(value);
     }
+  };
+
+  const handleBlur = (e) => {
+    const { name } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
   };
 
   const checkTeamName = async (name) => {
@@ -166,108 +197,344 @@ export default function RegisterPage() {
 
   const removeMember = (i) => {
     setMembers((m) => m.filter((_, idx) => idx !== i));
+    setTouched((prev) => {
+      const next = { ...prev };
+      delete next[`member_${i}_name`];
+      delete next[`member_${i}_usn`];
+      delete next[`member_${i}_email`];
+      delete next[`member_${i}_phone`];
+      delete next[`member_${i}_dept`];
+      return next;
+    });
   };
 
   const setMemberField = (i, field, value) => {
     setMembers((m) => m.map((mb, idx) => (idx === i ? { ...mb, [field]: value } : mb)));
+    setTouched((prev) => ({ ...prev, [`member_${i}_${field}`]: true }));
+    if (serverError) setServerError('');
   };
 
-  // ── Client Validation ───────────────────────────────────────────────────
+  const handleMemberBlur = (i, field) => {
+    setTouched((prev) => ({ ...prev, [`member_${i}_${field}`]: true }));
+  };
 
-  const validateForm = () => {
-    setErrorMsg('');
+  // ── Client Validation (All errors at once) ────────────────────────────────
 
-    if (!form.semester) return 'Please select your current semester';
-
-    // For locked-dept events, apply the enhanced USN check for sems 3/5/7
-    if (lockedDept && isHighSem) {
-      if (!form.usn || !isValidUSN(form.usn)) {
-        return `USN format is invalid for Semester ${sem}. Example: 1DB23${lockedDept.id === 'aiml' ? 'CI' : 'CS'}001 (Must be 1DB + 23/24/25 + Branch + 3 digits)`;
-      }
-      if (!isUSNEligibleForDept(form.usn, lockedDept.id)) {
-        return 'You are not eligible for this event';
-      }
-      if (!form.section) return 'Please select your section';
-    } else if (lockedDept && sem === 1) {
-      if (!form.cycle) return 'Please select your cycle';
-      if (!form.section) return 'Please select your section';
-      if (!form.selectedDept) return 'Please select your department';
-      if (form.selectedDept !== lockedDept.id) return 'You are not eligible for this event';
-      if (!form.rollNumber || !form.rollNumber.trim()) return 'Roll Number is required';
-    } else if (!lockedDept && [3, 5, 7].includes(sem)) {
-      // Mega event path: just format check (unchanged)
-      if (!form.usn || !isValidUSN(form.usn)) {
-        return `USN format is invalid for Semester ${sem}. Example: 1DB23CS001 (Must be 1DB + 23/24/25 + Branch + 3 digits)`;
-      }
-    }
-
-    if (!form.name.trim()) return 'Full Name is required';
-    if (!isValidEmail(form.email)) return 'Please enter a valid email address';
-    if (!isValidPhone(form.phone)) return 'Please enter a valid 10-digit mobile phone number';
-
-    if (!lockedDept && !form.dept) {
-      return 'Please select your department';
-    }
-
-    if (isInterCollege && !form.college.trim()) {
-      return 'College Name is required for inter-college events';
-    }
+  const validateForm = (formData = form, memberList = members) => {
+    const errors = {};
 
     if (isTeam) {
-      if (!form.teamName.trim()) return 'Team Name is required';
-      if (teamNameAvailable === false) return `Team name "${form.teamName}" is already taken for this event`;
-
-      const totalCount = 1 + members.length;
-      if (totalCount < minMembers) {
-        return `Minimum ${minMembers} team members required for this event (Lead + ${minMembers - 1} members)`;
+      if (!formData.teamName?.trim()) {
+        errors.teamName = 'Team Name is required';
+      } else if (teamNameAvailable === false) {
+        errors.teamName = `Team name "${formData.teamName}" is already taken for this event`;
       }
-      if (totalCount > maxMembers) {
-        return `Maximum ${maxMembers} team members allowed for this event`;
-      }
+    }
 
-      for (let i = 0; i < members.length; i++) {
-        const m = members[i];
-        if (!m.name.trim()) return `Member ${i + 2} Name is required`;
+    if (!formData.name?.trim()) {
+      errors.name = 'Full Name is required';
+    }
 
-        if (lockedDept && isHighSem) {
-          // Two-tier check for dept-locked events, high semesters
-          if (!isValidUSN(m.usn)) {
-            return `Member ${i + 2} (${m.name}) USN format is invalid`;
+    if (!formData.email?.trim()) {
+      errors.email = 'Email is required';
+    } else if (!isValidEmail(formData.email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+
+    if (!formData.phone?.trim()) {
+      errors.phone = 'Phone number is required';
+    } else if (!isValidPhone(formData.phone)) {
+      errors.phone = 'Enter a valid 10-digit mobile number';
+    }
+
+    if (!formData.semester) {
+      errors.semester = 'Please select your current semester';
+    }
+
+    const currentSem = Number(formData.semester);
+
+    if (lockedDept) {
+      if (currentSem === 1) {
+        if (!formData.section) {
+          errors.section = 'Please select your section';
+        }
+        if (!formData.rollNumber?.trim()) {
+          errors.rollNumber = 'Roll Number is required';
+        }
+        if (!formData.cycle) {
+          errors.cycle = 'Please select your cycle';
+        }
+        if (!formData.selectedDept) {
+          errors.selectedDept = 'Please select your department';
+        } else {
+          const isEligible = formData.selectedDept === lockedDept.id || (lockedDept.id === 'ece' && formData.selectedDept === 'iot_cyber');
+          if (!isEligible) {
+            errors.selectedDept = 'You are not eligible for this event';
           }
-          if (!isUSNEligibleForDept(m.usn, lockedDept.id)) {
-            return `Member ${i + 2} (${m.name}) is not eligible for this event`;
+        }
+      } else if ([3, 5, 7].includes(currentSem)) {
+        if (!formData.section) {
+          errors.section = 'Please select your section';
+        }
+        if (!formData.usn?.trim()) {
+          errors.usn = 'USN is required';
+        } else if (!isValidUSN(formData.usn)) {
+          errors.usn = `Invalid USN format (e.g. 1DB23${lockedDept.id === 'aiml' ? 'CI' : 'CS'}001)`;
+        } else if (!isUSNEligibleForDept(formData.usn, lockedDept.id)) {
+          errors.usn = 'You are not eligible for this event';
+        }
+      }
+    } else {
+      // Mega event path
+      if ([3, 5, 7].includes(currentSem)) {
+        if (!formData.usn?.trim()) {
+          errors.usn = 'USN is required';
+        } else if (!isValidUSN(formData.usn)) {
+          errors.usn = 'Invalid USN format (e.g. 1DB23CS001)';
+        }
+      }
+      if (!formData.dept) {
+        errors.dept = 'Please select your department';
+      }
+    }
+
+
+    if (isTeam) {
+      const totalCount = 1 + memberList.length;
+      if (totalCount < minMembers) {
+        errors.teamMembers = `Minimum ${minMembers} team members required (Lead + ${minMembers - 1} members)`;
+      } else if (totalCount > maxMembers) {
+        errors.teamMembers = `Maximum ${maxMembers} team members allowed`;
+      }
+
+      const allUsns = [];
+      if (formData.usn?.trim()) {
+        allUsns.push({ key: 'usn', usn: formData.usn.trim().toUpperCase() });
+      }
+
+      memberList.forEach((m, i) => {
+        if (!m.name?.trim()) {
+          errors[`member_${i}_name`] = `Member ${i + 2} Name is required`;
+        }
+
+        if (!m.usn?.trim()) {
+          errors[`member_${i}_usn`] = `Member ${i + 2} USN is required`;
+        } else if (!isValidUSN(m.usn)) {
+          errors[`member_${i}_usn`] = `Member ${i + 2} USN format is invalid`;
+        } else if (lockedDept && [3, 5, 7].includes(currentSem) && !isUSNEligibleForDept(m.usn, lockedDept.id)) {
+          errors[`member_${i}_usn`] = `Member ${i + 2} is not eligible for this event`;
+        } else {
+          allUsns.push({ key: `member_${i}_usn`, usn: m.usn.trim().toUpperCase() });
+        }
+
+        if (!m.phone?.trim()) {
+          errors[`member_${i}_phone`] = `Member ${i + 2} phone is required`;
+        } else if (!isValidPhone(m.phone)) {
+          errors[`member_${i}_phone`] = 'Enter a valid 10-digit mobile number';
+        }
+
+        if (m.email?.trim() && !isValidEmail(m.email)) {
+          errors[`member_${i}_email`] = 'Please enter a valid email address';
+        }
+      });
+
+      // Check duplicate USNs across team
+      const seen = new Map();
+      for (const item of allUsns) {
+        if (seen.has(item.usn)) {
+          const prevKey = seen.get(item.usn);
+          errors[item.key] = `Duplicate USN: ${item.usn} is already used in team`;
+          if (!errors[prevKey]) {
+            errors[prevKey] = `Duplicate USN: ${item.usn} is already used in team`;
           }
         } else {
-          if (!isValidUSN(m.usn)) return `Member ${i + 2} (${m.name}) USN format is invalid`;
+          seen.set(item.usn, item.key);
+        }
+      }
+    }
+
+    return errors;
+  };
+
+  const formErrors = validateForm(form, members);
+
+  // ── Per-field Reactive Feedback & Error Helper ─────────────────────────────
+
+  const getFieldFeedback = (key) => {
+    const isFieldTouched = touched[key] || hasSubmitted;
+    const error = formErrors[key];
+
+    // Reactive format feedback as user types
+    if (key === 'phone') {
+      if (form.phone && !isValidPhone(form.phone)) {
+        return { hasError: true, error: 'Enter a valid 10-digit mobile number' };
+      }
+      if (isFieldTouched && error) {
+        return { hasError: true, error };
+      }
+      return null;
+    }
+
+    if (key === 'email') {
+      if (form.email && !isValidEmail(form.email)) {
+        return { hasError: true, error: 'Please enter a valid email address' };
+      }
+      if (isFieldTouched && error) {
+        return { hasError: true, error };
+      }
+      return null;
+    }
+
+    if (key === 'usn') {
+      if (form.usn) {
+        if (!isValidUSN(form.usn)) {
+          return { hasError: true, error: `Invalid USN format (e.g. 1DB23${lockedDept?.id === 'aiml' ? 'CI' : 'CS'}001)` };
+        }
+        if (lockedDept && isHighSem && !isUSNEligibleForDept(form.usn, lockedDept.id)) {
+          return { hasError: true, error: 'You are not eligible for this event' };
+        }
+        if (error && error.includes('Duplicate')) {
+          return { hasError: true, error };
+        }
+        return { hasError: false, hint: 'USN valid', hintColor: '#10b981', showCheck: true };
+      }
+      if (isFieldTouched && error) {
+        return { hasError: true, error };
+      }
+      return null;
+    }
+
+    if (key === 'teamName' && isTeam) {
+      if (checkingTeamName) {
+        return { hasError: false, hint: 'Checking team name availability...', hintColor: 'var(--text-dim)' };
+      }
+      if (teamNameAvailable === true) {
+        return { hasError: false, hint: 'Team name available', hintColor: '#10b981', showCheck: true };
+      }
+      if (teamNameAvailable === false) {
+        return { hasError: true, error: `Team name "${form.teamName}" is already taken` };
+      }
+      if (isFieldTouched && error) {
+        return { hasError: true, error };
+      }
+      return null;
+    }
+
+    // Member fields
+    if (key.startsWith('member_')) {
+      const parts = key.split('_');
+      const mIdx = Number(parts[1]);
+      const mField = parts[2];
+      const member = members[mIdx];
+
+      if (member) {
+        if (mField === 'phone') {
+          if (member.phone && !isValidPhone(member.phone)) {
+            return { hasError: true, error: 'Enter a valid 10-digit mobile number' };
+          }
+        }
+        if (mField === 'email') {
+          if (member.email && !isValidEmail(member.email)) {
+            return { hasError: true, error: 'Please enter a valid email address' };
+          }
+        }
+        if (mField === 'usn') {
+          if (member.usn) {
+            if (!isValidUSN(member.usn)) {
+              return { hasError: true, error: 'Invalid USN format' };
+            }
+            if (lockedDept && isHighSem && !isUSNEligibleForDept(member.usn, lockedDept.id)) {
+              return { hasError: true, error: 'Not eligible for this event' };
+            }
+            if (error && error.includes('Duplicate')) {
+              return { hasError: true, error };
+            }
+            return { hasError: false, hint: 'Valid', hintColor: '#10b981', showCheck: true };
+          }
         }
       }
 
-      const allUsns = [form.usn, ...members.map((m) => m.usn)].filter(Boolean);
-      const duplicateUsn = findDuplicateUSN(allUsns);
-      if (duplicateUsn) {
-        return `Duplicate USN found in team: ${duplicateUsn}. Each team member must have a unique USN.`;
+      if (isFieldTouched && error) {
+        return { hasError: true, error };
       }
+      return null;
+    }
+
+    // General fields
+    if (isFieldTouched && error) {
+      return { hasError: true, error };
     }
 
     return null;
+  };
+
+  const renderFieldFeedback = (key) => {
+    const fb = getFieldFeedback(key);
+    if (!fb) return null;
+    if (fb.hasError) {
+      return (
+        <div
+          style={{
+            color: '#ef4444',
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            marginBottom: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}
+        >
+          <FiX style={{ flexShrink: 0 }} />
+          <span>{fb.error}</span>
+        </div>
+      );
+    }
+    if (fb.hint) {
+      return (
+        <div
+          style={{
+            color: fb.hintColor || '#10b981',
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            marginBottom: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}
+        >
+          {fb.showCheck && <FiCheck style={{ flexShrink: 0 }} />}
+          <span>{fb.hint}</span>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const getInputStyle = (key, customStyle = {}) => {
+    const fb = getFieldFeedback(key);
+    return {
+      ...customStyle,
+      ...(fb?.hasError ? { borderColor: '#ef4444' } : {}),
+    };
   };
 
   // ── Form Submission ─────────────────────────────────────────────────────
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const valErr = validateForm();
-    if (valErr) {
-      setErrorMsg(valErr);
+    setHasSubmitted(true);
+    setServerError('');
+
+    const currentErrors = validateForm(form, members);
+    if (Object.keys(currentErrors).length > 0) {
       return;
     }
 
     setStep('submitting');
-    setErrorMsg('');
 
     try {
       const finalSem = Number(form.semester);
-      const finalDept = lockedDept ? lockedDept.name : form.dept;
+      const finalDept = lockedDept ? lockedDeptFullName : form.dept;
 
       const allMembers = isTeam
         ? [
@@ -283,8 +550,8 @@ export default function RegisterPage() {
               name: m.name.trim(),
               usn: m.usn.trim().toUpperCase(),
               email: m.email?.trim() || null,
-              phone: m.phone?.trim() || null,
-              dept: m.dept?.trim() || (lockedDept ? lockedDept.name : null),
+              phone: m.phone.trim(),
+              dept: m.dept?.trim() || finalDept || null,
             })),
           ]
         : [];
@@ -301,11 +568,9 @@ export default function RegisterPage() {
           phone: form.phone.trim(),
           semester: finalSem,
           dept: finalDept,
-          college: form.college ? form.college.trim() : 'DBIT',
           section: form.section || null,
         },
         team_name: isTeam ? form.teamName.trim() : null,
-        college: form.college ? form.college.trim() : 'DBIT',
         section: form.section || null,
         cycle: sem === 1 ? form.cycle : null,
         selected_dept: sem === 1 ? form.selectedDept : null,
@@ -326,7 +591,7 @@ export default function RegisterPage() {
       // Seamlessly trigger Cashfree Hosted Checkout if SDK is ready
       if (res.payment_session_id && typeof window.Cashfree === 'function') {
         try {
-          const cashfree = window.Cashfree({ mode: 'sandbox' });
+          const cashfree = window.Cashfree({ mode: 'production' });
           cashfree.checkout({
             paymentSessionId: res.payment_session_id,
             redirectTarget: '_self',
@@ -337,7 +602,7 @@ export default function RegisterPage() {
       }
     } catch (err) {
       console.error('Submit error:', err);
-      setErrorMsg(err.message || 'An error occurred during submission.');
+      setServerError(err.message || 'An error occurred during submission.');
       setStep('form');
     }
   };
@@ -346,50 +611,25 @@ export default function RegisterPage() {
 
   const handleLaunchPayment = () => {
     if (!paymentData?.payment_session_id) {
-      setErrorMsg('Payment session ID is missing. Please try submitting again.');
+      setServerError('Payment session ID is missing. Please try submitting again.');
       return;
     }
 
     if (typeof window.Cashfree !== 'function') {
-      setErrorMsg('Payment gateway SDK is loading. Please click Pay again in a moment.');
+      setServerError('Payment gateway SDK is loading. Please click Pay again in a moment.');
       return;
     }
 
     try {
-      const cashfree = window.Cashfree({ mode: 'sandbox' });
+      const cashfree = window.Cashfree({ mode: 'production' });
       cashfree.checkout({
         paymentSessionId: paymentData.payment_session_id,
         redirectTarget: '_self',
       });
     } catch (err) {
       console.error('Payment checkout error:', err);
-      setErrorMsg(err.message || 'Failed to open Cashfree payment checkout.');
+      setServerError(err.message || 'Failed to open Cashfree payment checkout.');
     }
-  };
-
-  // ── Helpers for form rendering ──────────────────────────────────────────
-
-  // USN inline hint for dept-locked high-sem: show per-field feedback
-  const getUsnHint = (usnValue) => {
-    if (!usnValue) return null;
-    if (!isValidUSN(usnValue)) {
-      return { ok: false, msg: 'Invalid USN format (e.g. 1DB23CS001)' };
-    }
-    if (lockedDept && isHighSem && !isUSNEligibleForDept(usnValue, lockedDept.id)) {
-      return { ok: false, msg: 'You are not eligible for this event' };
-    }
-    return { ok: true, msg: '✓ USN valid' };
-  };
-
-  const getMemberUsnHint = (usnValue) => {
-    if (!usnValue) return null;
-    if (!isValidUSN(usnValue)) {
-      return { ok: false, msg: 'Invalid USN format' };
-    }
-    if (lockedDept && isHighSem && !isUSNEligibleForDept(usnValue, lockedDept.id)) {
-      return { ok: false, msg: 'Not eligible for this event' };
-    }
-    return { ok: true, msg: '✓ Valid' };
   };
 
   return (
@@ -419,7 +659,7 @@ export default function RegisterPage() {
         {/* ── Success View (Free Workshops only from this form) ── */}
         {step === 'success' ? (
           <ScrollReveal className="mega-card" style={{ textAlign: 'center', padding: '48px 32px' }}>
-            <div style={{ fontSize: '3rem', color: '#10b981', marginBottom: '16px' }}>✓</div>
+            <div style={{ fontSize: '3rem', color: '#10b981', marginBottom: '16px', display: 'flex', justifyContent: 'center' }}><FiCheckCircle /></div>
             <h2 style={{ fontFamily: 'var(--font-display)', marginBottom: '12px' }}>Registration Confirmed!</h2>
             <p style={{ color: 'var(--text-dim)', fontSize: '1.05rem', marginBottom: '28px' }}>
               Your workshop seat has been reserved successfully. No registration fee required.
@@ -458,14 +698,14 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {errorMsg && (
+            {serverError && (
               <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', color: '#dc2626', padding: '12px 16px', borderRadius: '6px', fontSize: '0.9rem', marginBottom: '20px' }}>
-                {errorMsg}
+                {serverError}
               </div>
             )}
 
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '24px' }}>
-              🔒 Powered by Cashfree Payments (UPI Only). You will be redirected to complete your payment securely.
+              <FiLock style={{ verticalAlign: 'middle', marginRight: '5px', position: 'relative', top: '-1px' }} /> Powered by Cashfree Payments (UPI Only). You will be redirected to complete your payment securely.
             </p>
 
             <button
@@ -496,7 +736,7 @@ export default function RegisterPage() {
               </h1>
               {lockedDept && (
                 <div style={{ fontSize: '0.9rem', color: 'var(--cyan)', fontWeight: 600, marginBottom: '12px' }}>
-                  Hosted by {lockedDept.name} Department
+                  Hosted by {lockedDeptFullName}
                 </div>
               )}
 
@@ -504,12 +744,12 @@ export default function RegisterPage() {
                 {event.dates && <div>📅 {event.dates}</div>}
                 <div>
                   {isWorkshop ? (
-                    <span style={{ color: '#10b981', fontWeight: 600 }}>✓ Free Registration</span>
+                    <span style={{ color: '#10b981', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}><FiCheck />Free Registration</span>
                   ) : (
                     <span>💰 ₹{event.fee || 50}/head · Team ({minMembers}–{maxMembers} members)</span>
                   )}
                 </div>
-                {isInterCollege && <div style={{ color: 'var(--orange)', fontWeight: 600 }}>🌐 Inter-College Event</div>}
+
               </div>
 
               <h4 style={{ fontFamily: 'var(--font-subheading)', fontSize: '0.95rem', color: 'var(--text)', marginBottom: '10px' }}>
@@ -535,601 +775,387 @@ export default function RegisterPage() {
                 </p>
               </div>
 
-              {errorMsg && (
+              {serverError && (
                 <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', color: '#dc2626', padding: '12px 16px', borderRadius: '6px', fontSize: '0.9rem', marginBottom: '20px' }}>
-                  {errorMsg}
+                  {serverError}
                 </div>
               )}
 
-              <form className="modal-form" onSubmit={handleSubmit}>
+              <form className="modal-form" onSubmit={handleSubmit} noValidate>
 
                 {/* ══════════════════════════════════════════════════
-                    LOCKED-DEPT PATH: Semester-first flow
+                    LOCKED-DEPT PATH: Personal details first flow
                     ══════════════════════════════════════════════════ */}
                 {lockedDept ? (
                   <>
-                    {/* 1. Semester — FIRST for dept-locked events */}
-                    <div className="form-group">
-                      <label htmlFor="reg-semester">Semester *</label>
-                      <select
-                        id="reg-semester"
-                        name="semester"
-                        className="form-select"
-                        required
-                        value={form.semester}
-                        onChange={setField}
-                      >
-                        <option value="">Select Semester</option>
-                        {SEMESTERS.map((s) => (
-                          <option key={s} value={s}>Semester {s}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* 2. Semester 1 Flow */}
-                    {isSem1 && (
-                      <>
-                        {/* Cycle dropdown */}
-                        <div className="form-group">
-                          <label htmlFor="reg-cycle">Cycle *</label>
-                          <select
-                            id="reg-cycle"
-                            name="cycle"
-                            className="form-select"
-                            required
-                            value={form.cycle}
-                            onChange={setField}
-                          >
-                            <option value="">Select Cycle</option>
-                            {CYCLES.map((c) => (
-                              <option key={c} value={c}>{c}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {/* Section dropdown */}
-                        <div className="form-group">
-                          <label htmlFor="reg-section">Section *</label>
-                          <select
-                            id="reg-section"
-                            name="section"
-                            className="form-select"
-                            required
-                            value={form.section}
-                            onChange={setField}
-                          >
-                            <option value="">Select Section</option>
-                            {SECTIONS.map((s) => (
-                              <option key={s} value={s}>Section {s}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {/* Department dropdown */}
-                        <div className="form-group">
-                          <label htmlFor="reg-selectedDept">Department *</label>
-                          <select
-                            id="reg-selectedDept"
-                            name="selectedDept"
-                            className="form-select"
-                            required
-                            value={form.selectedDept}
-                            onChange={setField}
-                          >
-                            <option value="">Select Department</option>
-                            {SEM1_DEPARTMENTS.map((d) => (
-                              <option key={d.id} value={d.id}>{d.label}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {/* Immediate Eligibility Feedback if Gate Complete & Ineligible */}
-                        {semester1GateComplete && !isEligibleSem1 && (
-                          <div
-                            style={{
-                              background: 'rgba(239, 68, 68, 0.1)',
-                              border: '1px solid #ef4444',
-                              color: '#dc2626',
-                              padding: '16px 20px',
-                              borderRadius: '8px',
-                              fontSize: '0.95rem',
-                              fontWeight: 600,
-                              marginTop: '16px',
-                              textAlign: 'center',
-                            }}
-                          >
-                            You are not eligible for this event
-                          </div>
-                        )}
-
-                        {/* Rest of Form: Revealed only when Gate Complete AND Eligible */}
-                        {isEligibleSem1 && (
-                          <>
-                            {/* Team Name (if team event) */}
-                            {isTeam && (
-                              <div className="form-group">
-                                <label htmlFor="reg-teamName">Team Name *</label>
-                                <input
-                                  id="reg-teamName"
-                                  name="teamName"
-                                  type="text"
-                                  className="form-input"
-                                  placeholder="Enter unique team name"
-                                  required
-                                  value={form.teamName}
-                                  onChange={setField}
-                                />
-                                {checkingTeamName && <span className="form-hint">Checking team name availability...</span>}
-                                {teamNameAvailable === true && <span className="form-hint" style={{ color: '#10b981' }}>✓ Team name available</span>}
-                                {teamNameAvailable === false && <span className="form-hint" style={{ color: '#ef4444' }}>✕ Team name already taken</span>}
-                              </div>
-                            )}
-
-                            {/* Participant / Lead Details Header */}
-                            <div className="team-section-title" style={{ marginTop: 0, paddingTop: 0, borderTop: 'none', fontWeight: 700 }}>
-                              {isTeam ? 'Team Lead Details' : 'Participant Details'}
-                            </div>
-
-                            {/* Full Name */}
-                            <div className="form-group">
-                              <label htmlFor="reg-name">Full Name *</label>
-                              <input
-                                id="reg-name"
-                                name="name"
-                                type="text"
-                                className="form-input"
-                                placeholder="Your full name"
-                                required
-                                value={form.name}
-                                onChange={setField}
-                              />
-                            </div>
-
-                            {/* Roll Number (plain text input, no format restriction) */}
-                            <div className="form-group">
-                              <label htmlFor="reg-rollNumber">Roll Number *</label>
-                              <input
-                                id="reg-rollNumber"
-                                name="rollNumber"
-                                type="text"
-                                className="form-input"
-                                placeholder="Enter your roll number"
-                                required
-                                value={form.rollNumber}
-                                onChange={setField}
-                              />
-                            </div>
-
-                            {/* Email + Phone */}
-                            <div className="form-row">
-                              <div className="form-group">
-                                <label htmlFor="reg-email">Email *</label>
-                                <input
-                                  id="reg-email"
-                                  name="email"
-                                  type="email"
-                                  className="form-input"
-                                  placeholder="your@email.com"
-                                  required
-                                  value={form.email}
-                                  onChange={setField}
-                                />
-                              </div>
-                              <div className="form-group">
-                                <label htmlFor="reg-phone">Phone *</label>
-                                <input
-                                  id="reg-phone"
-                                  name="phone"
-                                  type="tel"
-                                  className="form-input"
-                                  placeholder="10-digit mobile"
-                                  required
-                                  value={form.phone}
-                                  onChange={setField}
-                                />
-                              </div>
-                            </div>
-
-                            {/* Locked Department display */}
-                            <div className="form-group">
-                              <label htmlFor="reg-dept">Department *</label>
-                              <div
-                                style={{
-                                  padding: '12px 16px',
-                                  background: 'var(--bg)',
-                                  border: '1.5px solid var(--bg-card-border)',
-                                  borderRadius: '8px',
-                                  fontWeight: 600,
-                                  color: 'var(--text)',
-                                  fontSize: '0.95rem',
-                                }}
-                              >
-                                {lockedDept.name} (Locked for this department event)
-                              </div>
-                            </div>
-
-                            {/* Inter-College field */}
-                            {isInterCollege && (
-                              <div className="form-group">
-                                <label htmlFor="reg-college">College Name *</label>
-                                <input
-                                  id="reg-college"
-                                  name="college"
-                                  type="text"
-                                  className="form-input"
-                                  placeholder="Your college name"
-                                  required
-                                  value={form.college}
-                                  onChange={setField}
-                                />
-                              </div>
-                            )}
-
-                            {/* Additional Team Members */}
-                            {isTeam && (
-                              <div className="team-section" style={{ marginTop: '28px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                  <div className="team-section-title" style={{ margin: 0, padding: 0, border: 'none', fontWeight: 700 }}>
-                                    Additional Members ({members.length} added · {minMembers - 1} min required)
-                                  </div>
-                                  <button
-                                    type="button"
-                                    className="btn-add-member"
-                                    onClick={addMember}
-                                    disabled={members.length >= maxAdditional}
-                                    style={{ width: 'auto', margin: 0, padding: '6px 14px' }}
-                                  >
-                                    + Add Member
-                                  </button>
-                                </div>
-
-                                {members.map((m, i) => {
-                                  const memberHint = getMemberUsnHint(m.usn);
-                                  return (
-                                    <div key={i} className="team-member-row" style={{ marginBottom: '16px', padding: '16px', background: 'var(--bg)', borderRadius: '8px' }}>
-                                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem', fontWeight: 600 }}>
-                                        <span>Member {i + 2}</span>
-                                        {i >= (minMembers - 1) && (
-                                          <button
-                                            type="button"
-                                            className="btn-remove-member"
-                                            onClick={() => removeMember(i)}
-                                            style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
-                                          >
-                                            Remove
-                                          </button>
-                                        )}
-                                      </div>
-                                      <div className="form-row">
-                                        <div className="form-group">
-                                          <input
-                                            type="text"
-                                            className="form-input"
-                                            placeholder="Full Name *"
-                                            required
-                                            value={m.name}
-                                            onChange={(e) => setMemberField(i, 'name', e.target.value)}
-                                          />
-                                        </div>
-                                        <div className="form-group">
-                                          <input
-                                            type="text"
-                                            className="form-input"
-                                            placeholder="USN *"
-                                            required
-                                            value={m.usn}
-                                            onChange={(e) => setMemberField(i, 'usn', e.target.value)}
-                                          />
-                                          {memberHint && (
-                                            <span className="form-hint" style={{ color: memberHint.ok ? '#10b981' : '#ef4444' }}>
-                                              {memberHint.msg}
-                                            </span>
-                                          )}
-                                        </div>
-                                      </div>
-                                      <div className="form-row">
-                                        <div className="form-group">
-                                          <input
-                                            type="email"
-                                            className="form-input"
-                                            placeholder="Email (Optional)"
-                                            value={m.email}
-                                            onChange={(e) => setMemberField(i, 'email', e.target.value)}
-                                          />
-                                        </div>
-                                        <div className="form-group">
-                                          <input
-                                            type="tel"
-                                            className="form-input"
-                                            placeholder="Phone (Optional)"
-                                            value={m.phone}
-                                            onChange={(e) => setMemberField(i, 'phone', e.target.value)}
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="form-group" style={{ marginTop: '4px' }}>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
-                                          Department: <strong style={{ color: 'var(--text)' }}>{lockedDept.name}</strong>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </>
-                    )}
-
-                    {/* 3. Semesters 3, 5, 7: USN + Section + rest of form */}
-                    {isHighSem && (
-                      <>
-                        {/* USN */}
-                        <div className="form-group">
-                          <label htmlFor="reg-usn">USN *</label>
-                          <input
-                            id="reg-usn"
-                            name="usn"
-                            type="text"
-                            className="form-input"
-                            placeholder="e.g. 1DB23CS001"
-                            required
-                            value={form.usn}
-                            onChange={setField}
-                          />
-                          {(() => {
-                            const hint = getUsnHint(form.usn);
-                            if (!hint) return null;
-                            return (
-                              <span className="form-hint" style={{ color: hint.ok ? '#10b981' : '#ef4444' }}>
-                                {hint.msg}
-                              </span>
-                            );
-                          })()}
-                        </div>
-
-                        {/* Section dropdown */}
-                        <div className="form-group">
-                          <label htmlFor="reg-section">Section *</label>
-                          <select
-                            id="reg-section"
-                            name="section"
-                            className="form-select"
-                            required
-                            value={form.section}
-                            onChange={setField}
-                          >
-                            <option value="">Select Section</option>
-                            {SECTIONS.map((s) => (
-                              <option key={s} value={s}>Section {s}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {/* Team Name (if team event) */}
-                        {isTeam && (
-                          <div className="form-group">
-                            <label htmlFor="reg-teamName">Team Name *</label>
-                            <input
-                              id="reg-teamName"
-                              name="teamName"
-                              type="text"
-                              className="form-input"
-                              placeholder="Enter unique team name"
-                              required
-                              value={form.teamName}
-                              onChange={setField}
-                            />
-                            {checkingTeamName && <span className="form-hint">Checking team name availability...</span>}
-                            {teamNameAvailable === true && <span className="form-hint" style={{ color: '#10b981' }}>✓ Team name available</span>}
-                            {teamNameAvailable === false && <span className="form-hint" style={{ color: '#ef4444' }}>✕ Team name already taken</span>}
-                          </div>
-                        )}
-
-                        {/* Participant / Lead Details Header */}
-                        <div className="team-section-title" style={{ marginTop: 0, paddingTop: 0, borderTop: 'none', fontWeight: 700 }}>
-                          {isTeam ? 'Team Lead Details' : 'Participant Details'}
-                        </div>
-
-                        {/* Full Name */}
-                        <div className="form-group">
-                          <label htmlFor="reg-name">Full Name *</label>
-                          <input
-                            id="reg-name"
-                            name="name"
-                            type="text"
-                            className="form-input"
-                            placeholder="Your full name"
-                            required
-                            value={form.name}
-                            onChange={setField}
-                          />
-                        </div>
-
-                        {/* Email + Phone */}
-                        <div className="form-row">
-                          <div className="form-group">
-                            <label htmlFor="reg-email">Email *</label>
-                            <input
-                              id="reg-email"
-                              name="email"
-                              type="email"
-                              className="form-input"
-                              placeholder="your@email.com"
-                              required
-                              value={form.email}
-                              onChange={setField}
-                            />
-                          </div>
-                          <div className="form-group">
-                            <label htmlFor="reg-phone">Phone *</label>
-                            <input
-                              id="reg-phone"
-                              name="phone"
-                              type="tel"
-                              className="form-input"
-                              placeholder="10-digit mobile"
-                              required
-                              value={form.phone}
-                              onChange={setField}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Locked Department display */}
-                        <div className="form-group">
-                          <label htmlFor="reg-dept">Department *</label>
-                          <div
-                            style={{
-                              padding: '12px 16px',
-                              background: 'var(--bg)',
-                              border: '1.5px solid var(--bg-card-border)',
-                              borderRadius: '8px',
-                              fontWeight: 600,
-                              color: 'var(--text)',
-                              fontSize: '0.95rem',
-                            }}
-                          >
-                            {lockedDept.name} (Locked for this department event)
-                          </div>
-                        </div>
-
-                        {/* Inter-College field */}
-                        {isInterCollege && (
-                          <div className="form-group">
-                            <label htmlFor="reg-college">College Name *</label>
-                            <input
-                              id="reg-college"
-                              name="college"
-                              type="text"
-                              className="form-input"
-                              placeholder="Your college name"
-                              required
-                              value={form.college}
-                              onChange={setField}
-                            />
-                          </div>
-                        )}
-
-                        {/* Additional Team Members */}
-                        {isTeam && (
-                          <div className="team-section" style={{ marginTop: '28px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                              <div className="team-section-title" style={{ margin: 0, padding: 0, border: 'none', fontWeight: 700 }}>
-                                Additional Members ({members.length} added · {minMembers - 1} min required)
-                              </div>
-                              <button
-                                type="button"
-                                className="btn-add-member"
-                                onClick={addMember}
-                                disabled={members.length >= maxAdditional}
-                                style={{ width: 'auto', margin: 0, padding: '6px 14px' }}
-                              >
-                                + Add Member
-                              </button>
-                            </div>
-
-                            {members.map((m, i) => {
-                              const memberHint = getMemberUsnHint(m.usn);
-                              return (
-                                <div key={i} className="team-member-row" style={{ marginBottom: '16px', padding: '16px', background: 'var(--bg)', borderRadius: '8px' }}>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem', fontWeight: 600 }}>
-                                    <span>Member {i + 2}</span>
-                                    {i >= (minMembers - 1) && (
-                                      <button
-                                        type="button"
-                                        className="btn-remove-member"
-                                        onClick={() => removeMember(i)}
-                                        style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
-                                      >
-                                        Remove
-                                      </button>
-                                    )}
-                                  </div>
-                                  <div className="form-row">
-                                    <div className="form-group">
-                                      <input
-                                        type="text"
-                                        className="form-input"
-                                        placeholder="Full Name *"
-                                        required
-                                        value={m.name}
-                                        onChange={(e) => setMemberField(i, 'name', e.target.value)}
-                                      />
-                                    </div>
-                                    <div className="form-group">
-                                      <input
-                                        type="text"
-                                        className="form-input"
-                                        placeholder="USN *"
-                                        required
-                                        value={m.usn}
-                                        onChange={(e) => setMemberField(i, 'usn', e.target.value)}
-                                      />
-                                      {memberHint && (
-                                        <span className="form-hint" style={{ color: memberHint.ok ? '#10b981' : '#ef4444' }}>
-                                          {memberHint.msg}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <div className="form-row">
-                                    <div className="form-group">
-                                      <input
-                                        type="email"
-                                        className="form-input"
-                                        placeholder="Email (Optional)"
-                                        value={m.email}
-                                        onChange={(e) => setMemberField(i, 'email', e.target.value)}
-                                      />
-                                    </div>
-                                    <div className="form-group">
-                                      <input
-                                        type="tel"
-                                        className="form-input"
-                                        placeholder="Phone (Optional)"
-                                        value={m.phone}
-                                        onChange={(e) => setMemberField(i, 'phone', e.target.value)}
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="form-group" style={{ marginTop: '4px' }}>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
-                                      Department: <strong style={{ color: 'var(--text)' }}>{lockedDept.name}</strong>
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </>
-                ) : (
-                  /* ══════════════════════════════════════════════════
-                      MEGA EVENT PATH (lockedDept === null)
-                      Completely unchanged from original form structure.
-                      ══════════════════════════════════════════════════ */
-                  <>
-                    {/* Team Name (if team event) */}
+                    {/* a. Team Name (if team event) */}
                     {isTeam && (
                       <div className="form-group">
                         <label htmlFor="reg-teamName">Team Name *</label>
+                        {renderFieldFeedback('teamName')}
                         <input
                           id="reg-teamName"
                           name="teamName"
                           type="text"
                           className="form-input"
                           placeholder="Enter unique team name"
-                          required
                           value={form.teamName}
                           onChange={setField}
+                          onBlur={handleBlur}
+                          style={getInputStyle('teamName')}
                         />
-                        {checkingTeamName && <span className="form-hint">Checking team name availability...</span>}
-                        {teamNameAvailable === true && <span className="form-hint" style={{ color: '#10b981' }}>✓ Team name available</span>}
-                        {teamNameAvailable === false && <span className="form-hint" style={{ color: '#ef4444' }}>✕ Team name already taken</span>}
+                      </div>
+                    )}
+
+                    {/* b. Participant / Lead Details Header */}
+                    <div className="team-section-title" style={{ marginTop: 0, paddingTop: 0, borderTop: 'none', fontWeight: 700 }}>
+                      {isTeam ? 'Team Lead Details' : 'Participant Details'}
+                    </div>
+
+                    {/* c. Full Name — its own row */}
+                    <div className="form-group">
+                      <label htmlFor="reg-name">Full Name *</label>
+                      {renderFieldFeedback('name')}
+                      <input
+                        id="reg-name"
+                        name="name"
+                        type="text"
+                        className="form-input"
+                        placeholder="Your full name"
+                        value={form.name}
+                        onChange={setField}
+                        onBlur={handleBlur}
+                        style={getInputStyle('name')}
+                      />
+                    </div>
+
+                    {/* d. Email + Phone — same row (form-row) */}
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label htmlFor="reg-email">Email *</label>
+                        {renderFieldFeedback('email')}
+                        <input
+                          id="reg-email"
+                          name="email"
+                          type="email"
+                          className="form-input"
+                          placeholder="your@email.com"
+                          value={form.email}
+                          onChange={setField}
+                          onBlur={handleBlur}
+                          style={getInputStyle('email')}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="reg-phone">Phone *</label>
+                        {renderFieldFeedback('phone')}
+                        <input
+                          id="reg-phone"
+                          name="phone"
+                          type="tel"
+                          className="form-input"
+                          placeholder="10-digit mobile"
+                          value={form.phone}
+                          onChange={setField}
+                          onBlur={handleBlur}
+                          style={getInputStyle('phone')}
+                        />
+                      </div>
+                    </div>
+
+                    {/* e. One row containing: Semester select, Section select, and USN / Roll Number */}
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label htmlFor="reg-semester">Semester *</label>
+                        {renderFieldFeedback('semester')}
+                        <select
+                          id="reg-semester"
+                          name="semester"
+                          className="form-select"
+                          value={form.semester}
+                          onChange={setField}
+                          onBlur={handleBlur}
+                          style={getInputStyle('semester')}
+                        >
+                          <option value="">Select Semester</option>
+                          {SEMESTERS.map((s) => (
+                            <option key={s} value={s}>Semester {s}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="reg-section">Section *</label>
+                        {renderFieldFeedback('section')}
+                        <select
+                          id="reg-section"
+                          name="section"
+                          className="form-select"
+                          value={form.section}
+                          onChange={setField}
+                          onBlur={handleBlur}
+                          style={getInputStyle('section')}
+                        >
+                          <option value="">Select Section</option>
+                          {SECTIONS.map((s) => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Roll Number input if semester is 1 */}
+                      {sem === 1 && (
+                        <div className="form-group">
+                          <label htmlFor="reg-rollNumber">Roll Number *</label>
+                          {renderFieldFeedback('rollNumber')}
+                          <input
+                            id="reg-rollNumber"
+                            name="rollNumber"
+                            type="text"
+                            className="form-input"
+                            placeholder="Enter your roll number"
+                            value={form.rollNumber}
+                            onChange={setField}
+                            onBlur={handleBlur}
+                            style={getInputStyle('rollNumber')}
+                          />
+                        </div>
+                      )}
+
+                      {/* USN input if semester is 3, 5, or 7 */}
+                      {isHighSem && (
+                        <div className="form-group">
+                          <label htmlFor="reg-usn">USN *</label>
+                          {renderFieldFeedback('usn')}
+                          <input
+                            id="reg-usn"
+                            name="usn"
+                            type="text"
+                            className="form-input"
+                            placeholder={`e.g. 1DB23${lockedDept.id === 'aiml' ? 'CI' : 'CS'}001`}
+                            value={form.usn}
+                            onChange={setField}
+                            onBlur={handleBlur}
+                            style={getInputStyle('usn')}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* f. If semester === 1, an additional row directly below (e): Cycle select + Department select */}
+                    {sem === 1 && (
+                      <>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--cyan)', fontWeight: 600, marginBottom: '8px' }}>
+                          Only {lockedDeptFullName} students can join this event.
+                        </div>
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label htmlFor="reg-cycle">Cycle *</label>
+                            {renderFieldFeedback('cycle')}
+                            <select
+                              id="reg-cycle"
+                              name="cycle"
+                              className="form-select"
+                              value={form.cycle}
+                              onChange={setField}
+                              onBlur={handleBlur}
+                              style={getInputStyle('cycle')}
+                            >
+                              <option value="">Select Cycle</option>
+                              {CYCLES.map((c) => (
+                                <option key={c} value={c}>{c}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="form-group">
+                            <label htmlFor="reg-selectedDept">Department *</label>
+                            {renderFieldFeedback('selectedDept')}
+                            <select
+                              id="reg-selectedDept"
+                              name="selectedDept"
+                              className="form-select"
+                              value={form.selectedDept}
+                              onChange={setField}
+                              onBlur={handleBlur}
+                              style={getInputStyle('selectedDept')}
+                            >
+                              <option value="">Select Department</option>
+                              {SEM1_DEPARTMENTS.map((d) => (
+                                <option key={d.id} value={d.id}>{d.label}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* g. Inline eligibility feedback for Semester 1 */}
+                        {form.selectedDept && !isEligibleSem1Dept && (
+                          <div
+                            style={{
+                              background: 'rgba(239, 68, 68, 0.1)',
+                              border: '1px solid #ef4444',
+                              color: '#dc2626',
+                              padding: '12px 16px',
+                              borderRadius: '8px',
+                              fontSize: '0.9rem',
+                              fontWeight: 600,
+                              marginBottom: '16px',
+                              textAlign: 'center',
+                            }}
+                          >
+                            You are not eligible for this event
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* h. Department display for sem 3/5/7 */}
+                    {isHighSem && (
+                      <div className="form-group">
+                        <div style={{ fontSize: '0.85rem', color: 'var(--cyan)', fontWeight: 600, marginBottom: '8px' }}>
+                          Only {lockedDeptFullName} students can join this event.
+                        </div>
+                        <label htmlFor="reg-dept">Department *</label>
+                        <div
+                          style={{
+                            padding: '12px 16px',
+                            background: 'var(--bg)',
+                            border: '1.5px solid var(--bg-card-border)',
+                            borderRadius: '8px',
+                            fontWeight: 600,
+                            color: 'var(--text)',
+                            fontSize: '0.95rem',
+                          }}
+                        >
+                          {lockedDeptFullName}
+                        </div>
+                      </div>
+                    )}
+
+
+
+                    {/* i. Additional Team Members */}
+                    {isTeam && (
+                      <div className="team-section" style={{ marginTop: '28px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                          <div className="team-section-title" style={{ margin: 0, padding: 0, border: 'none', fontWeight: 700 }}>
+                            Additional Members ({members.length} added · {minMembers - 1} min required)
+                          </div>
+                          <button
+                            type="button"
+                            className="btn-add-member"
+                            onClick={addMember}
+                            disabled={members.length >= maxAdditional}
+                            style={{ width: 'auto', margin: 0, padding: '6px 14px' }}
+                          >
+                            + Add Member
+                          </button>
+                        </div>
+
+                        {hasSubmitted && formErrors.teamMembers && (
+                          <div style={{ color: '#ef4444', fontSize: '0.85rem', fontWeight: 600, marginBottom: '12px' }}>
+                            <FiAlertTriangle style={{ verticalAlign: 'middle', marginRight: '4px' }} />{formErrors.teamMembers}
+                          </div>
+                        )}
+
+                        {members.map((m, i) => (
+                          <div key={i} className="team-member-row" style={{ marginBottom: '16px', padding: '16px', background: 'var(--bg)', borderRadius: '8px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem', fontWeight: 600 }}>
+                              <span>Member {i + 2}</span>
+                              {i >= (minMembers - 1) && (
+                                <button
+                                  type="button"
+                                  className="btn-remove-member"
+                                  onClick={() => removeMember(i)}
+                                  style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.85rem' }}
+                                >
+                                  Remove
+                                </button>
+                              )}
+                            </div>
+                            <div className="form-row">
+                              <div className="form-group">
+                                {renderFieldFeedback(`member_${i}_name`)}
+                                <input
+                                  type="text"
+                                  className="form-input"
+                                  placeholder="Full Name *"
+                                  value={m.name}
+                                  onChange={(e) => setMemberField(i, 'name', e.target.value)}
+                                  onBlur={() => handleMemberBlur(i, 'name')}
+                                  style={getInputStyle(`member_${i}_name`)}
+                                />
+                              </div>
+                              <div className="form-group">
+                                {renderFieldFeedback(`member_${i}_usn`)}
+                                <input
+                                  type="text"
+                                  className="form-input"
+                                  placeholder="USN *"
+                                  value={m.usn}
+                                  onChange={(e) => setMemberField(i, 'usn', e.target.value)}
+                                  onBlur={() => handleMemberBlur(i, 'usn')}
+                                  style={getInputStyle(`member_${i}_usn`)}
+                                />
+                              </div>
+                            </div>
+                            <div className="form-row">
+                              <div className="form-group">
+                                {renderFieldFeedback(`member_${i}_email`)}
+                                <input
+                                  type="email"
+                                  className="form-input"
+                                  placeholder="Email (Optional)"
+                                  value={m.email}
+                                  onChange={(e) => setMemberField(i, 'email', e.target.value)}
+                                  onBlur={() => handleMemberBlur(i, 'email')}
+                                  style={getInputStyle(`member_${i}_email`)}
+                                />
+                              </div>
+                              <div className="form-group">
+                                {renderFieldFeedback(`member_${i}_phone`)}
+                                <input
+                                  type="tel"
+                                  className="form-input"
+                                  placeholder="Phone *"
+                                  value={m.phone}
+                                  onChange={(e) => setMemberField(i, 'phone', e.target.value)}
+                                  onBlur={() => handleMemberBlur(i, 'phone')}
+                                  style={getInputStyle(`member_${i}_phone`)}
+                                />
+                              </div>
+                            </div>
+                            <div className="form-group" style={{ marginTop: '4px' }}>
+                              <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
+                                Department: <strong style={{ color: 'var(--text)' }}>{lockedDeptFullName}</strong>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* ══════════════════════════════════════════════════
+                      MEGA EVENT PATH (lockedDept === null)
+                      ══════════════════════════════════════════════════ */
+                  <>
+                    {/* Team Name (if team event) */}
+                    {isTeam && (
+                      <div className="form-group">
+                        <label htmlFor="reg-teamName">Team Name *</label>
+                        {renderFieldFeedback('teamName')}
+                        <input
+                          id="reg-teamName"
+                          name="teamName"
+                          type="text"
+                          className="form-input"
+                          placeholder="Enter unique team name"
+                          value={form.teamName}
+                          onChange={setField}
+                          onBlur={handleBlur}
+                          style={getInputStyle('teamName')}
+                        />
                       </div>
                     )}
 
@@ -1140,43 +1166,49 @@ export default function RegisterPage() {
 
                     <div className="form-group">
                       <label htmlFor="reg-name">Full Name *</label>
+                      {renderFieldFeedback('name')}
                       <input
                         id="reg-name"
                         name="name"
                         type="text"
                         className="form-input"
                         placeholder="Your full name"
-                        required
                         value={form.name}
                         onChange={setField}
+                        onBlur={handleBlur}
+                        style={getInputStyle('name')}
                       />
                     </div>
 
                     <div className="form-row">
                       <div className="form-group">
                         <label htmlFor="reg-usn">USN *</label>
+                        {renderFieldFeedback('usn')}
                         <input
                           id="reg-usn"
                           name="usn"
                           type="text"
                           className="form-input"
                           placeholder="e.g. 1DB23CS001"
-                          required
                           value={form.usn}
                           onChange={setField}
+                          onBlur={handleBlur}
+                          style={getInputStyle('usn')}
                         />
                       </div>
 
                       {/* Semester Select (1, 3, 5, 7) */}
                       <div className="form-group">
                         <label htmlFor="reg-semester">Semester *</label>
+                        {renderFieldFeedback('semester')}
                         <select
                           id="reg-semester"
                           name="semester"
                           className="form-select"
-                          required
                           value={form.semester}
                           onChange={setField}
+                          onBlur={handleBlur}
+                          style={getInputStyle('semester')}
                         >
                           <option value="">Select Semester</option>
                           {SEMESTERS.map((s) => (
@@ -1189,29 +1221,33 @@ export default function RegisterPage() {
                     <div className="form-row">
                       <div className="form-group">
                         <label htmlFor="reg-email">Email *</label>
+                        {renderFieldFeedback('email')}
                         <input
                           id="reg-email"
                           name="email"
                           type="email"
                           className="form-input"
                           placeholder="your@email.com"
-                          required
                           value={form.email}
                           onChange={setField}
+                          onBlur={handleBlur}
+                          style={getInputStyle('email')}
                         />
                       </div>
 
                       <div className="form-group">
                         <label htmlFor="reg-phone">Phone *</label>
+                        {renderFieldFeedback('phone')}
                         <input
                           id="reg-phone"
                           name="phone"
                           type="tel"
                           className="form-input"
                           placeholder="10-digit mobile"
-                          required
                           value={form.phone}
                           onChange={setField}
+                          onBlur={handleBlur}
+                          style={getInputStyle('phone')}
                         />
                       </div>
                     </div>
@@ -1219,13 +1255,15 @@ export default function RegisterPage() {
                     {/* Department: free-choice dropdown for mega events */}
                     <div className="form-group">
                       <label htmlFor="reg-dept">Department *</label>
+                      {renderFieldFeedback('dept')}
                       <select
                         id="reg-dept"
                         name="dept"
                         className="form-select"
-                        required
                         value={form.dept}
                         onChange={setField}
+                        onBlur={handleBlur}
+                        style={getInputStyle('dept')}
                       >
                         <option value="">Select department</option>
                         {DEPARTMENTS.map((d) => (
@@ -1234,22 +1272,7 @@ export default function RegisterPage() {
                       </select>
                     </div>
 
-                    {/* Inter-College field */}
-                    {isInterCollege && (
-                      <div className="form-group">
-                        <label htmlFor="reg-college">College Name *</label>
-                        <input
-                          id="reg-college"
-                          name="college"
-                          type="text"
-                          className="form-input"
-                          placeholder="Your college name"
-                          required
-                          value={form.college}
-                          onChange={setField}
-                        />
-                      </div>
-                    )}
+
 
                     {/* Additional Team Members */}
                     {isTeam && (
@@ -1269,6 +1292,12 @@ export default function RegisterPage() {
                           </button>
                         </div>
 
+                        {hasSubmitted && formErrors.teamMembers && (
+                          <div style={{ color: '#ef4444', fontSize: '0.85rem', fontWeight: 600, marginBottom: '12px' }}>
+                            <FiAlertTriangle style={{ verticalAlign: 'middle', marginRight: '4px' }} />{formErrors.teamMembers}
+                          </div>
+                        )}
+
                         {members.map((m, i) => (
                           <div key={i} className="team-member-row" style={{ marginBottom: '16px', padding: '16px', background: 'var(--bg)', borderRadius: '8px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem', fontWeight: 600 }}>
@@ -1286,51 +1315,64 @@ export default function RegisterPage() {
                             </div>
                             <div className="form-row">
                               <div className="form-group">
+                                {renderFieldFeedback(`member_${i}_name`)}
                                 <input
                                   type="text"
                                   className="form-input"
                                   placeholder="Full Name *"
-                                  required
                                   value={m.name}
                                   onChange={(e) => setMemberField(i, 'name', e.target.value)}
+                                  onBlur={() => handleMemberBlur(i, 'name')}
+                                  style={getInputStyle(`member_${i}_name`)}
                                 />
                               </div>
                               <div className="form-group">
+                                {renderFieldFeedback(`member_${i}_usn`)}
                                 <input
                                   type="text"
                                   className="form-input"
                                   placeholder="USN *"
-                                  required
                                   value={m.usn}
                                   onChange={(e) => setMemberField(i, 'usn', e.target.value)}
+                                  onBlur={() => handleMemberBlur(i, 'usn')}
+                                  style={getInputStyle(`member_${i}_usn`)}
                                 />
                               </div>
                             </div>
                             <div className="form-row">
                               <div className="form-group">
+                                {renderFieldFeedback(`member_${i}_email`)}
                                 <input
                                   type="email"
                                   className="form-input"
                                   placeholder="Email (Optional)"
                                   value={m.email}
                                   onChange={(e) => setMemberField(i, 'email', e.target.value)}
+                                  onBlur={() => handleMemberBlur(i, 'email')}
+                                  style={getInputStyle(`member_${i}_email`)}
                                 />
                               </div>
                               <div className="form-group">
+                                {renderFieldFeedback(`member_${i}_phone`)}
                                 <input
                                   type="tel"
                                   className="form-input"
-                                  placeholder="Phone (Optional)"
+                                  placeholder="Phone *"
                                   value={m.phone}
                                   onChange={(e) => setMemberField(i, 'phone', e.target.value)}
+                                  onBlur={() => handleMemberBlur(i, 'phone')}
+                                  style={getInputStyle(`member_${i}_phone`)}
                                 />
                               </div>
                             </div>
                             <div className="form-group" style={{ marginTop: '4px' }}>
+                              {renderFieldFeedback(`member_${i}_dept`)}
                               <select
                                 className="form-select"
                                 value={m.dept || ''}
                                 onChange={(e) => setMemberField(i, 'dept', e.target.value)}
+                                onBlur={() => handleMemberBlur(i, 'dept')}
+                                style={getInputStyle(`member_${i}_dept`)}
                               >
                                 <option value="">Select Member Department</option>
                                 {DEPARTMENTS.map((d) => (
@@ -1345,9 +1387,7 @@ export default function RegisterPage() {
                   </>
                 )}
 
-                {/* Submit button — shown only when form fields are visible */}
-                {/* For locked-dept: show when sem 3/5/7 (isHighSem) or sem 1 eligible (isEligibleSem1) */}
-                {/* For mega: always show */}
+                {/* Submit button */}
                 {(!lockedDept || isHighSem || isEligibleSem1) && (
                   <button
                     type="submit"

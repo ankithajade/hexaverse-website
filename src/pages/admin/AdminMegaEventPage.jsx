@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, Fragment, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FiPlus, FiChevronUp, FiChevronDown } from 'react-icons/fi';
+import { FiPlus, FiChevronUp, FiChevronDown, FiAward, FiAlertTriangle } from 'react-icons/fi';
 import { supabase } from '../../lib/supabaseClient';
 import { events as megaEvents } from '../../data/events';
 import TeamEditModal from './TeamEditModal';
@@ -176,7 +176,6 @@ export default function AdminMegaEventPage() {
       const shortIdObj = formatShortId(t);
       const matchTeam =
         (t.team_name && t.team_name.toLowerCase().includes(q)) ||
-        (t.college && t.college.toLowerCase().includes(q)) ||
         shortIdObj.label.toLowerCase().includes(q) ||
         (t.payment_status && t.payment_status.toLowerCase().includes(q));
 
@@ -283,7 +282,7 @@ export default function AdminMegaEventPage() {
               borderRadius: '50%',
               background: eventAccentColor,
             }} />
-            Mega Event · {event.isInterCollege ? '🌐 Inter-College Open' : 'Intra-College (All Departments)'}
+            Mega Event · Intra-College (All Departments)
           </div>
           <h1 style={{
             fontFamily: 'var(--font-subheading)',
@@ -362,7 +361,7 @@ export default function AdminMegaEventPage() {
           label="Total Participants"
           value={totalParticipants}
           color="var(--text)"
-          subtitle="Across all departments / colleges"
+          subtitle="Across all departments"
         />
         <StatCard
           label="Paid / Verified Teams"
@@ -423,7 +422,7 @@ export default function AdminMegaEventPage() {
                 </span>
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '3px' }}>
-                {event.isInterCollege ? 'Open to multi-college and inter-department teams' : 'Cross-departmental teams across DBIT'}
+                Cross-departmental teams across DBIT
               </div>
             </div>
 
@@ -492,7 +491,7 @@ export default function AdminMegaEventPage() {
                   </>
                 ) : (
                   <>
-                    <div style={{ fontSize: '1.8rem', marginBottom: '8px' }}>🏆</div>
+                    <div style={{ fontSize: '1.8rem', marginBottom: '8px', color: 'var(--text-dim)' }}><FiAward /></div>
                     <div style={{ fontWeight: 600, color: 'var(--text-dim)', fontSize: '1.05rem' }}>
                       No teams registered yet for {event.title}
                     </div>
@@ -518,7 +517,7 @@ export default function AdminMegaEventPage() {
                     <th style={{ width: '38px', padding: '10px 8px 10px 16px' }} />
                     <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-muted)' }}>Short ID</th>
                     <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-muted)' }}>Team Name</th>
-                    <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-muted)' }}>College</th>
+
                     <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-muted)' }}>Lead Contact</th>
                     <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-muted)', textAlign: 'center' }}>Size</th>
                     <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-muted)' }}>Payment</th>
@@ -597,20 +596,7 @@ export default function AdminMegaEventPage() {
                             </div>
                           </td>
 
-                          {/* College */}
-                          <td style={{ padding: '12px 14px', whiteSpace: 'nowrap' }}>
-                            <span style={{
-                              fontSize: '0.78rem',
-                              padding: '2px 8px',
-                              borderRadius: '4px',
-                              background: team.college && team.college !== 'DBIT' ? 'rgba(59, 130, 246, 0.12)' : 'var(--bg-alt)',
-                              color: team.college && team.college !== 'DBIT' ? '#3b82f6' : 'var(--text-dim)',
-                              fontWeight: team.college && team.college !== 'DBIT' ? 600 : 400,
-                              border: '1px solid var(--bg-card-border)',
-                            }}>
-                              {team.college || '—'}
-                            </span>
-                          </td>
+
 
                           {/* Lead Contact */}
                           <td style={{ padding: '12px 14px' }}>
@@ -732,7 +718,7 @@ export default function AdminMegaEventPage() {
                                       <th style={{ padding: '6px 8px', width: '32px' }}>#</th>
                                       <th style={{ padding: '6px 12px' }}>Role</th>
                                       <th style={{ padding: '6px 12px' }}>Member Name</th>
-                                      <th style={{ padding: '6px 12px' }}>USN / College ID</th>
+                                      <th style={{ padding: '6px 12px' }}>USN</th>
                                       <th style={{ padding: '6px 12px' }}>Department</th>
                                       <th style={{ padding: '6px 12px' }}>Email</th>
                                       <th style={{ padding: '6px 12px' }}>Phone</th>
@@ -831,7 +817,7 @@ export default function AdminMegaEventPage() {
             borderRadius: '14px', maxWidth: '440px', width: '100%',
             padding: '28px 28px', boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
           }}>
-            <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>⚠️</div>
+            <div style={{ fontSize: '1.5rem', marginBottom: '8px', color: '#ef4444' }}><FiAlertTriangle /></div>
             <h3 style={{ fontFamily: 'var(--font-subheading)', margin: '0 0 8px', color: '#ef4444', fontSize: '1.1rem' }}>
               Delete Team Permanently
             </h3>

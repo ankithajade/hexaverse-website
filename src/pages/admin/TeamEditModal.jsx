@@ -4,6 +4,7 @@
  * Used by both AdminDepartmentPage and AdminMegaEventPage.
  */
 import { useState, useEffect, useCallback } from 'react';
+import { FiAlertTriangle } from 'react-icons/fi';
 import { supabase } from '../../lib/supabaseClient';
 import { useAdminSession } from './AdminAuthGate';
 
@@ -124,7 +125,6 @@ export default function TeamEditModal({ team, eventSlug, teamMax, accentColor, o
   // ── Team-level fields ──
   const [teamName, setTeamName] = useState(team.team_name || '');
   const [paymentStatus, setPaymentStatus] = useState(team.payment_status || 'pending');
-  const [college, setCollege] = useState(team.college || 'DBIT');
 
   // ── Members ──
   const [members, setMembers] = useState(() =>
@@ -172,14 +172,13 @@ export default function TeamEditModal({ team, eventSlug, teamMax, accentColor, o
     setSaveError('');
 
     try {
-      const beforeTeam = { team_name: team.team_name, payment_status: team.payment_status, college: team.college };
-      const afterTeam = { team_name: teamName.trim(), payment_status: paymentStatus, college: college.trim() };
+      const beforeTeam = { team_name: team.team_name, payment_status: team.payment_status };
+      const afterTeam = { team_name: teamName.trim(), payment_status: paymentStatus };
 
       // Update team row
       const { error: teamErr } = await supabase.from('teams').update({
         team_name: teamName.trim(),
         payment_status: paymentStatus,
-        college: college.trim() || 'DBIT',
         team_size: members.length,
       }).eq('id', team.id);
 
@@ -349,14 +348,6 @@ export default function TeamEditModal({ team, eventSlug, teamMax, accentColor, o
                   ))}
                 </select>
               </FormField>
-              <FormField label="College">
-                <input
-                  style={inputStyle}
-                  value={college}
-                  onChange={e => setCollege(e.target.value)}
-                  placeholder="e.g. DBIT"
-                />
-              </FormField>
             </div>
           </div>
 
@@ -470,7 +461,7 @@ export default function TeamEditModal({ team, eventSlug, teamMax, accentColor, o
                   New Member
                   {teamMax && members.length >= teamMax && (
                     <span style={{ marginLeft: '8px', color: '#f59e0b', fontSize: '0.7rem' }}>
-                      ⚠ Exceeds event max ({teamMax}) — admin override
+                       <FiAlertTriangle style={{ verticalAlign: 'middle', marginRight: '3px' }} />Exceeds event max ({teamMax}) — admin override
                     </span>
                   )}
                 </div>

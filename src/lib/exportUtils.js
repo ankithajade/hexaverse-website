@@ -76,7 +76,6 @@ export function flattenTeams(teams) {
       rows.push({
         shortId,
         teamName: t.team_name || '',
-        college: t.college || 'DBIT',
         name: m.name || '',
         usn: m.usn || '',
         email: m.email || '',
@@ -95,11 +94,11 @@ export function flattenTeams(teams) {
 
 // ── Team CSV export (one row per participant) ──
 export function buildTeamCSV(teams) {
-  const HEADERS = ['Team Short ID', 'Team Name', 'College', 'Participant Name', 'USN', 'Email', 'Phone', 'Department', 'Is Lead', 'Payment Status', 'Registered At'];
+  const HEADERS = ['Team Short ID', 'Team Name', 'Participant Name', 'USN', 'Email', 'Phone', 'Department', 'Is Lead', 'Payment Status', 'Registered At'];
   let csv = csvRow(HEADERS);
   const rows = flattenTeams(teams);
   for (const r of rows) {
-    csv += csvRow([r.shortId, r.teamName, r.college, r.name, r.usn, r.email, r.phone, r.dept, r.isLead, r.paymentStatus, r.registeredAt]);
+    csv += csvRow([r.shortId, r.teamName, r.name, r.usn, r.email, r.phone, r.dept, r.isLead, r.paymentStatus, r.registeredAt]);
   }
   return csv;
 }
@@ -121,7 +120,6 @@ export function buildWorkshopCSV(workshops) {
 const TEAM_COLS = [
   { key: 'shortId',        header: 'Team Short ID',    width: 14 },
   { key: 'teamName',       header: 'Team Name',         width: 22 },
-  { key: 'college',        header: 'College',           width: 16 },
   { key: 'name',           header: 'Participant Name',  width: 22 },
   { key: 'usn',            header: 'USN',               width: 16 },
   { key: 'email',          header: 'Email',             width: 28 },
@@ -145,7 +143,6 @@ const WORKSHOP_COLS = [
 const SUMMARY_COLS = [
   { key: 'shortId',       header: 'Team Short ID',  width: 14 },
   { key: 'teamName',      header: 'Team Name',       width: 22 },
-  { key: 'college',       header: 'College',         width: 16 },
   { key: 'teamSize',      header: 'Team Size',       width: 10 },
   { key: 'paymentStatus', header: 'Payment Status',  width: 14 },
 ];
@@ -217,7 +214,6 @@ export function addTeamDetailSheet(wb, sheetName, teams, headerArgb) {
     const row = ws.addRow({
       shortId: r.shortId,
       teamName: r.teamName,
-      college: r.college,
       name: r.name,
       usn: r.usn,
       email: r.email,
@@ -262,7 +258,6 @@ export function addTeamSummarySheet(wb, sheetName, teams, headerArgb) {
     const row = ws.addRow({
       shortId,
       teamName: t.team_name || '',
-      college: t.college || 'DBIT',
       teamSize: t.team_size || (t.team_members?.length ?? 0),
       paymentStatus: t.payment_status || 'pending',
     });

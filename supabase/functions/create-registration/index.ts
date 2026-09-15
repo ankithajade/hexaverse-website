@@ -91,7 +91,8 @@ serve(async (req) => {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
-        if (finalSelectedDept !== event.department) {
+        const isEligible = finalSelectedDept === event.department || (event.department === 'ece' && finalSelectedDept === 'iot_cyber');
+        if (!isEligible) {
           return new Response(JSON.stringify({ error: 'You are not eligible for this event' }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -369,7 +370,7 @@ serve(async (req) => {
     const returnUrl = `https://awsevents.dbit.edu.in/payment-status?order_id={order_id}`;
 
     const cashfreeResponse = await fetch(
-      'https://sandbox.cashfree.com/pg/orders',
+      'https://api.cashfree.com/pg/orders',
       {
         method: 'POST',
         headers: {

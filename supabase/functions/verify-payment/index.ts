@@ -89,8 +89,8 @@ serve(async (req) => {
 
     const targetOrderId = payment.gateway_order_id || order_id;
 
-    // 2. Query Cashfree Sandbox API for authoritative Order status (API Version 2023-08-01)
-    const orderRes = await fetch(`https://sandbox.cashfree.com/pg/orders/${targetOrderId}`, {
+    // 2. Query Cashfree API for authoritative Order status (API Version 2023-08-01)
+    const orderRes = await fetch(`https://api.cashfree.com/pg/orders/${targetOrderId}`, {
       method: 'GET',
       headers: {
         'x-client-id': cashfreeAppId,
@@ -118,7 +118,7 @@ serve(async (req) => {
     // 3. Query Cashfree Payment Attempts for this Order
     let paymentAttempts: any[] = [];
     try {
-      const paymentsRes = await fetch(`https://sandbox.cashfree.com/pg/orders/${targetOrderId}/payments`, {
+      const paymentsRes = await fetch(`https://api.cashfree.com/pg/orders/${targetOrderId}/payments`, {
         method: 'GET',
         headers: {
           'x-client-id': cashfreeAppId,
