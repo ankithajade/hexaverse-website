@@ -9,7 +9,7 @@ import ScrollReveal from '../components/ScrollReveal';
 
 export default function PaymentStatusPage() {
   const [searchParams] = useSearchParams();
-  const orderId = searchParams.get('order_id');
+  const orderId = searchParams.get('order_id') || searchParams.get('orderId');
 
   // Status: 'verifying' | 'success' | 'pending' | 'failed' | 'error'
   const [status, setStatus] = useState('verifying');

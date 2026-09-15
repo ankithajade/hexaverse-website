@@ -10,7 +10,7 @@ import { events as megaEvents } from './events';
 const DEFAULT_WORKSHOP_RULES = [
   'Open to all enrolled DBIT students of the respective department and semester.',
   'Attendance on both workshop days is mandatory to receive the digital certificate of participation.',
-  'Participants must bring their own laptops with required software pre-installed (instructions sent via email prior to day 1).',
+  'Participants must bring their own laptops with required software pre-installed (instructions sent prior to day 1).',
   'Seats are reserved on a first-come, first-served basis upon registration completion.',
 ];
 
@@ -18,7 +18,6 @@ const DEFAULT_SIGNATURE_RULES = [
   'Participants must register with their official college USN and mobile phone number.',
   'Team size limits must be strictly adhered to as specified for each department signature event.',
   'Registration fee is ₹50 per head, payable during the online checkout flow.',
-  'Decisions made by the event coordinators and faculty judges are final and binding.',
 ];
 
 export const registrationEvents = {};
@@ -54,7 +53,6 @@ Object.values(megaEvents).forEach((ev) => {
     'Registration fee is ₹80 per head (₹240 total per team), payable during the online checkout flow.',
     'At least one smartphone with active internet and working camera is required per team.',
     'Any disruption of campus activities or damage to college property results in instant disqualification.',
-    'The first team to scan the final checkpoint QR code and submit the answer at the control desk wins.',
   ];
 
   registrationEvents[eventId] = {

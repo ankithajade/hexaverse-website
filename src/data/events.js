@@ -4,12 +4,12 @@
 export const events = {
   'treasure-hunt': {
     id: 'treasure-hunt',
-    title: 'Treasure Hunt',
+    title: 'The Convergence',
     cssVar: 'var(--mega-accent)',
     badge: 'Mega Event',
     dates: '26 September 2026',
     description:
-      'Cross-campus challenge blending logic, speed, and technology. Solve riddles, complete challenges, and scan QR codes to reach the final treasure.',
+      'A campus-wide pursuit where clues, codes, logic, and teamwork converge in the search for what\'s hidden.',
     metaTitle: "Treasure Hunt | DBIT HexaVerse CloudFest '26",
     metaDesc:
       "Treasure Hunt mega event at HexaVerse CloudFest '26, Don Bosco Institute of Technology (DBIT). Cross-campus logic and tech challenge.",
@@ -30,7 +30,15 @@ export const events = {
         heading: 'About the Hunt',
         type: 'paragraph',
         text: `
-        Get ready for **The Convergence**, a campus-wide treasure hunt that puts your problem-solving, teamwork, observation, and speed to the test. Teams begin at the designated starting point, where the first clue and its corresponding code entry are revealed. Each clue leads to the next location, where teams must find the designated sticker and complete the challenge associated with that checkpoint. At every checkpoint, participants must enter the correct code to record their progress and unlock the information needed to continue the hunt. Follow the trail, crack the challenges, and stay ahead of the other teams — because every second counts. The hunt continues through multiple checkpoints until teams reach the final hand-in, where the completed solution must be submitted.
+        Get ready for **The Convergence**, a campus-wide treasure hunt that puts your ***problem-solving, teamwork, observation, and speed*** to the test. 
+        
+        Teams begin at the designated starting point, where the ***first clue and its corresponding code entry*** are revealed. 
+        Each clue leads to the next location, where teams must find the designated sticker and complete the challenge associated with that checkpoint. 
+        
+        At every checkpoint, participants must **enter the correct code** to record their progress and unlock the information needed to continue the hunt. 
+        Follow the trail, crack the challenges, and stay ahead of the other teams — because every second counts. 
+        
+        The hunt continues through multiple checkpoints until teams reach the **final hand-in**, where the completed solution must be submitted.
         `,
       },
       {
@@ -50,7 +58,15 @@ export const events = {
       {
         heading: 'Eligibility',
         type: 'paragraph',
-        text: 'Open to all undergraduate students of Don Bosco Institute of Technology, across departments and academic years. Cross-departmental team formation is encouraged.',
+        text: `
+        Open to **all undergraduate students**, across all departments and academic years. 
+        *Cross-departmental team formation is encouraged.*
+
+        &nbsp;
+
+        **FOLLOW THE CLUE. CRACK THE CODE. REACH THE CONVERGENCE. Join the hunt today!**
+        
+        `,
       },
     ],
   },

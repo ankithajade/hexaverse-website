@@ -1734,7 +1734,7 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--bg-card-border);
   border-radius: 12px;
-  padding: 36px 32px;
+  padding: 36px 72px;
   border-top: 4px solid var(--dept-accent, var(--cyan));
   transition: all 0.3s;
 }
@@ -1770,7 +1770,6 @@ body {
   font-size: 1rem;
   color: var(--text-dim);
   line-height: 1.7;
-  max-width: 65ch;
 }
 
 .event-card-desc,

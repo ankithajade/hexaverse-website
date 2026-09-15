@@ -94,7 +94,21 @@ export async function verifyPayment({ order_id, gateway_order_id, payment_refere
   });
 
   if (error) {
-    throw new Error(error.message || 'Payment verification request failed.');
+    let serverMessage = null;
+    try {
+      if (error.context) {
+        const errorBody = await error.context.json();
+        serverMessage = errorBody?.error || errorBody?.message || errorBody?.details || null;
+      }
+    } catch {
+      // Ignore parsing errors
+    }
+
+    throw new Error(
+      serverMessage ||
+      error.message ||
+      'Payment verification request failed.'
+    );
   }
 
   if (data?.error) {

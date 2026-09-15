@@ -11,7 +11,6 @@ import {
   getEventConfig,
   checkTeamNameAvailability,
   submitRegistration,
-  verifyPayment,
 } from '../lib/registrationService';
 import Nav from '../components/Nav';
 import Footer from '../components/Footer';
@@ -658,7 +657,7 @@ export default function RegisterPage() {
         if (res.payment_session_id) {
           setPaymentData(res);
           setStep('payment_checkout');
-          launchCashfreeCheckout(res.payment_session_id);
+          launchCashfreeCheckout(res.payment_session_id, res);
         } else if (res.success && res.is_free) {
           setStep('success');
         } else {
@@ -672,7 +671,7 @@ export default function RegisterPage() {
     }
   };
 
-  const launchCashfreeCheckout = async (paymentSessionId) => {
+  const launchCashfreeCheckout = async (paymentSessionId, registrationRes) => {
     try {
       if (!window.Cashfree) {
         const script = document.createElement('script');
@@ -691,38 +690,22 @@ export default function RegisterPage() {
 
       cashfree.checkout({
         paymentSessionId: paymentSessionId,
-        redirectTarget: '_modal',
-      }).then(async (result) => {
-        if (result.error) {
+        redirectTarget: '_self',
+      }).then((result) => {
+        if (result?.error) {
           setServerError(result.error.message || 'Payment was cancelled or failed.');
           setStep('form');
+        } else if (result?.redirect || result?.paymentDetails) {
+          const orderId = registrationRes?.gateway_order_id;
+          if (orderId) {
+            window.location.href = `/payment-status?order_id=${encodeURIComponent(orderId)}`;
+          }
         }
-        if (result.paymentDetails) {
-          setStep('verifying_payment');
-          await handlePaymentVerification(paymentData);
-        }
+      }).catch((err) => {
+        console.warn('[Cashfree] Checkout interaction notice:', err);
       });
     } catch (err) {
       setServerError('Unable to open payment gateway. Please try again.');
-      setStep('form');
-    }
-  };
-
-  const handlePaymentVerification = async (pData) => {
-    try {
-      const verifyRes = await verifyPayment({
-        order_id: pData?.gateway_order_id,
-        payment_reference: pData?.payment_reference,
-      });
-
-      if (verifyRes.payment_status === 'success') {
-        setStep('success');
-      } else {
-        setServerError('Payment verification pending or failed. Please contact organizers if amount was deducted.');
-        setStep('form');
-      }
-    } catch (err) {
-      setServerError(err.message || 'Payment verification encountered an issue.');
       setStep('form');
     }
   };

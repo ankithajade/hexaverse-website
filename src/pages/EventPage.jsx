@@ -131,7 +131,7 @@ export default function EventPage() {
           {/* Content sections */}
           <div style={{ marginTop: '32px' }}>
             {event.sections.map((section, i) => (
-              <div key={i}>
+              <div key={i} style={{ marginBottom: i === event.sections.length - 1 ? '32px' : '24px' }}>
                 <h3
                   style={{
                     fontFamily: 'var(--font-subheading)',
@@ -147,28 +147,28 @@ export default function EventPage() {
                     style={{
                       color: 'var(--text-dim)',
                       lineHeight: '1.8',
-                      marginBottom: '24px',
                       paddingLeft: '20px',
                       listStyleType: 'disc',
                     }}
                   >
                     {section.items.map((item, j) => (
-                      <li key={j}>{item}</li>
+                      <li key={j} style={{ marginBottom: '6px' }}>
+                        <RichText>{item}</RichText>
+                      </li>
                     ))}
                   </ul>
                 ) : (
-                  <p
+                  <div
                     style={{
                       color: 'var(--text-dim)',
                       lineHeight: '1.7',
-                      marginBottom: i === event.sections.length - 1 ? '32px' : '24px',
                     }}
                   >
                     {section.strongPrefix && (
                       <strong>{section.strongPrefix} </strong>
                     )}
-                    {section.text}
-                  </p>
+                    <RichText>{section.text}</RichText>
+                  </div>
                 )}
               </div>
             ))}
