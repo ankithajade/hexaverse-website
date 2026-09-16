@@ -422,19 +422,26 @@ serve(async (req) => {
 
     // Insert team members with full per-member details
     const memberRows = members.map((m: any, idx: number) => {
-      const semNum = Number(m.semester);
+      // For the lead (idx 0), fall back to `registrant` if the member entry
+      // is missing a field — guards against any client payload shape variation.
+      const semNum = idx === 0 && !m.semester ? Number(registrant?.semester) : Number(m.semester);
       const isMemberSem1 = semNum === 1;
+      const sectionVal = idx === 0 && !m.section ? registrant?.section : m.section;
+      const deptVal = idx === 0 && !m.dept ? registrant?.dept : m.dept;
+      const usnVal = idx === 0 && !m.usn ? registrant?.usn : m.usn;
+      const cycleVal = idx === 0 && !m.cycle ? registrant?.cycle : m.cycle;
+      const rollNumberVal = idx === 0 && !m.roll_number ? registrant?.roll_number : m.roll_number;
 
       return {
         team_id: team.id,
         is_lead: idx === 0,
         name: m.name.trim(),
         semester: semNum,
-        section: m.section ? m.section.trim() : null,
-        dept: m.dept ? m.dept.trim() : (event.department || null),
-        cycle: isMemberSem1 ? (m.cycle ? m.cycle.trim() : null) : null,
-        roll_number: isMemberSem1 ? (m.roll_number ? m.roll_number.trim() : null) : null,
-        usn: isMemberSem1 ? null : (m.usn ? m.usn.trim().toUpperCase() : null),
+        section: sectionVal ? sectionVal.trim() : null,
+        dept: deptVal ? deptVal.trim() : (event.department || null),
+        cycle: isMemberSem1 ? (cycleVal ? cycleVal.trim() : null) : null,
+        roll_number: isMemberSem1 ? (rollNumberVal ? rollNumberVal.trim() : null) : null,
+        usn: isMemberSem1 ? null : (usnVal ? usnVal.trim().toUpperCase() : null),
         email: m.email ? m.email.trim().toLowerCase() : (idx === 0 ? registrant?.email?.trim().toLowerCase() : null),
         phone: m.phone ? m.phone.trim() : (idx === 0 ? registrant?.phone?.trim() : null),
         position: idx + 1,

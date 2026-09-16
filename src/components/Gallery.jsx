@@ -4,11 +4,14 @@ import ScrollReveal from './ScrollReveal';
 import HexGridOverlay from './HexGridOverlay';
 
 const GALLERY_IMAGES = [
-  '/gallery/photo1.jpg',
-  '/gallery/photo2.jpg',
-  '/gallery/photo3.jpg',
-  '/gallery/photo4.jpg',
-  // add as many as you want — not limited to 4
+  '/public/gallery/p1.jpg',
+  '/public/gallery/p2.jpg',
+  '/public/gallery/p3.jpg',
+  '/public/gallery/p4.jpg',
+  '/public/gallery/p5.jpg',
+  '/public/gallery/p6.jpg',
+  '/public/gallery/p7.jpg',
+  '/public/gallery/p8.jpg',
 ];
 
 const prefersReducedMotion =
@@ -37,7 +40,7 @@ function InfiniteSlider({ speed = 50 }) {
     const firstSet = firstSetRef.current;
     if (!track || !firstSet) return;
 
-    const setWidth = firstSet.scrollWidth;
+    const setWidth = firstSet.getBoundingClientRect().width + 2;
     const next = x.get() - (delta / 1000) * speed;
     // Seamlessly loop: when we've scrolled exactly one set's width, reset to 0
     x.set(Math.abs(next) >= setWidth ? 0 : next);
