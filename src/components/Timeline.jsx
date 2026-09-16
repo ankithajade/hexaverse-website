@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import ScrollReveal from './ScrollReveal';
 import CursorGrid from './CursorGrid';
 import HexGridOverlay from './HexGridOverlay';
@@ -8,7 +8,6 @@ import HexGridOverlay from './HexGridOverlay';
 const VAL_CRIMSON = '#b8264f';
 
 export default function Timeline() {
-  const navigate = useNavigate();
   const block0Ref = useRef(null);
   const block1Ref = useRef(null);
   const block2Ref = useRef(null);
@@ -39,7 +38,6 @@ export default function Timeline() {
             ref={block0Ref}
             className="timeline-block timeline-block--dept"
             style={{ '--block-accent': 'var(--aiml)', position: 'relative' }}
-            onClick={() => navigate('/departments/aiml')}
           >
             <div className="timeline-block-clip">
               <CursorGrid color="var(--aiml)" targetRef={block0Ref} />
@@ -52,7 +50,7 @@ export default function Timeline() {
                 </div>
                 <div className="timeline-header-right">
                   <span className="timeline-dates">21 &ndash; 23 Sept 2026</span>
-                  <Link to="/departments/aiml" className="btn-timeline-register" onClick={(e) => e.stopPropagation()}>Register Now</Link>
+                  <Link to="/departments/aiml" className="btn-timeline-register">Register Now</Link>
                 </div>
               </div>
               <div className="timeline-days">
@@ -77,7 +75,6 @@ export default function Timeline() {
             ref={block1Ref}
             className="timeline-block timeline-block--mega"
             style={{ position: 'relative' }}
-            onClick={() => navigate('/events/treasure-hunt')}
           >
             <div className="timeline-block-clip">
               <CursorGrid color="var(--mega-accent)" targetRef={block1Ref} />
@@ -90,7 +87,7 @@ export default function Timeline() {
                 </div>
                 <div className="timeline-header-right">
                   <span className="timeline-dates">26 Sept 2026</span>
-                  <Link to="/events/treasure-hunt" className="btn-timeline-register btn-timeline-mega" onClick={(e) => e.stopPropagation()}>Details</Link>
+                  <Link to="/events/treasure-hunt" className="btn-timeline-register btn-timeline-mega">Details</Link>
                 </div>
               </div>
               <span className="timeline-open-badge">Open to all departments</span>
@@ -102,7 +99,6 @@ export default function Timeline() {
             ref={block2Ref}
             className="timeline-block timeline-block--dept"
             style={{ '--block-accent': 'var(--aids)', position: 'relative' }}
-            onClick={() => navigate('/departments/aids')}
           >
             <div className="timeline-block-clip">
               <CursorGrid color="var(--aids)" targetRef={block2Ref} />
@@ -115,7 +111,7 @@ export default function Timeline() {
                 </div>
                 <div className="timeline-header-right">
                   <span className="timeline-dates">5 &ndash; 7 Oct 2026</span>
-                  <Link to="/departments/aids" className="btn-timeline-register" onClick={(e) => e.stopPropagation()}>Register Now</Link>
+                  <Link to="/departments/aids" className="btn-timeline-register">Register Now</Link>
                 </div>
               </div>
               <div className="timeline-days">
@@ -140,7 +136,6 @@ export default function Timeline() {
             ref={block3Ref}
             className="timeline-block timeline-block--dept"
             style={{ '--block-accent': 'var(--cse)', position: 'relative' }}
-            onClick={() => navigate('/departments/cse')}
           >
             <div className="timeline-block-clip">
               <CursorGrid color="var(--cse)" targetRef={block3Ref} />
@@ -153,7 +148,7 @@ export default function Timeline() {
                 </div>
                 <div className="timeline-header-right">
                   <span className="timeline-dates">5 &ndash; 8 Oct 2026</span>
-                  <Link to="/departments/cse" className="btn-timeline-register" onClick={(e) => e.stopPropagation()}>Register Now</Link>
+                  <Link to="/departments/cse" className="btn-timeline-register">Register Now</Link>
                 </div>
               </div>
               <div className="timeline-days">
@@ -178,7 +173,6 @@ export default function Timeline() {
             ref={block5Ref}
             className="timeline-block timeline-block--dept"
             style={{ '--block-accent': 'var(--ise)', position: 'relative' }}
-            onClick={() => navigate('/departments/ise')}
           >
             <div className="timeline-block-clip">
               <CursorGrid color="var(--ise)" targetRef={block5Ref} />
@@ -191,7 +185,7 @@ export default function Timeline() {
                 </div>
                 <div className="timeline-header-right">
                   <span className="timeline-dates">22 &ndash; 24 Oct 2026</span>
-                  <Link to="/departments/ise" className="btn-timeline-register" onClick={(e) => e.stopPropagation()}>Register Now</Link>
+                  <Link to="/departments/ise" className="btn-timeline-register">Register Now</Link>
                 </div>
               </div>
               <div className="timeline-days">
@@ -212,7 +206,6 @@ export default function Timeline() {
             ref={block6Ref}
             className="timeline-block timeline-block--dept"
             style={{ '--block-accent': 'var(--ece)', position: 'relative' }}
-            onClick={() => navigate('/departments/ece')}
           >
             <div className="timeline-block-clip">
               <CursorGrid color="var(--ece)" targetRef={block6Ref} />
@@ -225,7 +218,7 @@ export default function Timeline() {
                 </div>
                 <div className="timeline-header-right">
                   <span className="timeline-dates">22 &ndash; 29 Oct 2026</span>
-                  <Link to="/departments/ece" className="btn-timeline-register" onClick={(e) => e.stopPropagation()}>Register Now</Link>
+                  <Link to="/departments/ece" className="btn-timeline-register">Register Now</Link>
                 </div>
               </div>
               <div className="timeline-days">
@@ -250,7 +243,6 @@ export default function Timeline() {
             ref={block7Ref}
             className="timeline-block timeline-block--mega"
             style={{ position: 'relative' }}
-            onClick={() => navigate('/events/hackathon')}
           >
             <div className="timeline-block-clip">
               <CursorGrid color="var(--mega-accent)" targetRef={block7Ref} />
@@ -263,7 +255,7 @@ export default function Timeline() {
                 </div>
                 <div className="timeline-header-right">
                   <span className="timeline-dates">30 &ndash; 31 Oct 2026</span>
-                  <Link to="/events/hackathon" className="btn-timeline-register btn-timeline-mega" onClick={(e) => e.stopPropagation()}>Details</Link>
+                  <Link to="/events/hackathon" className="btn-timeline-register btn-timeline-mega">Details</Link>
                 </div>
               </div>
               <span className="timeline-open-badge">Open to all departments</span>
@@ -276,7 +268,6 @@ export default function Timeline() {
             ref={block8Ref}
             className="timeline-block timeline-block--dept"
             style={{ '--block-accent': 'var(--eee)', position: 'relative' }}
-            onClick={() => navigate('/departments/eee')}
           >
             <div className="timeline-block-clip">
               <CursorGrid color="var(--eee)" targetRef={block8Ref} />
@@ -289,7 +280,7 @@ export default function Timeline() {
                 </div>
                 <div className="timeline-header-right">
                   <span className="timeline-dates">2 &ndash; 4 Nov 2026</span>
-                  <Link to="/departments/eee" className="btn-timeline-register" onClick={(e) => e.stopPropagation()}>Register Now</Link>
+                  <Link to="/departments/eee" className="btn-timeline-register">Register Now</Link>
                 </div>
               </div>
               <div className="timeline-days">
