@@ -257,12 +257,32 @@ export function addTeamDetailSheet(wb, sheetName, teams, headerArgb) {
   const flatRows = flattenTeams(teams);
   let groupToggle = 0;
   let lastTeamId = null;
+  let currentTeamStartRow = null;
+
+  const mergeTeamLevelCells = (startRow, endRow) => {
+    if (endRow <= startRow) return; // single-member team, nothing to merge
+    ['shortId', 'teamName', 'paymentStatus', 'registeredAt'].forEach((key) => {
+      const colIndex = TEAM_COLS.findIndex((c) => c.key === key) + 1; // ExcelJS columns are 1-indexed
+      if (colIndex > 0) {
+        ws.mergeCells(startRow, colIndex, endRow, colIndex);
+        const mergedCell = ws.getCell(startRow, colIndex);
+        mergedCell.alignment = {
+          vertical: 'middle',
+          horizontal: mergedCell.alignment?.horizontal || (key === 'paymentStatus' || key === 'shortId' ? 'center' : 'left'),
+        };
+      }
+    });
+  };
 
   for (const r of flatRows) {
-    // Toggle group fill when team changes
+    // Toggle group fill and merge previous team's cells when team changes
     if (r._teamId !== lastTeamId) {
+      if (lastTeamId !== null && currentTeamStartRow !== null) {
+        mergeTeamLevelCells(currentTeamStartRow, ws.lastRow ? ws.lastRow.number : currentTeamStartRow);
+      }
       groupToggle = 1 - groupToggle;
       lastTeamId = r._teamId;
+      currentTeamStartRow = (ws.lastRow ? ws.lastRow.number : ws.rowCount) + 1;
     }
 
     const row = ws.addRow({
@@ -299,6 +319,11 @@ export function addTeamDetailSheet(wb, sheetName, teams, headerArgb) {
     if (r.paymentStatus === 'success') payCell.font = { color: { argb: 'FF059669' }, bold: true };
     else if (r.paymentStatus === 'failed') payCell.font = { color: { argb: 'FFDC2626' }, bold: true };
     else payCell.font = { color: { argb: 'FFB45309' } };
+  }
+
+  // Merge the final team's rows after the loop
+  if (lastTeamId !== null && currentTeamStartRow !== null) {
+    mergeTeamLevelCells(currentTeamStartRow, ws.lastRow.number);
   }
 
   return ws;

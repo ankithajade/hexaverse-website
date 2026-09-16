@@ -70,8 +70,9 @@ export default function AdminMegaEventPage() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
 
-  // Search filter state
+  // Search and payment filter state
   const [searchQuery, setSearchQuery] = useState('');
+  const [paymentFilter, setPaymentFilter] = useState('all');
 
   // Expandable rows state
   const [expandedTeamIds, setExpandedTeamIds] = useState(new Set());
@@ -83,6 +84,12 @@ export default function AdminMegaEventPage() {
   const [deleteConfirmName, setDeleteConfirmName] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [deleteInProgress, setDeleteInProgress] = useState(false);
+
+  // Bulk team delete state
+  const [selectedTeamIds, setSelectedTeamIds] = useState(new Set());
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [bulkDeleteInProgress, setBulkDeleteInProgress] = useState(false);
+  const [bulkDeleteError, setBulkDeleteError] = useState('');
 
   const eventAccentColor = 'var(--mega-accent, #f59e0b)';
   // Derive teamMax from event metadata items (e.g., '2–4' -> 4)
@@ -113,7 +120,9 @@ export default function AdminMegaEventPage() {
   useEffect(() => {
     fetchData();
     setExpandedTeamIds(new Set());
+    setSelectedTeamIds(new Set());
     setSearchQuery('');
+    setPaymentFilter('all');
   }, [eventId]);
 
   const toggleExpand = (teamId) => {
@@ -168,11 +177,80 @@ export default function AdminMegaEventPage() {
     }
   };
 
-  // ── Search Filtering ──
+  // ── Bulk delete selected teams ──
+  const handleToggleSelectAll = () => {
+    const allVisibleSelected = filteredTeams.length > 0 && filteredTeams.every((t) => selectedTeamIds.has(t.id));
+    setSelectedTeamIds((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) {
+        filteredTeams.forEach((t) => next.delete(t.id));
+      } else {
+        filteredTeams.forEach((t) => next.add(t.id));
+      }
+      return next;
+    });
+  };
+
+  const handleToggleSelectTeam = (teamId) => {
+    setSelectedTeamIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(teamId)) {
+        next.delete(teamId);
+      } else {
+        next.add(teamId);
+      }
+      return next;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedTeamIds.size === 0) return;
+    setBulkDeleteInProgress(true);
+    setBulkDeleteError('');
+    try {
+      const idsArray = Array.from(selectedTeamIds);
+      const teamsToDelete = teams.filter((t) => selectedTeamIds.has(t.id));
+
+      const { error } = await supabase
+        .from('teams')
+        .delete()
+        .in('id', idsArray);
+
+      if (error) throw new Error(error.message);
+
+      const batchRecordId = idsArray[0] || '00000000-0000-0000-0000-000000000000';
+      await writeAuditLog(
+        'BULK_DELETE_TEAMS',
+        'teams',
+        batchRecordId,
+        {
+          count: idsArray.length,
+          team_ids: idsArray,
+          team_names: teamsToDelete.map((t) => t.team_name),
+        },
+        null
+      );
+
+      setSelectedTeamIds(new Set());
+      setShowBulkDeleteModal(false);
+      fetchData();
+    } catch (err) {
+      setBulkDeleteError(err.message || 'Bulk delete failed.');
+    } finally {
+      setBulkDeleteInProgress(false);
+    }
+  };
+
+  // ── Search & Payment Filtering ──
   const filteredTeams = useMemo(() => {
-    if (!searchQuery.trim()) return teams;
-    const q = searchQuery.trim().toLowerCase();
     return teams.filter((t) => {
+      if (paymentFilter !== 'all' && t.payment_status !== paymentFilter) {
+        return false;
+      }
+
+      if (!searchQuery.trim()) return true;
+
+      const q = searchQuery.trim().toLowerCase();
       const shortIdObj = formatShortId(t);
       const matchTeam =
         (t.team_name && t.team_name.toLowerCase().includes(q)) ||
@@ -190,7 +268,12 @@ export default function AdminMegaEventPage() {
 
       return matchTeam || matchMember;
     });
-  }, [teams, searchQuery]);
+  }, [teams, searchQuery, paymentFilter]);
+
+  const filteredParticipants = useMemo(
+    () => filteredTeams.reduce((sum, t) => sum + (t.team_size || (t.team_members?.length || 0)), 0),
+    [filteredTeams]
+  );
 
   const allTeamsExpanded = filteredTeams.length > 0 && filteredTeams.every((t) => expandedTeamIds.has(t.id));
 
@@ -210,9 +293,11 @@ export default function AdminMegaEventPage() {
   const feePerHead = eventId === 'treasure-hunt' ? 80 : 50;
   const totalRevenue = paidTeams.reduce((sum, t) => sum + (t.team_size * feePerHead), 0);
 
+  const isTeamFiltered = paymentFilter !== 'all' || !!searchQuery.trim();
+
   // CSV Export for this mega event
   const handleExportCSV = () => {
-    const csv = buildTeamCSV(teams);
+    const csv = buildTeamCSV(filteredTeams);
     downloadCSV(csv, `${eventId}_teams.csv`);
   };
 
@@ -223,7 +308,7 @@ export default function AdminMegaEventPage() {
     try {
       const headerArgb = eventId === 'treasure-hunt' ? 'FFF59E0B' : 'FF8B5CF6';
       await downloadTeamExcel(
-        teams,
+        filteredTeams,
         event.title,
         `${eventId}_teams.xlsx`,
         headerArgb
@@ -315,8 +400,9 @@ export default function AdminMegaEventPage() {
             className="btn-details"
             onClick={handleExportCSV}
             style={{ fontSize: '0.82rem', padding: '8px 16px' }}
+            title={isTeamFiltered ? "Export filtered teams as CSV" : "Export teams as CSV"}
           >
-            📥 Export CSV
+            📥 Export CSV{isTeamFiltered ? ' (Filtered)' : ''}
           </button>
           <button
             type="button"
@@ -324,8 +410,9 @@ export default function AdminMegaEventPage() {
             onClick={handleExportExcel}
             disabled={exportingExcel}
             style={{ fontSize: '0.82rem', padding: '8px 16px', opacity: exportingExcel ? 0.6 : 1 }}
+            title={isTeamFiltered ? "Export filtered teams as Excel" : "Export teams as Excel"}
           >
-            {exportingExcel ? '⏳ Building…' : '📊 Export Excel'}
+            {exportingExcel ? '⏳ Building…' : `📊 Export Excel${isTeamFiltered ? ' (Filtered)' : ''}`}
           </button>
         </div>
       </div>
@@ -418,7 +505,7 @@ export default function AdminMegaEventPage() {
                   background: 'rgba(245, 158, 11, 0.12)',
                   color: 'var(--mega-accent, #f59e0b)',
                 }}>
-                  {teams.length} teams · {totalParticipants} participants
+                  {filteredTeams.length} teams · {filteredParticipants} participants
                 </span>
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '3px' }}>
@@ -444,6 +531,26 @@ export default function AdminMegaEventPage() {
                   minWidth: '220px',
                 }}
               />
+              <select
+                value={paymentFilter}
+                onChange={(e) => setPaymentFilter(e.target.value)}
+                style={{
+                  padding: '7px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--bg-card-border)',
+                  background: 'var(--bg)',
+                  color: 'var(--text)',
+                  fontSize: '0.82rem',
+                  outline: 'none',
+                  cursor: 'pointer',
+                }}
+                aria-label="Filter by payment status"
+              >
+                <option value="all">All Payments</option>
+                <option value="pending">Pending</option>
+                <option value="success">Success</option>
+                <option value="failed">Failed</option>
+              </select>
               {filteredTeams.length > 0 && (
                 <button
                   type="button"
@@ -472,6 +579,27 @@ export default function AdminMegaEventPage() {
               >
                 <FiPlus style={{ fontSize: '1.1rem' }} />
               </button>
+              {selectedTeamIds.size > 0 && (
+                <button
+                  type="button"
+                  onClick={() => { setShowBulkDeleteModal(true); setBulkDeleteError(''); }}
+                  style={{
+                    fontSize: '0.75rem',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid rgba(239,68,68,0.4)',
+                    background: 'rgba(239,68,68,0.12)',
+                    color: '#ef4444',
+                    cursor: 'pointer',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  🗑 Delete Selected ({selectedTeamIds.size})
+                </button>
+              )}
             </div>
           </div>
 
@@ -514,7 +642,16 @@ export default function AdminMegaEventPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem' }}>
                 <thead>
                   <tr style={{ background: 'var(--bg-alt)', textAlign: 'left', borderBottom: '1px solid var(--bg-card-border)' }}>
-                    <th style={{ width: '38px', padding: '10px 8px 10px 16px' }} />
+                    <th style={{ width: '36px', padding: '10px 8px 10px 14px', textAlign: 'center' }}>
+                      <input
+                        type="checkbox"
+                        checked={filteredTeams.length > 0 && filteredTeams.every((t) => selectedTeamIds.has(t.id))}
+                        onChange={handleToggleSelectAll}
+                        title="Select all visible teams"
+                        style={{ cursor: 'pointer', accentColor: '#ef4444' }}
+                      />
+                    </th>
+                    <th style={{ width: '32px', padding: '10px 4px 10px 4px' }} />
                     <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-muted)' }}>Short ID</th>
                     <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-muted)' }}>Team Name</th>
 
@@ -544,8 +681,18 @@ export default function AdminMegaEventPage() {
                             transition: 'background 0.15s',
                           }}
                         >
+                          {/* Checkbox */}
+                          <td style={{ padding: '12px 8px 12px 14px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                            <input
+                              type="checkbox"
+                              checked={selectedTeamIds.has(team.id)}
+                              onChange={() => handleToggleSelectTeam(team.id)}
+                              style={{ cursor: 'pointer', accentColor: '#ef4444' }}
+                            />
+                          </td>
+
                           {/* Expand toggle */}
-                          <td style={{ padding: '12px 8px 12px 16px', textAlign: 'center', userSelect: 'none' }}>
+                          <td style={{ padding: '12px 4px 12px 4px', textAlign: 'center', userSelect: 'none' }}>
                             <span style={{
                               display: 'inline-block',
                               transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
@@ -900,6 +1047,63 @@ export default function AdminMegaEventPage() {
           onSaved={fetchData}
           onClose={() => setShowAddTeam(false)}
         />
+      )}
+
+      {/* ── Bulk Delete Confirmation Modal ── */}
+      {showBulkDeleteModal && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)',
+          backdropFilter: 'blur(4px)', zIndex: 1000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
+        }}>
+          <div style={{
+            background: 'var(--bg-card)', border: '1px solid #ef4444',
+            borderRadius: '14px', maxWidth: '460px', width: '100%',
+            padding: '28px 28px', boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
+          }}>
+            <div style={{ fontSize: '1.5rem', marginBottom: '8px', color: '#ef4444' }}><FiAlertTriangle /></div>
+            <h3 style={{ fontFamily: 'var(--font-subheading)', margin: '0 0 8px', color: '#ef4444', fontSize: '1.15rem' }}>
+              Delete {selectedTeamIds.size} Selected {selectedTeamIds.size === 1 ? 'Team' : 'Teams'}
+            </h3>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-dim)', marginBottom: '16px', lineHeight: 1.5 }}>
+              Are you sure you want to permanently delete <strong>{selectedTeamIds.size}</strong> selected {selectedTeamIds.size === 1 ? 'team' : 'teams'} and all member records? This action <strong>cannot be undone</strong>.
+            </p>
+            {bulkDeleteError && (
+              <div style={{
+                background: 'rgba(239,68,68,0.1)', color: '#dc2626',
+                padding: '8px 12px', borderRadius: '6px', fontSize: '0.82rem',
+                marginBottom: '12px',
+              }}>{bulkDeleteError}</div>
+            )}
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => { setShowBulkDeleteModal(false); setBulkDeleteError(''); }}
+                disabled={bulkDeleteInProgress}
+                style={{
+                  padding: '8px 18px', borderRadius: '7px',
+                  border: '1px solid var(--bg-card-border)', background: 'transparent',
+                  color: 'var(--text-dim)', cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkDelete}
+                disabled={bulkDeleteInProgress}
+                style={{
+                  padding: '8px 18px', borderRadius: '7px', border: 'none',
+                  background: '#ef4444', color: '#fff', fontWeight: 700,
+                  cursor: bulkDeleteInProgress ? 'not-allowed' : 'pointer',
+                  opacity: bulkDeleteInProgress ? 0.6 : 1,
+                }}
+              >
+                {bulkDeleteInProgress ? 'Deleting…' : `Delete ${selectedTeamIds.size} ${selectedTeamIds.size === 1 ? 'Team' : 'Teams'}`}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
