@@ -4,14 +4,14 @@ import ScrollReveal from './ScrollReveal';
 import HexGridOverlay from './HexGridOverlay';
 
 const GALLERY_IMAGES = [
-  '/public/gallery/p1.jpg',
-  '/public/gallery/p2.jpg',
-  '/public/gallery/p3.jpg',
-  '/public/gallery/p4.jpg',
-  '/public/gallery/p5.jpg',
-  '/public/gallery/p6.jpg',
-  '/public/gallery/p7.jpg',
-  '/public/gallery/p8.jpg',
+  '/gallery/p1.JPG',
+  '/gallery/p2.JPG',
+  '/gallery/p3.JPG',
+  '/gallery/p4.JPG',
+  '/gallery/p5.JPG',
+  '/gallery/p6.JPG',
+  '/gallery/p7.jpeg',
+  '/gallery/p8.JPG',
 ];
 
 const prefersReducedMotion =

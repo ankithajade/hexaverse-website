@@ -86,6 +86,7 @@ export default function AdminDepartmentPage() {
 
   // Search and payment filter states
   const [workshopSearch, setWorkshopSearch] = useState('');
+  const [workshopStatusFilter, setWorkshopStatusFilter] = useState('all');
   const [teamSearch, setTeamSearch] = useState('');
   const [paymentFilter, setPaymentFilter] = useState('all');
 
@@ -107,6 +108,12 @@ export default function AdminDepartmentPage() {
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   const [bulkDeleteInProgress, setBulkDeleteInProgress] = useState(false);
   const [bulkDeleteError, setBulkDeleteError] = useState('');
+
+  // Bulk workshop delete state
+  const [selectedWorkshopIds, setSelectedWorkshopIds] = useState(new Set());
+  const [showBulkDeleteWorkshopModal, setShowBulkDeleteWorkshopModal] = useState(false);
+  const [bulkDeleteWorkshopInProgress, setBulkDeleteWorkshopInProgress] = useState(false);
+  const [bulkDeleteWorkshopError, setBulkDeleteWorkshopError] = useState('');
 
   const workshopSlug = `${deptId}-workshop`;
   const signatureSlug = `${deptId}-event`;
@@ -149,7 +156,9 @@ export default function AdminDepartmentPage() {
     fetchData();
     setExpandedTeamIds(new Set());
     setSelectedTeamIds(new Set());
+    setSelectedWorkshopIds(new Set());
     setWorkshopSearch('');
+    setWorkshopStatusFilter('all');
     setTeamSearch('');
     setPaymentFilter('all');
   }, [deptId]);
@@ -270,17 +279,87 @@ export default function AdminDepartmentPage() {
     }
   };
 
+  // ── Bulk delete selected workshops ──
+  const handleToggleSelectAllWorkshops = () => {
+    const allVisibleSelected = filteredWorkshops.length > 0 && filteredWorkshops.every((w) => selectedWorkshopIds.has(w.id));
+    setSelectedWorkshopIds((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) {
+        filteredWorkshops.forEach((w) => next.delete(w.id));
+      } else {
+        filteredWorkshops.forEach((w) => next.add(w.id));
+      }
+      return next;
+    });
+  };
+
+  const handleToggleSelectWorkshop = (workshopId) => {
+    setSelectedWorkshopIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(workshopId)) {
+        next.delete(workshopId);
+      } else {
+        next.add(workshopId);
+      }
+      return next;
+    });
+  };
+
+  const handleBulkDeleteWorkshops = async () => {
+    if (selectedWorkshopIds.size === 0) return;
+    setBulkDeleteWorkshopInProgress(true);
+    setBulkDeleteWorkshopError('');
+    try {
+      const idsArray = Array.from(selectedWorkshopIds);
+      const workshopsToDelete = workshops.filter((w) => selectedWorkshopIds.has(w.id));
+
+      const { error } = await supabase
+        .from('workshop_registrations')
+        .delete()
+        .in('id', idsArray);
+
+      if (error) throw new Error(error.message);
+
+      const batchRecordId = idsArray[0] || '00000000-0000-0000-0000-000000000000';
+      await writeAuditLog(
+        'BULK_DELETE_WORKSHOP_REGISTRANTS',
+        'workshop_registrations',
+        batchRecordId,
+        {
+          count: idsArray.length,
+          registrant_ids: idsArray,
+          registrant_names: workshopsToDelete.map((w) => w.name),
+        },
+        null
+      );
+
+      setSelectedWorkshopIds(new Set());
+      setShowBulkDeleteWorkshopModal(false);
+      fetchData();
+    } catch (err) {
+      setBulkDeleteWorkshopError(err.message || 'Bulk delete failed.');
+    } finally {
+      setBulkDeleteWorkshopInProgress(false);
+    }
+  };
+
   // ── Filtered Workshops ──
   const filteredWorkshops = useMemo(() => {
-    if (!workshopSearch.trim()) return workshops;
-    const q = workshopSearch.trim().toLowerCase();
-    return workshops.filter((w) =>
-      (w.name && w.name.toLowerCase().includes(q)) ||
-      (w.usn && w.usn.toLowerCase().includes(q)) ||
-      (w.email && w.email.toLowerCase().includes(q)) ||
-      (w.phone && w.phone.toLowerCase().includes(q))
-    );
-  }, [workshops, workshopSearch]);
+    return workshops.filter((w) => {
+      if (workshopStatusFilter !== 'all' && (w.status || 'confirmed') !== workshopStatusFilter) {
+        return false;
+      }
+      if (!workshopSearch.trim()) return true;
+      const q = workshopSearch.trim().toLowerCase();
+      return (
+        (w.name && w.name.toLowerCase().includes(q)) ||
+        (w.usn && w.usn.toLowerCase().includes(q)) ||
+        (w.roll_number && w.roll_number.toLowerCase().includes(q)) ||
+        (w.email && w.email.toLowerCase().includes(q)) ||
+        (w.phone && w.phone.toLowerCase().includes(q))
+      );
+    });
+  }, [workshops, workshopSearch, workshopStatusFilter]);
 
   // ── Filtered Teams ──
   const filteredTeams = useMemo(() => {
@@ -333,9 +412,10 @@ export default function AdminDepartmentPage() {
   const paidTeamsCount = teams.filter((t) => t.payment_status === 'success').length;
 
   // ── Workshop Exports (Section A) ──
+  const isWorkshopFiltered = workshopStatusFilter !== 'all' || !!workshopSearch.trim();
   const [exportingWorkshopExcel, setExportingWorkshopExcel] = useState(false);
   const handleExportWorkshopCSV = () => {
-    const csv = buildWorkshopCSV(workshops);
+    const csv = buildWorkshopCSV(filteredWorkshops);
     downloadCSV(csv, `${deptId}_workshop_registrations.csv`);
   };
 
@@ -344,7 +424,7 @@ export default function AdminDepartmentPage() {
     try {
       const hex = resolveCssVar(deptColor);
       await downloadWorkshopExcel(
-        workshops,
+        filteredWorkshops,
         `${dept?.name || deptId}`,
         `${deptId}_workshop_registrations.xlsx`,
         toArgb(hex)
@@ -615,7 +695,7 @@ export default function AdminDepartmentPage() {
                     background: 'rgba(16, 185, 129, 0.12)',
                     color: '#10b981',
                   }}>
-                    {workshops.length} total
+                    {filteredWorkshops.length} total
                   </span>
                 </div>
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '3px' }}>
@@ -641,6 +721,25 @@ export default function AdminDepartmentPage() {
                     minWidth: '200px',
                   }}
                 />
+                <select
+                  value={workshopStatusFilter}
+                  onChange={(e) => setWorkshopStatusFilter(e.target.value)}
+                  style={{
+                    padding: '7px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--bg-card-border)',
+                    background: 'var(--bg)',
+                    color: 'var(--text)',
+                    fontSize: '0.82rem',
+                    outline: 'none',
+                    cursor: 'pointer',
+                  }}
+                  aria-label="Filter by workshop status"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
                 {workshopSearch && (
                   <button
                     type="button"
@@ -661,9 +760,9 @@ export default function AdminDepartmentPage() {
                   onClick={handleExportWorkshopCSV}
                   className="btn-details"
                   style={{ fontSize: '0.75rem', padding: '6px 12px' }}
-                  title="Export workshop registrants as CSV"
+                  title={isWorkshopFiltered ? "Export filtered workshop registrants as CSV" : "Export workshop registrants as CSV"}
                 >
-                  📥 Export CSV
+                  📥 Export CSV{isWorkshopFiltered ? ' (Filtered)' : ''}
                 </button>
                 <button
                   type="button"
@@ -671,9 +770,9 @@ export default function AdminDepartmentPage() {
                   disabled={exportingWorkshopExcel}
                   className="btn-details"
                   style={{ fontSize: '0.75rem', padding: '6px 12px', opacity: exportingWorkshopExcel ? 0.6 : 1 }}
-                  title="Export workshop registrants as Excel (.xlsx)"
+                  title={isWorkshopFiltered ? "Export filtered workshop registrants as Excel" : "Export workshop registrants as Excel (.xlsx)"}
                 >
-                  {exportingWorkshopExcel ? '⏳ Building…' : '📊 Export Excel'}
+                  {exportingWorkshopExcel ? '⏳ Building…' : `📊 Export Excel${isWorkshopFiltered ? ' (Filtered)' : ''}`}
                 </button>
                 <button
                   type="button"
@@ -691,6 +790,27 @@ export default function AdminDepartmentPage() {
                 >
                   <FiPlus style={{ fontSize: '1.1rem' }} />
                 </button>
+                {selectedWorkshopIds.size > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => { setShowBulkDeleteWorkshopModal(true); setBulkDeleteWorkshopError(''); }}
+                    style={{
+                      fontSize: '0.75rem',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid rgba(239,68,68,0.4)',
+                      background: 'rgba(239,68,68,0.12)',
+                      color: '#ef4444',
+                      cursor: 'pointer',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    🗑 Delete Selected ({selectedWorkshopIds.size})
+                  </button>
+                )}
               </div>
             </div>
 
@@ -719,8 +839,17 @@ export default function AdminDepartmentPage() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem' }}>
                   <thead>
                     <tr style={{ background: 'var(--bg-alt)', textAlign: 'left', borderBottom: '1px solid var(--bg-card-border)' }}>
+                      <th style={{ width: '36px', padding: '10px 8px 10px 14px', textAlign: 'center' }}>
+                        <input
+                          type="checkbox"
+                          checked={filteredWorkshops.length > 0 && filteredWorkshops.every((w) => selectedWorkshopIds.has(w.id))}
+                          onChange={handleToggleSelectAllWorkshops}
+                          title="Select all visible workshop registrants"
+                          style={{ cursor: 'pointer', accentColor: '#ef4444' }}
+                        />
+                      </th>
                       <th style={{ padding: '10px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>Name</th>
-                      <th style={{ padding: '10px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>USN</th>
+                      <th style={{ padding: '10px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>USN / Roll</th>
                       <th style={{ padding: '10px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>Semester</th>
                       <th style={{ padding: '10px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>Email</th>
                       <th style={{ padding: '10px 16px', fontWeight: 600, color: 'var(--text-muted)' }}>Phone</th>
@@ -732,6 +861,14 @@ export default function AdminDepartmentPage() {
                   <tbody>
                     {filteredWorkshops.map((w) => (
                       <tr key={w.id} style={{ borderBottom: '1px solid var(--bg-card-border)' }}>
+                        <td style={{ padding: '10px 8px 10px 14px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedWorkshopIds.has(w.id)}
+                            onChange={() => handleToggleSelectWorkshop(w.id)}
+                            style={{ cursor: 'pointer', accentColor: '#ef4444' }}
+                          />
+                        </td>
                         <td style={{ padding: '10px 16px', fontWeight: 600, color: 'var(--text)' }}>
                           {w.name}
                         </td>
@@ -1471,6 +1608,62 @@ export default function AdminDepartmentPage() {
                 }}
               >
                 {bulkDeleteInProgress ? 'Deleting…' : `Delete ${selectedTeamIds.size} ${selectedTeamIds.size === 1 ? 'Team' : 'Teams'}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ── Bulk Delete Workshop Confirmation Modal ── */}
+      {showBulkDeleteWorkshopModal && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)',
+          backdropFilter: 'blur(4px)', zIndex: 1000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
+        }}>
+          <div style={{
+            background: 'var(--bg-card)', border: '1px solid #ef4444',
+            borderRadius: '14px', maxWidth: '460px', width: '100%',
+            padding: '28px 28px', boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
+          }}>
+            <div style={{ fontSize: '1.5rem', marginBottom: '8px', color: '#ef4444' }}><FiAlertTriangle /></div>
+            <h3 style={{ fontFamily: 'var(--font-subheading)', margin: '0 0 8px', color: '#ef4444', fontSize: '1.15rem' }}>
+              Delete {selectedWorkshopIds.size} Selected Workshop {selectedWorkshopIds.size === 1 ? 'Registrant' : 'Registrants'}
+            </h3>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-dim)', marginBottom: '16px', lineHeight: 1.5 }}>
+              Are you sure you want to permanently delete <strong>{selectedWorkshopIds.size}</strong> selected workshop {selectedWorkshopIds.size === 1 ? 'registrant' : 'registrants'}? This action <strong>cannot be undone</strong>.
+            </p>
+            {bulkDeleteWorkshopError && (
+              <div style={{
+                background: 'rgba(239,68,68,0.1)', color: '#dc2626',
+                padding: '8px 12px', borderRadius: '6px', fontSize: '0.82rem',
+                marginBottom: '12px',
+              }}>{bulkDeleteWorkshopError}</div>
+            )}
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => { setShowBulkDeleteWorkshopModal(false); setBulkDeleteWorkshopError(''); }}
+                disabled={bulkDeleteWorkshopInProgress}
+                style={{
+                  padding: '8px 18px', borderRadius: '7px',
+                  border: '1px solid var(--bg-card-border)', background: 'transparent',
+                  color: 'var(--text-dim)', cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkDeleteWorkshops}
+                disabled={bulkDeleteWorkshopInProgress}
+                style={{
+                  padding: '8px 18px', borderRadius: '7px', border: 'none',
+                  background: '#ef4444', color: '#fff', fontWeight: 700,
+                  cursor: bulkDeleteWorkshopInProgress ? 'not-allowed' : 'pointer',
+                  opacity: bulkDeleteWorkshopInProgress ? 0.6 : 1,
+                }}
+              >
+                {bulkDeleteWorkshopInProgress ? 'Deleting…' : `Delete ${selectedWorkshopIds.size} ${selectedWorkshopIds.size === 1 ? 'Registrant' : 'Registrants'}`}
               </button>
             </div>
           </div>
