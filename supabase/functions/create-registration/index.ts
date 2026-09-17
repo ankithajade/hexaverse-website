@@ -94,9 +94,11 @@ serve(async (req) => {
         phone,
         cycle,
         selected_dept,
+        dept,
         roll_number,
         section,
       } = registrant || {};
+      const deptValue = selected_dept || dept;
 
       if (!name || !semester || !email || !phone || !section) {
         return new Response(JSON.stringify({ error: 'Missing required workshop fields' }), {
@@ -137,13 +139,13 @@ serve(async (req) => {
           });
         }
       } else if (isSem1 && event.department) {
-        if (!cycle || !roll_number || !selected_dept) {
+        if (!cycle || !roll_number || !deptValue) {
           return new Response(JSON.stringify({ error: 'Missing required Semester 1 registration fields (Cycle, Roll Number, Department)' }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
-        const normDept = normalizeDeptId(selected_dept);
+        const normDept = normalizeDeptId(deptValue);
         const isEligible = normDept === event.department || (event.department === 'ece' && normDept === 'iot_cyber');
         if (!isEligible) {
           return new Response(JSON.stringify({ error: 'You are not eligible for this event' }), {
@@ -166,6 +168,22 @@ serve(async (req) => {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
+      }
+
+      if (isSem1 && roll_number) {
+        const { data: existingRoll } = await supabase
+          .from('workshop_registrations')
+          .select('id')
+          .eq('event_slug', event_slug)
+          .eq('roll_number', roll_number.trim())
+          .maybeSingle();
+
+        if (existingRoll) {
+          return new Response(JSON.stringify({ error: 'This Roll Number is already registered for this workshop' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
       }
 
       if (usn) {
@@ -194,7 +212,7 @@ serve(async (req) => {
           usn: isSem1 ? null : (usn ? usn.trim().toUpperCase() : null),
           roll_number: isSem1 ? (roll_number?.trim() || null) : null,
           cycle: isSem1 ? (cycle?.trim() || null) : null,
-          selected_dept: isSem1 ? (selected_dept?.trim() || null) : null,
+          selected_dept: isSem1 ? (deptValue?.trim() || null) : null,
           section: section?.trim() || null,
           email: email.trim().toLowerCase(),
           phone: phone.trim(),
@@ -257,6 +275,7 @@ serve(async (req) => {
 
     // Validate per-member academic & contact fields
     const seenUsns = new Set<string>();
+    const seenRollNumbers = new Set<string>();
 
     for (let i = 0; i < members.length; i++) {
       const m = members[i];
@@ -322,6 +341,15 @@ serve(async (req) => {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
+        const trimmedRoll = m.roll_number.trim();
+        if (seenRollNumbers.has(trimmedRoll)) {
+          return new Response(JSON.stringify({ error: `Duplicate Roll Number ${trimmedRoll} found in team` }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        seenRollNumbers.add(trimmedRoll);
+
         if (!m.dept || !m.dept.trim()) {
           return new Response(JSON.stringify({ error: `${memberRole} (${m.name}) requires a Department selection` }), {
             status: 400,
