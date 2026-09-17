@@ -36,12 +36,12 @@ export default function EventsPreview() {
             <Link to="/events/treasure-hunt" className="btn-register">Details</Link>
           </div>
           
-          {/* Hackathon */}
+          {/* Mega Event 2 — Hackathon */}
           <div className="mega-card">
-            <div className="mega-card-label">After Week 5</div>
-            <h4>Hackathon</h4>
-            <p>Build. Ship. Compete. A flagship coding marathon open beyond DBIT.</p>
-            <div className="mega-card-date">30 &ndash; 31 Oct 2026</div>
+            <div className="mega-card-label">Mega Event 2</div>
+            <h4>Coming Soon !!</h4>
+            <p>Stay tuned!</p>
+            <div className="mega-card-date"></div>
             <div className="mega-card-badges">
               <span className="open-badge">Open to all departments</span>
               <span className="inter-college-badge">
@@ -49,7 +49,7 @@ export default function EventsPreview() {
                 Inter-College Event
               </span>
             </div>
-            <Link to="/events/hackathon" className="btn-register">Details</Link>
+            {/* <Link to="/events/hackathon" className="btn-register">Details</Link> */}
           </div>
 
           {/* Technical Talk */}

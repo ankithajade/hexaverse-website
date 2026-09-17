@@ -83,7 +83,7 @@ export default function Timeline() {
               <div className="timeline-block-header">
                 <div className="timeline-block-brand">
                   <div className="timeline-mega-badge">Mega Event</div>
-                  <h3>Treasure Hunt</h3>
+                  <h3>The Convergence</h3>
                 </div>
                 <div className="timeline-header-right">
                   <span className="timeline-dates">26 Sept 2026</span>
@@ -251,11 +251,12 @@ export default function Timeline() {
               <div className="timeline-block-header">
                 <div className="timeline-block-brand">
                   <div className="timeline-mega-badge">Mega Event</div>
-                  <h3>Hackathon</h3>
+                  <h3>Coming Soon !!</h3>
                 </div>
                 <div className="timeline-header-right">
-                  <span className="timeline-dates">30 &ndash; 31 Oct 2026</span>
-                  <Link to="/events/hackathon" className="btn-timeline-register btn-timeline-mega">Details</Link>
+                  <span className="timeline-dates">Stay tuned!</span>
+                  {/* <span className="timeline-dates">30 &ndash; 31 Oct 2026</span> */}
+                  {/* <Link to="/events/hackathon" className="btn-timeline-register btn-timeline-mega">Details</Link> */}
                 </div>
               </div>
               <span className="timeline-open-badge">Open to all departments</span>
