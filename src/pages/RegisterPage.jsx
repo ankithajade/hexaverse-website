@@ -834,6 +834,27 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
+                {isTeam && (
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '6px 14px',
+                      background: 'rgba(255, 255, 255, 0.03)',
+                      border: '1px solid var(--bg-card-border)',
+                      borderRadius: '6px',
+                      fontSize: '0.88rem',
+                      marginBottom: '16px',
+                    }}
+                  >
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Team Size:</span>
+                    <strong style={{ color: 'var(--cyan)' }}>
+                      {minMembers === maxMembers ? `Exactly ${minMembers} members` : `${minMembers}–${maxMembers} members`}
+                    </strong>
+                  </div>
+                )}
+
                 <h4 style={{ fontFamily: 'var(--font-subheading)', fontSize: '0.95rem', color: 'var(--text)', marginBottom: '10px' }}>
                   Guidelines &amp; Regulations:
                 </h4>
