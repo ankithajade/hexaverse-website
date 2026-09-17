@@ -1931,10 +1931,35 @@ body {
   display: none;
 }
 
-/* Bumped size */
 @media(max-width:768px) {
   .dept-hero-media {
     display: none;
+  }
+
+  .dept-hero-badge {
+    font-size: 0.72rem;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .dept-hero h1 {
+    font-size: clamp(1.5rem, 7vw, 2.1rem);
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+
+  .dept-hero-dates {
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+  }
+
+  .dept-hero-desc {
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+
+  .dept-hero-desc p {
+    margin-bottom: 10px;
   }
 
   .dept-mobile-tabs {
@@ -1974,6 +1999,49 @@ body {
 
   .event-card.dept-card--mobile-hidden {
     display: none !important;
+  }
+
+  .event-card-type {
+    font-size: 0.72rem;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .event-card h2 {
+    font-size: 1.3rem;
+    line-height: 1.25;
+    margin-bottom: 8px;
+  }
+
+  .event-card-desc,
+  .event-card-desc p,
+  .event-card p {
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .event-card-desc p {
+    margin-bottom: 8px;
+  }
+
+  .event-card-meta span {
+    font-size: 0.78rem;
+  }
+
+  .accordion-inner p,
+  .accordion-inner .rich-text,
+  .accordion-inner .rich-text p {
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+
+  .accordion-inner .rich-text p {
+    margin-bottom: 8px;
+  }
+
+  .btn-details,
+  .btn-dept-register {
+    font-size: 0.85rem;
   }
 }
 
