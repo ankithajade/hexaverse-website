@@ -17,7 +17,7 @@ const DEFAULT_WORKSHOP_RULES = [
 const DEFAULT_SIGNATURE_RULES = [
   'Participants must register with their official college USN and mobile phone number.',
   'Team size limits must be strictly adhered to as specified for each department signature event.',
-  'Registration fee is ₹50 per head, payable during the online checkout flow.',
+  'Registration fee is ₹52 per head (includes ₹2 Cashfree payment gateway fee), payable during the online checkout flow.',
 ];
 
 export const registrationEvents = {};
@@ -33,7 +33,7 @@ Object.values(departments).forEach((dept) => {
       isInterCollege: !!ev.isInterCollege,
       teamMin: ev.teamMin || (ev.isTeam ? 2 : 1),
       teamMax: ev.teamMax || (ev.isTeam ? 4 : 1),
-      fee: ev.fee || (isWorkshop ? 0 : 50),
+      fee: ev.fee || (isWorkshop ? 0 : 52),
       lockedDepartment: { id: dept.id, name: dept.name },
       registrationRules: ev.registrationRules || (isWorkshop ? DEFAULT_WORKSHOP_RULES : DEFAULT_SIGNATURE_RULES),
       dates: ev.dates,
@@ -50,7 +50,7 @@ Object.values(megaEvents).forEach((ev) => {
   const eventId = ev.registrationEventId || ev.id;
   const rules = [
     'Teams must consist of exactly 3 members from any department.',
-    'Registration fee is ₹80 per head (₹240 total per team), payable during the online checkout flow.',
+    'Registration fee is ₹82 per head (₹246 total per team, includes ₹2 per head Cashfree payment gateway fee), payable during the online checkout flow.',
     'At least one smartphone with active internet and working camera is required per team.',
     'Any disruption of campus activities or damage to college property results in instant disqualification.',
   ];
@@ -62,7 +62,7 @@ Object.values(megaEvents).forEach((ev) => {
     isInterCollege: false,
     teamMin: 3,
     teamMax: 3,
-    fee: 80,
+    fee: 82,
     lockedDepartment: null, // Cross-department allowed
     registrationRules: rules,
     dates: ev.dates,

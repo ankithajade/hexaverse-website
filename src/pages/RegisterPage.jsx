@@ -822,9 +822,14 @@ export default function RegisterPage() {
                       {!isWorkshop && <span style={{ fontSize: '0.85rem', fontWeight: 400, color: 'var(--text-dim)' }}> / head</span>}
                     </div>
                     {!isWorkshop && (
-                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                        Total: <strong>₹{totalFee}</strong> ({1 + members.length} {1 + members.length === 1 ? 'member' : 'members'})
-                      </div>
+                      <>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                          Total: <strong>₹{totalFee}</strong> ({1 + members.length} {1 + members.length === 1 ? 'member' : 'members'})
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px', opacity: 0.85 }}>
+                          Includes ₹2/head payment gateway fee (Cashfree)
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
@@ -1463,9 +1468,14 @@ export default function RegisterPage() {
                       )}
                     </button>
                     {!isWorkshop && (
-                      <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                        <FiLock style={{ verticalAlign: 'middle' }} /> Powered by Cashfree UPI Gateway. 100% Secure Checkout.
-                      </p>
+                      <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          <FiLock style={{ verticalAlign: 'middle' }} /> Powered by Cashfree UPI Gateway. 100% Secure Checkout.
+                        </span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                          (Includes ₹2/head payment gateway fee charged by Cashfree)
+                        </span>
+                      </div>
                     )}
                   </div>
 

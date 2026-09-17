@@ -12,14 +12,14 @@ const DEFAULT_EVENT_CONFIGS = {
   'ece-workshop':  { slug: 'ece-workshop',  event_type: 'workshop', fee_per_head: 0, is_team: false, is_open: true },
   'eee-workshop':  { slug: 'eee-workshop',  event_type: 'workshop', fee_per_head: 0, is_team: false, is_open: true },
 
-  'aiml-event':    { slug: 'aiml-event',    event_type: 'signature', fee_per_head: 50, is_team: true, team_min: 1, team_max: 2, is_open: true },
-  'aids-event':    { slug: 'aids-event',    event_type: 'signature', fee_per_head: 50, is_team: true, team_min: 2, team_max: 3, is_open: true },
-  'cse-event':     { slug: 'cse-event',     event_type: 'signature', fee_per_head: 50, is_team: true, team_min: 2, team_max: 3, is_open: true },
-  'ise-event':     { slug: 'ise-event',     event_type: 'signature', fee_per_head: 50, is_team: true, team_min: 2, team_max: 3, is_open: true },
-  'ece-event':     { slug: 'ece-event',     event_type: 'signature', fee_per_head: 50, is_team: true, team_min: 3, team_max: 4, is_open: true },
-  'eee-event':     { slug: 'eee-event',     event_type: 'signature', fee_per_head: 50, is_team: true, team_min: 2, team_max: 4, is_open: true },
+  'aiml-event':    { slug: 'aiml-event',    event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 1, team_max: 2, is_open: true },
+  'aids-event':    { slug: 'aids-event',    event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 3, is_open: true },
+  'cse-event':     { slug: 'cse-event',     event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 3, is_open: true },
+  'ise-event':     { slug: 'ise-event',     event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 3, is_open: true },
+  'ece-event':     { slug: 'ece-event',     event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 3, team_max: 4, is_open: true },
+  'eee-event':     { slug: 'eee-event',     event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 4, is_open: true },
 
-  'treasure-hunt': { slug: 'treasure-hunt', event_type: 'treasure_hunt', fee_per_head: 80, is_team: true, team_min: 3, team_max: 3, is_open: true },
+  'treasure-hunt': { slug: 'treasure-hunt', event_type: 'treasure_hunt', fee_per_head: 82, is_team: true, team_min: 3, team_max: 3, is_open: true },
 };
 
 /** Fetch event details from database or local fallback config */
@@ -30,7 +30,7 @@ export async function getEventConfig(slug) {
   } catch (err) {
     console.warn('[RegistrationService] Failed to query events table, using local fallback:', err);
   }
-  return DEFAULT_EVENT_CONFIGS[slug] || { slug, event_type: 'signature', fee_per_head: 50, is_team: true, team_min: 2, team_max: 4, is_open: true };
+  return DEFAULT_EVENT_CONFIGS[slug] || { slug, event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 4, is_open: true };
 }
 
 /** Check team name availability using check-team-name Edge Function */

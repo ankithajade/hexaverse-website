@@ -290,7 +290,7 @@ export default function AdminMegaEventPage() {
   const totalParticipants = teams.reduce((sum, t) => sum + (t.team_size || (t.team_members?.length || 0)), 0);
   const paidTeams = teams.filter((t) => t.payment_status === 'success');
   const paidTeamsCount = paidTeams.length;
-  const feePerHead = eventId === 'treasure-hunt' ? 80 : 50;
+  const feePerHead = eventId === 'treasure-hunt' ? 82 : 52;
   const totalRevenue = paidTeams.reduce((sum, t) => sum + (t.team_size * feePerHead), 0);
 
   const isTeamFiltered = paymentFilter !== 'all' || !!searchQuery.trim();

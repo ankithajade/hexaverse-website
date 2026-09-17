@@ -108,7 +108,7 @@ export default function AdminHome() {
     .reduce((sum, t) => sum + (t.team_size || t.team_members?.length || 0), 0);
   const totalRevenue = teams
     .filter((t) => t.payment_status === 'success')
-    .reduce((sum, t) => sum + t.team_size * (t.event_slug === 'treasure-hunt' ? 80 : 50), 0);
+    .reduce((sum, t) => sum + t.team_size * (t.event_slug === 'treasure-hunt' ? 82 : 52), 0);
 
   // ── Split Chart data: Workshop vs Signature/Mega Events ──
   const workshopChartData = EVENT_SLUGS
