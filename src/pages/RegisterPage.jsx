@@ -31,6 +31,14 @@ const DEPARTMENTS = [
 const SEMESTERS = ['1', '3', '5', '7'];
 const SECTIONS = ['A', 'B', 'C', 'D'];
 const CYCLES = ['Physics Cycle', 'Chemistry Cycle'];
+const PHYSICS_CYCLE_SECTIONS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+const CHEMISTRY_CYCLE_SECTIONS = ['I', 'J', 'K', 'L', 'M', 'N', 'P'];
+
+function getSem1Sections(cycle) {
+  if (cycle === 'Physics Cycle') return PHYSICS_CYCLE_SECTIONS;
+  if (cycle === 'Chemistry Cycle') return CHEMISTRY_CYCLE_SECTIONS;
+  return [];
+}
 const SEM1_DEPARTMENTS = [
   { id: 'aiml', label: 'Artificial Intelligence & Machine Learning' },
   { id: 'aids', label: 'Artificial Intelligence & Data Science' },
@@ -165,7 +173,13 @@ export default function RegisterPage() {
 
   const setField = (e) => {
     const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
+    setForm((f) => {
+      const next = { ...f, [name]: value };
+      if (name === 'cycle') {
+        next.section = '';
+      }
+      return next;
+    });
     setTouched((prev) => ({ ...prev, [name]: true }));
     if (serverError) setServerError('');
 
@@ -216,7 +230,14 @@ export default function RegisterPage() {
   };
 
   const setMemberField = (i, field, value) => {
-    setMembers((m) => m.map((mb, idx) => (idx === i ? { ...mb, [field]: value } : mb)));
+    setMembers((m) => m.map((mb, idx) => {
+      if (idx !== i) return mb;
+      const updated = { ...mb, [field]: value };
+      if (field === 'cycle') {
+        updated.section = '';
+      }
+      return updated;
+    }));
     setTouched((prev) => ({ ...prev, [`member_${i}_${field}`]: true }));
     if (serverError) setServerError('');
   };
@@ -914,7 +935,7 @@ export default function RegisterPage() {
                     </div>
                   </div>
 
-                  {/* Semester + Section + USN / Roll Number */}
+                  {/* Semester + (Section/USN for Sem 3/5/7 OR Cycle/Roll for Sem 1) */}
                   <div className="form-row">
                     <div className="form-group">
                       <label htmlFor="reg-semester">Semester *</label>
@@ -935,68 +956,49 @@ export default function RegisterPage() {
                       </select>
                     </div>
 
-                    <div className="form-group">
-                      <label htmlFor="reg-section">Section *</label>
-                      {renderFieldFeedback('section')}
-                      <select
-                        id="reg-section"
-                        name="section"
-                        className="form-select"
-                        value={form.section}
-                        onChange={setField}
-                        onBlur={handleBlur}
-                        style={getInputStyle('section')}
-                      >
-                        <option value="">Select Section</option>
-                        {SECTIONS.map((s) => (
-                          <option key={s} value={s}>Section {s}</option>
-                        ))}
-                      </select>
-                    </div>
+                    {!isSem1 ? (
+                      <>
+                        <div className="form-group">
+                          <label htmlFor="reg-section">Section *</label>
+                          {renderFieldFeedback('section')}
+                          <select
+                            id="reg-section"
+                            name="section"
+                            className="form-select"
+                            value={form.section}
+                            onChange={setField}
+                            onBlur={handleBlur}
+                            style={getInputStyle('section')}
+                          >
+                            <option value="">Select Section</option>
+                            {SECTIONS.map((s) => (
+                              <option key={s} value={s}>Section {s}</option>
+                            ))}
+                          </select>
+                        </div>
 
-                    {/* Sem 3/5/7: USN */}
-                    {[3, 5, 7].includes(sem) && (
-                      <div className="form-group">
-                        <label htmlFor="reg-usn">USN *</label>
-                        {renderFieldFeedback('usn')}
-                        <input
-                          id="reg-usn"
-                          name="usn"
-                          type="text"
-                          className="form-input"
-                          placeholder={lockedDept ? `e.g. 1DB23${lockedDept.id === 'aiml' ? 'CI' : 'CS'}001` : 'e.g. 1DB23CS001'}
-                          value={form.usn}
-                          onChange={setField}
-                          onBlur={handleBlur}
-                          style={getInputStyle('usn')}
-                        />
-                      </div>
-                    )}
-
-                    {/* Sem 1: Roll Number */}
-                    {isSem1 && (
-                      <div className="form-group">
-                        <label htmlFor="reg-rollNumber">Roll Number *</label>
-                        {renderFieldFeedback('rollNumber')}
-                        <input
-                          id="reg-rollNumber"
-                          name="rollNumber"
-                          type="text"
-                          className="form-input"
-                          placeholder="e.g. 24CS01"
-                          value={form.rollNumber}
-                          onChange={setField}
-                          onBlur={handleBlur}
-                          style={getInputStyle('rollNumber')}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Sem 1 Extra Row: Cycle + Department */}
-                  {isSem1 && (
-                    <>
-                      <div className="form-row">
+                        {/* Sem 3/5/7: USN */}
+                        {[3, 5, 7].includes(sem) && (
+                          <div className="form-group">
+                            <label htmlFor="reg-usn">USN *</label>
+                            {renderFieldFeedback('usn')}
+                            <input
+                              id="reg-usn"
+                              name="usn"
+                              type="text"
+                              className="form-input"
+                              placeholder={lockedDept ? `e.g. 1DB23${lockedDept.id === 'aiml' ? 'CI' : 'CS'}001` : 'e.g. 1DB23CS001'}
+                              value={form.usn}
+                              onChange={setField}
+                              onBlur={handleBlur}
+                              style={getInputStyle('usn')}
+                            />
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {/* Sem 1: Cycle */}
                         <div className="form-group">
                           <label htmlFor="reg-cycle">Cycle *</label>
                           {renderFieldFeedback('cycle')}
@@ -1012,6 +1014,50 @@ export default function RegisterPage() {
                             <option value="">Select Cycle</option>
                             {CYCLES.map((c) => (
                               <option key={c} value={c}>{c}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Sem 1: Roll Number */}
+                        <div className="form-group">
+                          <label htmlFor="reg-rollNumber">Roll Number *</label>
+                          {renderFieldFeedback('rollNumber')}
+                          <input
+                            id="reg-rollNumber"
+                            name="rollNumber"
+                            type="text"
+                            className="form-input"
+                            placeholder="e.g. 24CS01"
+                            value={form.rollNumber}
+                            onChange={setField}
+                            onBlur={handleBlur}
+                            style={getInputStyle('rollNumber')}
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Sem 1 Extra Row: Section + Department */}
+                  {isSem1 && (
+                    <>
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label htmlFor="reg-section">Section *</label>
+                          {renderFieldFeedback('section')}
+                          <select
+                            id="reg-section"
+                            name="section"
+                            className="form-select"
+                            value={form.section}
+                            onChange={setField}
+                            onBlur={handleBlur}
+                            disabled={!form.cycle}
+                            style={getInputStyle('section')}
+                          >
+                            <option value="">{form.cycle ? 'Select Section' : 'Select Cycle first'}</option>
+                            {getSem1Sections(form.cycle).map((s) => (
+                              <option key={s} value={s}>Section {s}</option>
                             ))}
                           </select>
                         </div>
@@ -1205,7 +1251,7 @@ export default function RegisterPage() {
                               </div>
                             </div>
 
-                            {/* Semester + Section + USN / Roll Number */}
+                            {/* Semester + (Section/USN for Sem 3/5/7 OR Cycle/Roll for Sem 1) */}
                             <div className="form-row">
                               <div className="form-group">
                                 <label>Semester *</label>
@@ -1224,62 +1270,45 @@ export default function RegisterPage() {
                                 </select>
                               </div>
 
-                              <div className="form-group">
-                                <label>Section *</label>
-                                {renderFieldFeedback(`member_${i}_section`)}
-                                <select
-                                  className="form-select"
-                                  value={m.section}
-                                  onChange={(e) => setMemberField(i, 'section', e.target.value)}
-                                  onBlur={() => handleMemberBlur(i, 'section')}
-                                  style={getInputStyle(`member_${i}_section`)}
-                                >
-                                  <option value="">Select Section</option>
-                                  {SECTIONS.map((s) => (
-                                    <option key={s} value={s}>Section {s}</option>
-                                  ))}
-                                </select>
-                              </div>
+                              {!mIsSem1 ? (
+                                <>
+                                  <div className="form-group">
+                                    <label>Section *</label>
+                                    {renderFieldFeedback(`member_${i}_section`)}
+                                    <select
+                                      className="form-select"
+                                      value={m.section}
+                                      onChange={(e) => setMemberField(i, 'section', e.target.value)}
+                                      onBlur={() => handleMemberBlur(i, 'section')}
+                                      style={getInputStyle(`member_${i}_section`)}
+                                    >
+                                      <option value="">Select Section</option>
+                                      {SECTIONS.map((s) => (
+                                        <option key={s} value={s}>Section {s}</option>
+                                      ))}
+                                    </select>
+                                  </div>
 
-                              {/* Sem 3/5/7: USN */}
-                              {mIsHighSem && (
-                                <div className="form-group">
-                                  <label>USN *</label>
-                                  {renderFieldFeedback(`member_${i}_usn`)}
-                                  <input
-                                    type="text"
-                                    className="form-input"
-                                    placeholder={lockedDept ? `e.g. 1DB23${lockedDept.id === 'aiml' ? 'CI' : 'CS'}001` : 'e.g. 1DB23CS001'}
-                                    value={m.usn}
-                                    onChange={(e) => setMemberField(i, 'usn', e.target.value)}
-                                    onBlur={() => handleMemberBlur(i, 'usn')}
-                                    style={getInputStyle(`member_${i}_usn`)}
-                                  />
-                                </div>
-                              )}
-
-                              {/* Sem 1: Roll Number */}
-                              {mIsSem1 && (
-                                <div className="form-group">
-                                  <label>Roll Number *</label>
-                                  {renderFieldFeedback(`member_${i}_rollNumber`)}
-                                  <input
-                                    type="text"
-                                    className="form-input"
-                                    placeholder="e.g. 24CS02"
-                                    value={m.rollNumber}
-                                    onChange={(e) => setMemberField(i, 'rollNumber', e.target.value)}
-                                    onBlur={() => handleMemberBlur(i, 'rollNumber')}
-                                    style={getInputStyle(`member_${i}_rollNumber`)}
-                                  />
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Member Sem 1: Cycle + Department */}
-                            {mIsSem1 && (
-                              <>
-                                <div className="form-row">
+                                  {/* Sem 3/5/7: USN */}
+                                  {mIsHighSem && (
+                                    <div className="form-group">
+                                      <label>USN *</label>
+                                      {renderFieldFeedback(`member_${i}_usn`)}
+                                      <input
+                                        type="text"
+                                        className="form-input"
+                                        placeholder={lockedDept ? `e.g. 1DB23${lockedDept.id === 'aiml' ? 'CI' : 'CS'}001` : 'e.g. 1DB23CS001'}
+                                        value={m.usn}
+                                        onChange={(e) => setMemberField(i, 'usn', e.target.value)}
+                                        onBlur={() => handleMemberBlur(i, 'usn')}
+                                        style={getInputStyle(`member_${i}_usn`)}
+                                      />
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                <>
+                                  {/* Sem 1: Cycle */}
                                   <div className="form-group">
                                     <label>Cycle *</label>
                                     {renderFieldFeedback(`member_${i}_cycle`)}
@@ -1293,6 +1322,46 @@ export default function RegisterPage() {
                                       <option value="">Select Cycle</option>
                                       {CYCLES.map((c) => (
                                         <option key={c} value={c}>{c}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+
+                                  {/* Sem 1: Roll Number */}
+                                  <div className="form-group">
+                                    <label>Roll Number *</label>
+                                    {renderFieldFeedback(`member_${i}_rollNumber`)}
+                                    <input
+                                      type="text"
+                                      className="form-input"
+                                      placeholder="e.g. 24CS02"
+                                      value={m.rollNumber}
+                                      onChange={(e) => setMemberField(i, 'rollNumber', e.target.value)}
+                                      onBlur={() => handleMemberBlur(i, 'rollNumber')}
+                                      style={getInputStyle(`member_${i}_rollNumber`)}
+                                    />
+                                  </div>
+                                </>
+                              )}
+                            </div>
+
+                            {/* Member Sem 1: Section + Department */}
+                            {mIsSem1 && (
+                              <>
+                                <div className="form-row">
+                                  <div className="form-group">
+                                    <label>Section *</label>
+                                    {renderFieldFeedback(`member_${i}_section`)}
+                                    <select
+                                      className="form-select"
+                                      value={m.section}
+                                      onChange={(e) => setMemberField(i, 'section', e.target.value)}
+                                      onBlur={() => handleMemberBlur(i, 'section')}
+                                      disabled={!m.cycle}
+                                      style={getInputStyle(`member_${i}_section`)}
+                                    >
+                                      <option value="">{m.cycle ? 'Select Section' : 'Select Cycle first'}</option>
+                                      {getSem1Sections(m.cycle).map((s) => (
+                                        <option key={s} value={s}>Section {s}</option>
                                       ))}
                                     </select>
                                   </div>
