@@ -668,7 +668,7 @@ export default function RegisterPage() {
 
         const payload = {
           event_slug: slug,
-          team_name: form.teamName.trim(),
+          team_name: isTeam ? form.teamName.trim() : form.name.trim(),
           registrant: teamLead,
           team_members: teamMembersPayload,
         };
@@ -764,7 +764,9 @@ export default function RegisterPage() {
               <p style={{ color: 'var(--text-dim)', fontSize: '1.05rem', maxWidth: '500px', margin: '0 auto 24px' }}>
                 {isWorkshop
                   ? `You have successfully registered for the ${event.eventTitle}. A confirmation email has been sent.`
-                  : `Your team "${form.teamName}" is successfully registered for ${event.eventTitle}! Payment has been verified.`}
+                  : isTeam
+                    ? `Your team "${form.teamName}" is successfully registered for ${event.eventTitle}! Payment has been verified.`
+                    : `You have successfully registered for ${event.eventTitle}! Payment has been verified.`}
               </p>
               <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <Link to="/" className="btn-dept-register" style={{ textDecoration: 'none', padding: '12px 28px' }}>
@@ -824,7 +826,7 @@ export default function RegisterPage() {
                     {!isWorkshop && (
                       <>
                         <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                          Total: <strong>₹{totalFee}</strong> ({1 + members.length} {1 + members.length === 1 ? 'member' : 'members'})
+                          Total: <strong>₹{totalFee}</strong> ({1 + members.length} {1 + members.length === 1 ? (isTeam ? 'member' : 'participant') : 'members'})
                         </div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px', opacity: 0.85 }}>
                           Includes ₹2/head payment gateway fee (Cashfree)

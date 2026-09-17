@@ -12,7 +12,7 @@ const DEFAULT_EVENT_CONFIGS = {
   'ece-workshop':  { slug: 'ece-workshop',  event_type: 'workshop', fee_per_head: 0, is_team: false, is_open: true },
   'eee-workshop':  { slug: 'eee-workshop',  event_type: 'workshop', fee_per_head: 0, is_team: false, is_open: true },
 
-  'aiml-event':    { slug: 'aiml-event',    event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 1, team_max: 2, is_open: true },
+  'aiml-event':    { slug: 'aiml-event',    event_type: 'signature', fee_per_head: 52, is_team: false, team_min: 1, team_max: 1, is_open: true },
   'aids-event':    { slug: 'aids-event',    event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 3, is_open: true },
   'cse-event':     { slug: 'cse-event',     event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 3, is_open: true },
   'ise-event':     { slug: 'ise-event',     event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 3, is_open: true },

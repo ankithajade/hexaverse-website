@@ -67,9 +67,9 @@ export const departments = {
         venue: 'A-001',
         eventId: 'aiml-event',
         eventTitle: 'AI & ML Signature Event',
-        isTeam: true,
+        isTeam: false,
         teamMin: 1,
-        teamMax: 2,
+        teamMax: 1,
         fee: 52,
         isInterCollege: false,
         accordionContent:
