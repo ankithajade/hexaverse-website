@@ -11,6 +11,9 @@ const USN_REGEX = /^1DB(23|24|25)(CS|IS|AD|CI|EC|EE)(00[1-9]|0[1-9]\d|[1-9]\d{2}
 const PHONE_REGEX = /^[6-9]\d{9}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Pending registrations older than this are treated as abandoned and auto-cleaned up
+const PENDING_GRACE_MINUTES = 30;
+
 const DEPT_USN_PREFIXES: Record<string, string[]> = {
   aiml: ['CI'],
   aids: ['AD'],
@@ -410,19 +413,97 @@ serve(async (req) => {
       }
     }
 
-    // Check case-insensitive team name uniqueness
-    const { data: existingTeam } = await supabase
-      .from('teams')
-      .select('id')
-      .eq('event_slug', event_slug)
-      .eq('team_name_norm', team_name.trim().toLowerCase())
-      .maybeSingle();
+    // Helper: decide whether a matched team row is a real duplicate, stale, or failed.
+    // Returns 'block' | 'cleanup' (stale/failed — caller should delete) | 'pass' (no match).
+    const classifyTeam = (teamRow: any): 'block' | 'cleanup' => {
+      if (!teamRow) return 'cleanup'; // shouldn't happen but be safe
+      const status = teamRow.payment_status as string;
+      if (status === 'success') return 'block';
+      if (status === 'failed') return 'cleanup';
+      // 'pending' — check age
+      const ageMs = Date.now() - new Date(teamRow.created_at).getTime();
+      return ageMs < PENDING_GRACE_MINUTES * 60 * 1000 ? 'block' : 'cleanup';
+    };
 
-    if (existingTeam) {
-      return new Response(JSON.stringify({ error: `Team name "${team_name}" is already taken for this event` }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    // Helper: delete a stale team and write an audit trail.
+    const cleanupStaleTeam = async (teamRow: any) => {
+      await supabase.from('admin_audit_log').insert({
+        admin_email: 'system@hexaverse.internal',
+        action: 'auto_cleanup_stale_registration',
+        table_name: 'teams',
+        record_id: teamRow.id,
+        before: teamRow,
+        reason: 'stale pending registration released for duplicate-check retry',
       });
+      await supabase.from('teams').delete().eq('id', teamRow.id);
+    };
+
+    if (event.is_team === false) {
+      // Individual signature event — identify the registrant (lead / sole participant)
+      const lead = members[0];
+      const leadEmail = lead?.email?.trim().toLowerCase() || registrant?.email?.trim().toLowerCase() || '';
+      const semNum = Number(lead?.semester ?? registrant?.semester);
+      const isSem1 = semNum === 1;
+      const leadRoll = isSem1
+        ? (lead?.roll_number?.trim() || registrant?.roll_number?.trim() || '')
+        : '';
+      const leadUsn = !isSem1
+        ? (lead?.usn?.trim().toUpperCase() || registrant?.usn?.trim().toUpperCase() || '')
+        : '';
+
+      // Check by email, then roll_number/USN — each query fetches the parent team
+      // row so we can apply the tiered payment_status logic.
+      const identifiers: { col: string; val: string }[] = [];
+      if (leadEmail) identifiers.push({ col: 'email', val: leadEmail });
+      if (leadRoll)  identifiers.push({ col: 'roll_number', val: leadRoll });
+      if (leadUsn)   identifiers.push({ col: 'usn', val: leadUsn });
+
+      for (const { col, val } of identifiers) {
+        const { data: rows } = await supabase
+          .from('team_members')
+          .select('id, teams!inner(id, event_slug, payment_status, created_at)')
+          .eq('teams.event_slug', event_slug)
+          .eq(col, val)
+          .limit(1);
+
+        if (!rows || rows.length === 0) continue;
+
+        const teamRow = (rows[0] as any).teams;
+        const verdict = classifyTeam(teamRow);
+
+        if (verdict === 'block') {
+          return new Response(JSON.stringify({ error: 'You have already registered for this event' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // verdict === 'cleanup': stale or failed — remove the old attempt and let this one through
+        await cleanupStaleTeam(teamRow);
+        break; // one cleanup is enough; all identifiers point to the same (or equivalent) stale row
+      }
+    } else {
+      // Team event — check case-insensitive team name uniqueness
+      const { data: existingTeam } = await supabase
+        .from('teams')
+        .select('id, payment_status, created_at')
+        .eq('event_slug', event_slug)
+        .eq('team_name_norm', team_name.trim().toLowerCase())
+        .maybeSingle();
+
+      if (existingTeam) {
+        const verdict = classifyTeam(existingTeam);
+
+        if (verdict === 'block') {
+          return new Response(JSON.stringify({ error: `Team name "${team_name}" is already taken for this event` }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Stale or failed — auto-clean so the name can be reused
+        await cleanupStaleTeam(existingTeam);
+      }
     }
 
     // Server-side fee computation (never trust client fee!)
