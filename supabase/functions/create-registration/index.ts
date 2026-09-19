@@ -14,6 +14,9 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Pending registrations older than this are treated as abandoned and auto-cleaned up
 const PENDING_GRACE_MINUTES = 30;
 
+// Grace window for registrations submitted after status was changed to paused/closed
+const STATUS_GRACE_MINUTES = 15;
+
 const DEPT_USN_PREFIXES: Record<string, string[]> = {
   aiml: ['CI'],
   aids: ['AD'],
@@ -80,11 +83,57 @@ serve(async (req) => {
       });
     }
 
-    if (!event.is_open) {
-      return new Response(JSON.stringify({ error: 'Registrations for this event are closed' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    // Helper to get closed message for a specific event
+    const getEventClosedMessage = (slug: string, title: string) => {
+      if (slug === 'treasure-hunt') {
+        return 'Registrations are closed for The Convergence (Treasure Hunt).';
+      }
+      if (slug === 'hackathon') {
+        return 'Registrations are closed for the Hackathon.';
+      }
+      return `Registrations are closed for ${title}.`;
+    };
+
+    // 2. Check site-wide global maintenance override and per-event registration status
+    const { data: siteSettings } = await supabase
+      .from('site_settings')
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle();
+
+    const now = Date.now();
+
+    if (siteSettings?.global_override && siteSettings.global_override !== 'none') {
+      const globalChangedAt = new Date(siteSettings.global_status_changed_at).getTime();
+      const isGlobalGraceExpired = isNaN(globalChangedAt) || (now - globalChangedAt) > STATUS_GRACE_MINUTES * 60 * 1000;
+
+      if (isGlobalGraceExpired) {
+        const errorMsg = siteSettings.global_override === 'paused'
+          ? 'Registrations have been paused temporarily. Check back in a while, sorry for the inconvenience.'
+          : 'Registrations are currently closed for maintenance. Please check back later.';
+
+        return new Response(JSON.stringify({ error: errorMsg }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    } else {
+      const regStatus = event.registration_status || (event.is_open === false ? 'closed' : 'open');
+      if (regStatus !== 'open') {
+        const statusChangedAt = new Date(event.status_changed_at).getTime();
+        const isEventGraceExpired = isNaN(statusChangedAt) || (now - statusChangedAt) > STATUS_GRACE_MINUTES * 60 * 1000;
+
+        if (isEventGraceExpired) {
+          const errorMsg = regStatus === 'paused'
+            ? 'Registrations have been paused temporarily. Check back in a while, sorry for the inconvenience.'
+            : getEventClosedMessage(event.slug, event.title);
+
+          return new Response(JSON.stringify({ error: errorMsg }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
     }
 
     // 2. Handle Workshop (Individual, Free)

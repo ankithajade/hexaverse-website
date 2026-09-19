@@ -60,6 +60,55 @@ const StatCard = ({ label, value, color, subtitle }) => (
   </div>
 );
 
+const EventStatusSelector = ({ currentStatus, updating, onChange }) => {
+  const status = currentStatus || 'open';
+  return (
+    <div style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '4px',
+      background: 'var(--bg)',
+      border: '1px solid var(--bg-card-border)',
+      padding: '3px',
+      borderRadius: '8px',
+    }}>
+      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, padding: '0 6px' }}>
+        Registration:
+      </span>
+      {[
+        { id: 'open', label: 'Open', color: '#10b981', bg: 'rgba(16, 185, 129, 0.15)' },
+        { id: 'paused', label: 'Paused', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.15)' },
+        { id: 'closed', label: 'Closed', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)' },
+      ].map((opt) => {
+        const isActive = status === opt.id;
+        return (
+          <button
+            key={opt.id}
+            type="button"
+            disabled={updating}
+            onClick={() => onChange(opt.id)}
+            style={{
+              padding: '4px 10px',
+              borderRadius: '6px',
+              border: 'none',
+              cursor: updating ? 'not-allowed' : 'pointer',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              background: isActive ? opt.bg : 'transparent',
+              color: isActive ? opt.color : 'var(--text-muted)',
+              transition: 'all 0.15s ease',
+              opacity: updating ? 0.6 : 1,
+            }}
+          >
+            {isActive && <span style={{ marginRight: '4px' }}>●</span>}
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
 export default function AdminMegaEventPage() {
   const { eventId } = useParams();
   const event = megaEvents[eventId];
@@ -67,6 +116,8 @@ export default function AdminMegaEventPage() {
   const adminEmail = session?.user?.email || 'unknown';
 
   const [teams, setTeams] = useState([]);
+  const [eventRecord, setEventRecord] = useState(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
 
@@ -101,19 +152,48 @@ export default function AdminMegaEventPage() {
     setFetchError(null);
 
     try {
-      const { data, error } = await supabase
-        .from('teams')
-        .select('*, team_members(*), payments(*)')
-        .eq('event_slug', eventId)
-        .order('created_at', { ascending: false });
+      const [{ data: tData, error: tErr }, { data: evData, error: evErr }] = await Promise.all([
+        supabase
+          .from('teams')
+          .select('*, team_members(*), payments(*)')
+          .eq('event_slug', eventId)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('events')
+          .select('*')
+          .eq('slug', eventId)
+          .maybeSingle(),
+      ]);
 
-      if (error) throw error;
-      setTeams(data || []);
+      if (tErr) throw tErr;
+      if (evErr) console.warn('Events fetch error:', evErr);
+
+      setTeams(tData || []);
+      if (evData) setEventRecord(evData);
     } catch (err) {
       console.error('AdminMegaEventPage fetch error:', err);
       setFetchError(err.message || 'Failed to load mega event team registrations');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateEventStatus = async (newStatus) => {
+    setUpdatingStatus(true);
+    try {
+      const { error } = await supabase
+        .from('events')
+        .update({ registration_status: newStatus })
+        .eq('slug', eventId);
+
+      if (error) throw error;
+      setEventRecord((prev) => (prev ? { ...prev, registration_status: newStatus } : prev));
+      await writeAuditLog('UPDATE_EVENT_STATUS', 'events', eventId, null, { slug: eventId, registration_status: newStatus });
+    } catch (err) {
+      console.error('Failed to update event status:', err);
+      alert('Failed to update status: ' + (err.message || 'Unknown error'));
+    } finally {
+      setUpdatingStatus(false);
     }
   };
 
@@ -387,6 +467,11 @@ export default function AdminMegaEventPage() {
         </div>
 
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <EventStatusSelector
+            currentStatus={eventRecord?.registration_status || (eventRecord?.is_open === false ? 'closed' : 'open')}
+            updating={updatingStatus}
+            onChange={(st) => handleUpdateEventStatus(st)}
+          />
           <button
             type="button"
             className="btn-details"
@@ -901,8 +986,11 @@ export default function AdminMegaEventPage() {
                                           <td style={{ padding: '8px 12px', fontWeight: 600, color: 'var(--text)' }}>
                                             {m.name}
                                           </td>
+                                          <td style={{ padding: '8px 12px', color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>
+                                            {m.semester ? `Sem ${m.semester}` : '—'}{m.section ? ` (${m.section})` : ''}
+                                          </td>
                                           <td style={{ padding: '8px 12px' }}>
-                                            <code>{m.usn}</code>
+                                            {m.usn ? <code>{m.usn}</code> : (m.roll_number ? <span style={{ color: 'var(--text)' }}>Roll: {m.roll_number}</span> : '—')}
                                           </td>
                                           <td style={{ padding: '8px 12px' }}>
                                             {m.dept ? (
@@ -915,7 +1003,7 @@ export default function AdminMegaEventPage() {
                                                 border: '1px solid var(--bg-card-border)',
                                                 color: 'var(--text)',
                                               }}>
-                                                {m.dept}
+                                                {m.cycle ? `${m.cycle} · ` : ''}{m.dept}
                                               </span>
                                             ) : (
                                               <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>—</span>

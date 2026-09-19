@@ -9,6 +9,7 @@ import {
 } from '../lib/validators';
 import {
   getEventConfig,
+  getSiteSettings,
   checkTeamNameAvailability,
   submitRegistration,
 } from '../lib/registrationService';
@@ -98,8 +99,11 @@ export default function RegisterPage() {
   const lockedDept = event.lockedDepartment;
   const lockedDeptFullName = lockedDept ? (DEPT_FULL_NAMES[lockedDept.id] || lockedDept.name) : '';
 
-  // Supabase event config state
+  // Supabase event config & site settings state
   const [eventConfig, setEventConfig] = useState(null);
+  const [siteSettings, setSiteSettings] = useState(null);
+  const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 768 : false));
+
   const [form, setForm] = useState(() => ({
     ...EMPTY_FORM,
     dept: lockedDeptFullName || '',
@@ -121,6 +125,13 @@ export default function RegisterPage() {
   const maxMembers = slug === 'treasure-hunt' ? 3 : (eventConfig?.team_max || event.teamMax || (isTeam ? 4 : 1));
   const maxAdditional = maxMembers - 1;
 
+  // Track viewport size for responsive mobile links
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     document.title = `Register for ${event.eventTitle} | DBIT HexaVerse CloudFest '26`;
     window.scrollTo(0, 0);
@@ -140,15 +151,21 @@ export default function RegisterPage() {
     let isMounted = true;
     async function loadEvent() {
       try {
-        const data = await getEventConfig(slug);
-        if (isMounted && data) {
-          setEventConfig(data);
-          if (data.is_team && data.team_min) {
-            const neededAddl = Math.max(0, data.team_min - 1);
-            setMembers(Array.from({ length: neededAddl }, () => ({
-              ...EMPTY_MEMBER,
-              dept: lockedDeptFullName || '',
-            })));
+        const [data, settings] = await Promise.all([
+          getEventConfig(slug),
+          getSiteSettings(),
+        ]);
+        if (isMounted) {
+          if (settings) setSiteSettings(settings);
+          if (data) {
+            setEventConfig(data);
+            if (data.is_team && data.team_min) {
+              const neededAddl = Math.max(0, data.team_min - 1);
+              setMembers(Array.from({ length: neededAddl }, () => ({
+                ...EMPTY_MEMBER,
+                dept: lockedDeptFullName || '',
+              })));
+            }
           }
         }
       } catch (err) {
@@ -158,6 +175,74 @@ export default function RegisterPage() {
     loadEvent();
     return () => { isMounted = false; };
   }, [eventId, slug, lockedDeptFullName, event.eventTitle]);
+
+  // Compute effective status: global override takes precedence over per-event status
+  const effectiveStatus = (siteSettings?.global_override && siteSettings.global_override !== 'none')
+    ? siteSettings.global_override
+    : (eventConfig?.registration_status || (eventConfig?.is_open === false ? 'closed' : 'open'));
+
+  // Data-driven closure configuration lookup
+  const getClosedGateDetails = () => {
+    const isGlobalClosed = siteSettings?.global_override === 'closed';
+    if (isGlobalClosed) {
+      return {
+        title: 'Registrations Temporarily Closed',
+        message: 'Registrations are currently closed for maintenance. Please check back later.',
+        cta: null,
+      };
+    }
+
+    const EVENT_CLOSED_MAP = {
+      'treasure-hunt': {
+        title: 'Registrations Closed',
+        message: 'Registrations are closed for The Convergence (Treasure Hunt).',
+        cta: {
+          label: 'Look forward to Mega Event 2 and Mega Event 3!',
+          to: '/#events', // TODO: link to /#events for now (Hackathon route is commented out in EventsPreview.jsx) — revisit once Hackathon has a live route.
+        },
+      },
+      'hackathon': {
+        title: 'Registrations Closed',
+        message: 'Registrations are closed for the Hackathon.',
+        cta: {
+          label: "Check out Mega Event 3 — it'll be live by then!",
+          to: '/#events', // TODO: link to /#events for now (Mega Event 3 doesn't have a slug/route/DB row yet at all) — revisit once it's built.
+        },
+      },
+      // Placeholder for future Mega Event 3
+      'mega-event-3': {
+        title: 'HexaVerse Concluded',
+        message: 'HexaVerse is over. See you at the valedictory ceremony!',
+        cta: null,
+      },
+    };
+
+    if (EVENT_CLOSED_MAP[slug]) {
+      return EVENT_CLOSED_MAP[slug];
+    }
+
+    if (isWorkshop) {
+      const deptId = lockedDept?.id || '';
+      return {
+        title: 'Sorry, Just missed!',
+        message: `Registrations are closed for ${event.eventTitle || 'this workshop'}.`,
+        cta: {
+          label: 'Check out our signature event!',
+          to: isMobile ? `/departments/${deptId}?tab=event` : `/departments/${deptId}`,
+        },
+      };
+    }
+
+    // Department signature event closed
+    return {
+      title: 'Registrations Closed',
+      message: `Registrations are closed for ${event.eventTitle || 'this event'}.`,
+      cta: {
+        label: 'Check out the Mega Events!',
+        to: '/#events',
+      },
+    };
+  };
 
   // Derived: semester checks for lead
   const sem = Number(form.semester);
@@ -797,9 +882,106 @@ export default function RegisterPage() {
           )}
 
           {/* ══════════════════════════════════════════════════════
+              STEP: PAUSED OR CLOSED GATE (Full page message)
+              ══════════════════════════════════════════════════════ */}
+          {(effectiveStatus === 'paused' || effectiveStatus === 'closed') && step !== 'payment_checkout' && step !== 'verifying_payment' && step !== 'success' && (
+            <ScrollReveal className="mega-card" style={{ textAlign: 'center', padding: '60px 40px' }}>
+              {effectiveStatus === 'paused' ? (
+                <>
+                  <div style={{ fontSize: '3.5rem', color: '#f59e0b', marginBottom: '16px' }}>
+                    <FiAlertTriangle />
+                  </div>
+                  <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', marginBottom: '12px', color: 'var(--text)' }}>
+                    Registrations Paused
+                  </h2>
+                  <p style={{ color: 'var(--text-dim)', fontSize: '1.05rem', maxWidth: '560px', margin: '0 auto 24px', lineHeight: 1.6 }}>
+                    Registrations have been paused temporarily. Check back in a while, sorry for the inconvenience.
+                  </p>
+                  <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <Link to="/" className="btn-dept-register" style={{ textDecoration: 'none', padding: '12px 28px' }}>
+                      Return to Home
+                    </Link>
+                    {lockedDept && (
+                      <Link
+                        to={`/departments/${lockedDept.id}`}
+                        className="btn-dept-register"
+                        style={{
+                          textDecoration: 'none',
+                          padding: '12px 28px',
+                          background: 'var(--bg-card)',
+                          border: '1px solid var(--bg-card-border)',
+                          color: 'var(--text)',
+                        }}
+                      >
+                        Back to Department
+                      </Link>
+                    )}
+                  </div>
+                </>
+              ) : (
+                (() => {
+                  const details = getClosedGateDetails();
+                  return (
+                    <>
+                      <div style={{ fontSize: '3.5rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
+                        <FiLock />
+                      </div>
+                      <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', marginBottom: '12px', color: 'var(--text)' }}>
+                        {details.title}
+                      </h2>
+                      <p style={{ color: 'var(--text-dim)', fontSize: '1.05rem', maxWidth: '560px', margin: '0 auto 24px', lineHeight: 1.6 }}>
+                        {details.message}
+                      </p>
+                      <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                        {details.cta && (
+                          <Link
+                            to={details.cta.to}
+                            className="btn-dept-register"
+                            style={{ textDecoration: 'none', padding: '12px 28px' }}
+                          >
+                            {details.cta.label}
+                          </Link>
+                        )}
+                        <Link
+                          to="/"
+                          className="btn-dept-register"
+                          style={{
+                            textDecoration: 'none',
+                            padding: '12px 28px',
+                            background: details.cta ? 'var(--bg-card)' : undefined,
+                            border: details.cta ? '1px solid var(--bg-card-border)' : undefined,
+                            color: details.cta ? 'var(--text)' : undefined,
+                          }}
+                        >
+                          Return to Home
+                        </Link>
+                        {lockedDept && !details.cta && (
+                          <Link
+                            to={`/departments/${lockedDept.id}`}
+                            className="btn-dept-register"
+                            style={{
+                              textDecoration: 'none',
+                              padding: '12px 28px',
+                              background: 'var(--bg-card)',
+                              border: '1px solid var(--bg-card-border)',
+                              color: 'var(--text)',
+                            }}
+                          >
+                            Back to Department
+                          </Link>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()
+              )}
+            </ScrollReveal>
+          )}
+
+          {/* ══════════════════════════════════════════════════════
               STEP: REGISTRATION FORM
               ══════════════════════════════════════════════════════ */}
-          {(step === 'form' || step === 'submitting') && (
+          {effectiveStatus === 'open' && (step === 'form' || step === 'submitting') && (
             <>
               {/* Event Overview Summary Card */}
               <ScrollReveal className="mega-card" style={{ marginBottom: '32px', padding: '28px 32px' }}>

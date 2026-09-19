@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams, Navigate } from 'react-router-dom';
+import { Link, useParams, useSearchParams, Navigate } from 'react-router-dom';
 import { departments } from '../data/departments';
 import Nav from '../components/Nav';
 import Footer from '../components/Footer';
@@ -16,8 +16,12 @@ import RichText from '../components/RichText';
  */
 export default function DepartmentPage() {
   const { deptId } = useParams();
+  const [searchParams] = useSearchParams();
   const dept = departments[deptId];
-  const [activeTab, setActiveTab] = useState('Workshop');
+  const initialTab = searchParams.get('tab') === 'event' || searchParams.get('tab') === 'signature'
+    ? 'Signature Event'
+    : 'Workshop';
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   // 404 if unknown dept id
   if (!dept) return <Navigate to="/" replace />;
@@ -28,8 +32,13 @@ export default function DepartmentPage() {
     if (meta) meta.setAttribute('content', dept.metaDesc);
     // Scroll to top on dept page load
     window.scrollTo(0, 0);
-    setActiveTab('Workshop');
-  }, [dept]);
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'event' || tabParam === 'signature') {
+      setActiveTab('Signature Event');
+    } else {
+      setActiveTab('Workshop');
+    }
+  }, [dept, searchParams]);
 
   return (
     // --dept-accent scoped to this page, same as original body style="--dept-accent:var(--cse);"

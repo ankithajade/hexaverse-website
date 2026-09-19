@@ -70,6 +70,55 @@ const StatCard = ({ label, value, color, subtitle }) => (
   </div>
 );
 
+const EventStatusSelector = ({ currentStatus, updating, onChange }) => {
+  const status = currentStatus || 'open';
+  return (
+    <div style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '4px',
+      background: 'var(--bg)',
+      border: '1px solid var(--bg-card-border)',
+      padding: '3px',
+      borderRadius: '8px',
+    }}>
+      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, padding: '0 6px' }}>
+        Registration:
+      </span>
+      {[
+        { id: 'open', label: 'Open', color: '#10b981', bg: 'rgba(16, 185, 129, 0.15)' },
+        { id: 'paused', label: 'Paused', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.15)' },
+        { id: 'closed', label: 'Closed', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)' },
+      ].map((opt) => {
+        const isActive = status === opt.id;
+        return (
+          <button
+            key={opt.id}
+            type="button"
+            disabled={updating}
+            onClick={() => onChange(opt.id)}
+            style={{
+              padding: '4px 10px',
+              borderRadius: '6px',
+              border: 'none',
+              cursor: updating ? 'not-allowed' : 'pointer',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              background: isActive ? opt.bg : 'transparent',
+              color: isActive ? opt.color : 'var(--text-muted)',
+              transition: 'all 0.15s ease',
+              opacity: updating ? 0.6 : 1,
+            }}
+          >
+            {isActive && <span style={{ marginRight: '4px' }}>●</span>}
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
 export default function AdminDepartmentPage() {
   const { deptId } = useParams();
   const dept = departments[deptId];
@@ -115,6 +164,11 @@ export default function AdminDepartmentPage() {
   const [bulkDeleteWorkshopInProgress, setBulkDeleteWorkshopInProgress] = useState(false);
   const [bulkDeleteWorkshopError, setBulkDeleteWorkshopError] = useState('');
 
+  // Event config & registration status state
+  const [workshopEvent, setWorkshopEvent] = useState(null);
+  const [signatureEvent, setSignatureEvent] = useState(null);
+  const [updatingStatusSlug, setUpdatingStatusSlug] = useState(null);
+
   const workshopSlug = `${deptId}-workshop`;
   const signatureSlug = `${deptId}-event`;
 
@@ -126,7 +180,7 @@ export default function AdminDepartmentPage() {
     setFetchError(null);
 
     try {
-      const [{ data: wData, error: wErr }, { data: tData, error: tErr }] = await Promise.all([
+      const [{ data: wData, error: wErr }, { data: tData, error: tErr }, { data: evData, error: evErr }] = await Promise.all([
         supabase
           .from('workshop_registrations')
           .select('*')
@@ -137,18 +191,53 @@ export default function AdminDepartmentPage() {
           .select('*, team_members(*), payments(*)')
           .eq('event_slug', signatureSlug)
           .order('created_at', { ascending: false }),
+        supabase
+          .from('events')
+          .select('*')
+          .in('slug', [workshopSlug, signatureSlug]),
       ]);
 
       if (wErr) console.error('Error fetching workshop data:', wErr);
       if (tErr) console.error('Error fetching teams data:', tErr);
+      if (evErr) console.error('Error fetching events data:', evErr);
 
       setWorkshops(wData || []);
       setTeams(tData || []);
+
+      const wEv = evData?.find((e) => e.slug === workshopSlug) || null;
+      const sEv = evData?.find((e) => e.slug === signatureSlug) || null;
+      setWorkshopEvent(wEv);
+      setSignatureEvent(sEv);
     } catch (err) {
       console.error('AdminDepartmentPage fetch error:', err);
       setFetchError(err.message || 'Failed to load department registrations');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateEventStatus = async (slug, newStatus) => {
+    setUpdatingStatusSlug(slug);
+    try {
+      const { error } = await supabase
+        .from('events')
+        .update({ registration_status: newStatus })
+        .eq('slug', slug);
+
+      if (error) throw error;
+
+      if (slug === workshopSlug) {
+        setWorkshopEvent((prev) => (prev ? { ...prev, registration_status: newStatus } : prev));
+      } else if (slug === signatureSlug) {
+        setSignatureEvent((prev) => (prev ? { ...prev, registration_status: newStatus } : prev));
+      }
+
+      await writeAuditLog('UPDATE_EVENT_STATUS', 'events', slug, null, { slug, registration_status: newStatus });
+    } catch (err) {
+      console.error('Failed to update event status:', err);
+      alert('Failed to update status: ' + (err.message || 'Unknown error'));
+    } finally {
+      setUpdatingStatusSlug(null);
     }
   };
 
@@ -703,8 +792,13 @@ export default function AdminDepartmentPage() {
                 </div>
               </div>
 
-              {/* Search & Export */}
+              {/* Status Selector, Search & Export */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <EventStatusSelector
+                  currentStatus={workshopEvent?.registration_status || (workshopEvent?.is_open === false ? 'closed' : 'open')}
+                  updating={updatingStatusSlug === workshopSlug}
+                  onChange={(status) => handleUpdateEventStatus(workshopSlug, status)}
+                />
                 <input
                   type="text"
                   placeholder="Search name, USN, email..."
@@ -995,6 +1089,11 @@ export default function AdminDepartmentPage() {
 
               {/* Actions & Search */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <EventStatusSelector
+                  currentStatus={signatureEvent?.registration_status || (signatureEvent?.is_open === false ? 'closed' : 'open')}
+                  updating={updatingStatusSlug === signatureSlug}
+                  onChange={(status) => handleUpdateEventStatus(signatureSlug, status)}
+                />
                 <input
                   type="text"
                   placeholder="Search team, ID, member..."

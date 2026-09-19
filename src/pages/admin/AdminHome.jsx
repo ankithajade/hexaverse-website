@@ -73,6 +73,8 @@ export default function AdminHome() {
 
   const [workshops, setWorkshops] = useState([]);
   const [teams, setTeams] = useState([]);
+  const [siteSettings, setSiteSettings] = useState(null);
+  const [updatingOverride, setUpdatingOverride] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // CSV export state (carried over from old dashboard — all events)
@@ -85,16 +87,54 @@ export default function AdminHome() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [{ data: wData }, { data: tData }] = await Promise.all([
+      const [{ data: wData }, { data: tData }, { data: sData }] = await Promise.all([
         supabase.from('workshop_registrations').select('*').order('created_at', { ascending: false }),
         supabase.from('teams').select('*, team_members(*), payments(*)').order('created_at', { ascending: false }),
+        supabase.from('site_settings').select('*').eq('id', 1).maybeSingle(),
       ]);
       setWorkshops(wData || []);
       setTeams(tData || []);
+      if (sData) setSiteSettings(sData);
     } catch (err) {
       console.error('AdminHome fetch error:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateGlobalOverride = async (newOverride) => {
+    if (newOverride !== 'none') {
+      const confirmed = window.confirm(
+        `Are you sure you want to set global maintenance override to "${newOverride.toUpperCase()}"? This will block registrations across ALL events site-wide.`
+      );
+      if (!confirmed) return;
+    }
+    setUpdatingOverride(true);
+    try {
+      const { error } = await supabase
+        .from('site_settings')
+        .update({ global_override: newOverride })
+        .eq('id', 1);
+
+      if (error) throw error;
+
+      setSiteSettings((prev) => (prev ? { ...prev, global_override: newOverride } : { id: 1, global_override: newOverride }));
+
+      const adminEmail = session?.user?.email || 'admin';
+      await supabase.from('admin_audit_log').insert({
+        admin_email: adminEmail,
+        action: 'UPDATE_GLOBAL_OVERRIDE',
+        table_name: 'site_settings',
+        record_id: '1',
+        before: siteSettings,
+        after: { global_override: newOverride },
+        reason: `Admin updated global override to ${newOverride}`,
+      });
+    } catch (err) {
+      console.error('Failed to update global override:', err);
+      alert('Failed to update global maintenance mode: ' + (err.message || 'Unknown error'));
+    } finally {
+      setUpdatingOverride(false);
     }
   };
 
@@ -215,10 +255,132 @@ export default function AdminHome() {
         </div>
       </div>
 
+      {/* ── Global Maintenance Override Banner ── */}
+      {siteSettings?.global_override && siteSettings.global_override !== 'none' && (
+        <div style={{
+          background: siteSettings.global_override === 'paused' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+          border: `1px solid ${siteSettings.global_override === 'paused' ? '#f59e0b' : '#ef4444'}`,
+          color: siteSettings.global_override === 'paused' ? '#d97706' : '#dc2626',
+          padding: '14px 20px',
+          borderRadius: '10px',
+          marginBottom: '24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          fontWeight: 600,
+          fontSize: '0.92rem',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '1.2rem' }}>⚠</span>
+            <span>
+              <strong>Global maintenance override is ON ({siteSettings.global_override.toUpperCase()})</strong> — all registrations are blocked site-wide regardless of individual event settings.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => handleUpdateGlobalOverride('none')}
+            disabled={updatingOverride}
+            className="btn-details"
+            style={{
+              fontSize: '0.8rem',
+              padding: '6px 14px',
+              background: 'var(--bg)',
+              borderColor: 'currentColor',
+            }}
+          >
+            Resume Normal Operation
+          </button>
+        </div>
+      )}
+
       {loading ? (
         <p style={{ color: 'var(--text-dim)' }}>Loading data…</p>
       ) : (
         <>
+          {/* ── Emergency Maintenance Override Section ── */}
+          <div style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--bg-card-border)',
+            borderRadius: '12px',
+            padding: '20px 24px',
+            marginBottom: '32px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px',
+          }}>
+            <div>
+              <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.06em', marginBottom: '4px' }}>
+                Site-wide Controls
+              </div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text)' }}>
+                Emergency Maintenance Override
+              </div>
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginTop: '2px', maxWidth: '560px' }}>
+                Override all registrations instantly without modifying per-event statuses. When resumed, each event returns to its individual setting.
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => handleUpdateGlobalOverride('paused')}
+                disabled={updatingOverride || siteSettings?.global_override === 'paused'}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: '1px solid #f59e0b',
+                  background: siteSettings?.global_override === 'paused' ? '#f59e0b' : 'rgba(245, 158, 11, 0.1)',
+                  color: siteSettings?.global_override === 'paused' ? '#000' : '#f59e0b',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  cursor: updatingOverride || siteSettings?.global_override === 'paused' ? 'default' : 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {siteSettings?.global_override === 'paused' ? '● All Paused' : 'Pause All Registrations'}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleUpdateGlobalOverride('closed')}
+                disabled={updatingOverride || siteSettings?.global_override === 'closed'}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: '1px solid #ef4444',
+                  background: siteSettings?.global_override === 'closed' ? '#ef4444' : 'rgba(239, 68, 68, 0.1)',
+                  color: siteSettings?.global_override === 'closed' ? '#fff' : '#ef4444',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  cursor: updatingOverride || siteSettings?.global_override === 'closed' ? 'default' : 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {siteSettings?.global_override === 'closed' ? '● All Closed' : 'Close All Registrations'}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleUpdateGlobalOverride('none')}
+                disabled={updatingOverride || siteSettings?.global_override === 'none' || !siteSettings?.global_override}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--bg-card-border)',
+                  background: (!siteSettings?.global_override || siteSettings?.global_override === 'none') ? 'rgba(16, 185, 129, 0.15)' : 'var(--bg)',
+                  color: (!siteSettings?.global_override || siteSettings?.global_override === 'none') ? '#10b981' : 'var(--text)',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  cursor: updatingOverride || (!siteSettings?.global_override || siteSettings?.global_override === 'none') ? 'default' : 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {(!siteSettings?.global_override || siteSettings?.global_override === 'none') ? '● Normal Operation' : 'Resume Normal Operation'}
+              </button>
+            </div>
+          </div>
+
           {/* ── Stat Cards ── */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '32px' }}>
             <StatCard label="Total Registrations" value={totalWorkshops + totalTeams} color="var(--text)" />
