@@ -62,8 +62,8 @@ export default function CubeSection() {
               colour, and contribution. Together, all six sides form one complete, unified experience.
             </p>
             <p>
-              A physical cube installation will live on campus throughout the series &mdash; collecting
-              signatures, photographs, doodles, QR codes, and memories from every participant.
+              A physical cube installation will live on campus throughout the series - becoming a visual landmark for HexaVerse. 
+              Capture your moments with it, tag us @awssbg_dbit, and be part of the story!
             </p>
 
             <div className="cube-stats">

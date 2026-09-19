@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { to: '/#events',      label: 'Events' },
   { to: '/#cube',        label: 'The Cube' },
   { to: '/#departments', label: 'Departments' },
+  { to: '/#gallery',     label: 'Gallery' },
   { to: '/#contact',     label: 'Contact' },
 ];
 

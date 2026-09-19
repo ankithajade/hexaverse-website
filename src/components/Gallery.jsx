@@ -10,8 +10,7 @@ const GALLERY_IMAGES = [
   '/gallery/p4.JPG',
   '/gallery/p5.JPG',
   '/gallery/p6.JPG',
-  '/gallery/p7.jpeg',
-  '/gallery/p8.JPG',
+  '/gallery/p7.JPG',
 ];
 
 const prefersReducedMotion =
