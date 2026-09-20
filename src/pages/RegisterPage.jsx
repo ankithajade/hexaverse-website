@@ -997,7 +997,7 @@ export default function RegisterPage() {
                       {event.dates} {event.venue ? `· ${event.venue}` : ''}
                     </p>
                   </div>
-                  <div style={{ textAlign: 'right', minWidth: '140px' }}>
+                  <div className="reg-fee-block">
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                       Registration Fee
                     </div>

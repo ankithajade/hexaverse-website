@@ -2248,6 +2248,23 @@ body {
   }
 }
 
+/* ─── REGISTRATION FEE BLOCK (OVERVIEW CARD) ─── */
+.reg-fee-block {
+  text-align: right;
+  min-width: 140px;
+}
+
+@media (max-width: 600px) {
+  .reg-fee-block {
+    text-align: left;
+    min-width: 0;
+    width: 100%;
+    margin-top: 4px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--bg-card-border);
+  }
+}
+
 /* ─── PREFERS REDUCED MOTION ─── */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
