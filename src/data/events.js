@@ -4,7 +4,7 @@
 export const events = {
   'treasure-hunt': {
     id: 'treasure-hunt',
-    title: 'The Convergence',
+    title: 'The Convergence: Campus Wide Treasure Hunt',
     cssVar: 'var(--mega-accent)',
     badge: 'Mega Event',
     dates: '26 September 2026',
