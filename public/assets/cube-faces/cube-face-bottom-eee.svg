@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+  <defs>
+    <filter id="inset-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feOffset dx="0" dy="0"/>
+      <feGaussianBlur stdDeviation="30" result="offset-blur"/>
+      <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/>
+      <feFlood flood-color="#000000" flood-opacity="0.2" result="color"/>
+      <feComposite operator="in" in="color" in2="inverse" result="shadow"/>
+      <feComposite operator="over" in="shadow" in2="SourceGraphic"/>
+    </filter>
+  </defs>
+
+  <!-- Background with pastel tint matching color-mix(in srgb, var(--eee) 38%, #ffffff) -->
+  <rect width="1000" height="1000" rx="20" ry="20" fill="#FFD89E" stroke="#FFB852" stroke-width="8"/>
+  <rect width="1000" height="1000" rx="20" ry="20" fill="none" filter="url(#inset-shadow)"/>
+
+  <!-- EEE Department Logo (Scaled & Centered) -->
+  <g transform="translate(60, 60) scale(0.561)" opacity="0.92">
+    <path d="M0 0 C57.42 0 114.84 0 174 0 C174 56.76 174 113.52 174 172 C230.43 172 286.86 172 345 172 C345 115.24 345 58.48 345 0 C403.08 0 461.16 0 521 0 C521 56.76 521 113.52 521 172 C577.43 172 633.86 172 692 172 C692 115.24 692 58.48 692 0 C749.42 0 806.84 0 866 0 C866 113.85 866 227.7 866 345 C979.85 345 1093.7 345 1211 345 C1211 402.42 1211 459.84 1211 519 C1154.24 519 1097.48 519 1039 519 C1039 575.43 1039 631.86 1039 690 C1095.76 690 1152.52 690 1211 690 C1211 748.08 1211 806.16 1211 866 C1154.24 866 1097.48 866 1039 866 C1039 922.43 1039 978.86 1039 1037 C1095.76 1037 1152.52 1037 1211 1037 C1211 1094.42 1211 1151.84 1211 1211 C1097.15 1211 983.3 1211 866 1211 C866 1324.85 866 1438.7 866 1556 C808.58 1556 751.16 1556 692 1556 C692 1499.24 692 1442.48 692 1384 C635.57 1384 579.14 1384 521 1384 C521 1440.76 521 1497.52 521 1556 C462.92 1556 404.84 1556 345 1556 C345 1499.24 345 1442.48 345 1384 C288.57 1384 232.14 1384 174 1384 C174 1440.76 174 1497.52 174 1556 C116.58 1556 59.16 1556 0 1556 C0 1442.15 0 1328.3 0 1211 C-113.85 1211 -227.7 1211 -345 1211 C-345 1153.58 -345 1096.16 -345 1037 C-288.24 1037 -231.48 1037 -173 1037 C-173 980.57 -173 924.14 -173 866 C-229.76 866 -286.52 866 -345 866 C-345 807.92 -345 749.84 -345 690 C-288.24 690 -231.48 690 -173 690 C-173 633.57 -173 577.14 -173 519 C-229.76 519 -286.52 519 -345 519 C-345 461.58 -345 404.16 -345 345 C-231.15 345 -117.3 345 0 345 C0 231.15 0 117.3 0 0 Z M2 347 C2 631.46 2 915.92 2 1209 C286.46 1209 570.92 1209 864 1209 C864 924.54 864 640.08 864 347 C579.54 347 295.08 347 2 347 Z " fill="#FE9900" transform="translate(354,8)"/>
+  </g>
+
+  <!-- Department Name Text Overlay -->
+  <text x="500" y="525" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-weight="800" font-size="96" fill="#12242B" letter-spacing="2">EEE</text>
+</svg>
