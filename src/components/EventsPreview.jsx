@@ -27,7 +27,7 @@ export default function EventsPreview() {
           {/* Treasure Hunt */}
           <div className="mega-card">
             <div className="mega-card-label">After Week 1</div>
-            <h4>The Convergence</h4>
+            <h4>The Convergence - Treasure Hunt</h4>
             <p>Cross-campus challenge blending logic, teamwork, and tech.</p>
             <div className="mega-card-date">26 Sept 2026</div>
             <div className="mega-card-badges">
