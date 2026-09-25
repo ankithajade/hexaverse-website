@@ -16,6 +16,9 @@ export default function Footer({ accentColor }) {
           AWS Student Builder Group &middot; Don Bosco Institute of Technology
         </p>
         <p style={{ marginTop: '4px' }}>&copy; 2026 &mdash; All rights reserved</p>
+        <p style={{ marginTop: '10px', fontSize: '0.8rem', opacity: 0.75 }}>
+          Developed by Sadhana S &amp; Ankitha Jade
+        </p>
       </div>
     </footer>
   );

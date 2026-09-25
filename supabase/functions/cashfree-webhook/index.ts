@@ -275,12 +275,37 @@ serve(async (req) => {
       });
     }
 
-    // 8. Other non-terminal events (e.g. USER_DROPPED, PENDING)
+    // 8. Treat drop/cancel as a terminal failure — otherwise it sits 'pending'
+    // for the full 30-min grace window and blocks retries for no reason.
+    const terminalNegative = ['USER_DROPPED', 'CANCELLED', 'VOID'];
+    const isTerminalNegative =
+      eventType === 'PAYMENT_USER_DROPPED_WEBHOOK' ||
+      eventType === 'PAYMENT_CANCELLED_WEBHOOK' ||
+      terminalNegative.includes((paymentStatus || '').toUpperCase());
+
+    if (isTerminalNegative) {
+      await supabase
+        .from('payments')
+        .update({ status: 'failed', raw_webhook_payload: payload })
+        .eq('id', payment.id);
+
+      if (payment.registration_type === 'team') {
+        await supabase
+          .from('teams')
+          .update({ payment_status: 'failed' })
+          .eq('id', payment.registration_id);
+      }
+
+      return new Response(JSON.stringify({ received: true, status: 'failed', reason: eventType || paymentStatus }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // 9. Genuinely non-terminal events (e.g. PENDING) — log only, leave status alone
     await supabase
       .from('payments')
-      .update({
-        raw_webhook_payload: payload,
-      })
+      .update({ raw_webhook_payload: payload })
       .eq('id', payment.id);
 
     return new Response(JSON.stringify({ received: true }), {

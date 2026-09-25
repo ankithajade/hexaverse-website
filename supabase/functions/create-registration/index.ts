@@ -555,6 +555,40 @@ serve(async (req) => {
       }
     }
 
+    // Per-member USN duplicate check against OTHER teams in this event.
+    // Mirrors the team-name cleanup above, but for individual members —
+    // without this, a stale/failed team's USNs can never be reused.
+    if (event.is_team !== false) {
+      const usnsToCheck = Array.from(new Set(
+        members.map((m: any) => (m.usn ? m.usn.trim().toUpperCase() : null)).filter(Boolean)
+      )) as string[];
+
+      if (usnsToCheck.length > 0) {
+        const { data: existingMemberRows } = await supabase
+          .from('team_members')
+          .select('usn, teams!inner(id, event_slug, payment_status, created_at)')
+          .eq('teams.event_slug', event_slug)
+          .in('usn', usnsToCheck);
+
+        const staleTeamIds = new Set<string>();
+        for (const row of existingMemberRows || []) {
+          const teamRow = (row as any).teams;
+          if (!teamRow) continue;
+          const verdict = classifyTeam(teamRow);
+          if (verdict === 'block') {
+            return new Response(JSON.stringify({
+              error: `USN ${row.usn} is already registered in another team for this event`,
+            }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+          }
+          staleTeamIds.add(teamRow.id);
+        }
+        for (const staleId of staleTeamIds) {
+          const { data: staleTeam } = await supabase.from('teams').select('*').eq('id', staleId).maybeSingle();
+          if (staleTeam) await cleanupStaleTeam(staleTeam);
+        }
+      }
+    }
+
     // Server-side fee computation (never trust client fee!)
     const amount_expected = Number(event.fee_per_head) * totalMembers;
 

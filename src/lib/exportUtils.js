@@ -47,6 +47,12 @@ export function csvRow(values) {
   return values.map(csvCell).join(',') + '\n';
 }
 
+// Excel sheet names can't contain: * ? : \ / [ ] — and must be ≤31 chars
+export function safeSheetName(name) {
+  const cleaned = String(name || 'Sheet').replace(/[*?:\\/[\]]/g, '-').trim();
+  return (cleaned || 'Sheet').slice(0, 31);
+}
+
 // ── Trigger a file download in the browser ──
 export function triggerDownload(blob, filename) {
   const url = window.URL.createObjectURL(blob);
@@ -251,7 +257,7 @@ function applyHeader(ws, cols, headerArgb, fontArgb = 'FFFFFFFF') {
  * @param {string} headerArgb
  */
 export function addTeamDetailSheet(wb, sheetName, teams, headerArgb) {
-  const ws = wb.addWorksheet(sheetName.slice(0, 31));
+  const ws = wb.addWorksheet(safeSheetName(sheetName));
   applyHeader(ws, TEAM_COLS, headerArgb);
 
   const flatRows = flattenTeams(teams);
@@ -333,7 +339,7 @@ export function addTeamDetailSheet(wb, sheetName, teams, headerArgb) {
  * Add a team summary worksheet (one row per team).
  */
 export function addTeamSummarySheet(wb, sheetName, teams, headerArgb) {
-  const ws = wb.addWorksheet(sheetName.slice(0, 31));
+  const ws = wb.addWorksheet(safeSheetName(sheetName));
   applyHeader(ws, SUMMARY_COLS, headerArgb);
 
   for (const t of teams) {
@@ -357,7 +363,7 @@ export function addTeamSummarySheet(wb, sheetName, teams, headerArgb) {
  * Add a workshop detail worksheet (one row per registrant).
  */
 export function addWorkshopSheet(wb, sheetName, workshops, headerArgb) {
-  const ws = wb.addWorksheet(sheetName.slice(0, 31));
+  const ws = wb.addWorksheet(safeSheetName(sheetName));
   applyHeader(ws, WORKSHOP_COLS, headerArgb);
 
   for (const w of workshops) {
