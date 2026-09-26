@@ -57,6 +57,8 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    const cashfreeAppId = Deno.env.get('CASHFREE_APP_ID') || '';
+    const cashfreeSecretKey = Deno.env.get('CASHFREE_SECRET_KEY') || '';
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await req.json();
@@ -462,14 +464,64 @@ serve(async (req) => {
       }
     }
 
-    // Helper: decide whether a matched team row is a real duplicate, stale, or failed.
-    // Returns 'block' | 'cleanup' (stale/failed — caller should delete) | 'pass' (no match).
-    const classifyTeam = (teamRow: any): 'block' | 'cleanup' => {
-      if (!teamRow) return 'cleanup'; // shouldn't happen but be safe
+    async function checkCashfreeOrderStatus(
+      teamRow: any,
+      supabase: any,
+      cashfreeAppId: string,
+      cashfreeSecretKey: string
+    ): Promise<'PAID' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED' | 'UNKNOWN'> {
+      if (!teamRow.payment_ref) return 'UNKNOWN';
+      const { data: payment } = await supabase
+        .from('payments')
+        .select('gateway_order_id')
+        .eq('id', teamRow.payment_ref)
+        .single();
+      if (!payment?.gateway_order_id) return 'UNKNOWN';
+      try {
+        const orderRes = await fetch(
+          `https://api.cashfree.com/pg/orders/${payment.gateway_order_id}`,
+          {
+            headers: {
+              'x-client-id': cashfreeAppId,
+              'x-client-secret': cashfreeSecretKey,
+              'x-api-version': '2023-08-01',
+            },
+          }
+        );
+        if (!orderRes.ok) return 'UNKNOWN';
+        const orderData = await orderRes.json();
+        return orderData.order_status || 'UNKNOWN';
+      } catch {
+        return 'UNKNOWN';
+      }
+    }
+
+    const classifyTeam = async (teamRow: any): Promise<'block' | 'cleanup'> => {
+      if (!teamRow) return 'cleanup';
       const status = teamRow.payment_status as string;
       if (status === 'success') return 'block';
       if (status === 'failed') return 'cleanup';
-      // 'pending' — check age
+
+      // 'pending' — actively check with Cashfree before deciding, don't just guess from elapsed time
+      const cashfreeStatus = await checkCashfreeOrderStatus(
+        teamRow,
+        supabase,
+        cashfreeAppId,
+        cashfreeSecretKey
+      );
+      if (cashfreeStatus === 'PAID') {
+        // Rescue: the payment actually succeeded — update instead of deleting, and block this new registration attempt since they're already registered
+        await supabase
+          .from('teams')
+          .update({ payment_status: 'success' })
+          .eq('id', teamRow.id);
+        return 'block';
+      }
+      if (cashfreeStatus === 'EXPIRED' || cashfreeStatus === 'TERMINATED') {
+        return 'cleanup'; // Cashfree confirms it's genuinely dead — safe to delete
+      }
+      // 'ACTIVE' (still in progress) or 'UNKNOWN' (Cashfree unreachable/no order found) —
+      // fall back to the existing time-based grace period as a safety net, don't delete something Cashfree says is still active
       const ageMs = Date.now() - new Date(teamRow.created_at).getTime();
       return ageMs < PENDING_GRACE_MINUTES * 60 * 1000 ? 'block' : 'cleanup';
     };
@@ -510,7 +562,7 @@ serve(async (req) => {
       for (const { col, val } of identifiers) {
         const { data: rows } = await supabase
           .from('team_members')
-          .select('id, teams!inner(id, event_slug, payment_status, created_at)')
+          .select('id, teams!inner(id, event_slug, payment_status, created_at, payment_ref)')
           .eq('teams.event_slug', event_slug)
           .eq(col, val)
           .limit(1);
@@ -518,7 +570,7 @@ serve(async (req) => {
         if (!rows || rows.length === 0) continue;
 
         const teamRow = (rows[0] as any).teams;
-        const verdict = classifyTeam(teamRow);
+        const verdict = await classifyTeam(teamRow);
 
         if (verdict === 'block') {
           return new Response(JSON.stringify({ error: 'You have already registered for this event' }), {
@@ -535,13 +587,13 @@ serve(async (req) => {
       // Team event — check case-insensitive team name uniqueness
       const { data: existingTeam } = await supabase
         .from('teams')
-        .select('id, payment_status, created_at')
+        .select('id, payment_status, created_at, payment_ref')
         .eq('event_slug', event_slug)
         .eq('team_name_norm', team_name.trim().toLowerCase())
         .maybeSingle();
 
       if (existingTeam) {
-        const verdict = classifyTeam(existingTeam);
+        const verdict = await classifyTeam(existingTeam);
 
         if (verdict === 'block') {
           return new Response(JSON.stringify({ error: `Team name "${team_name}" is already taken for this event` }), {
@@ -566,7 +618,7 @@ serve(async (req) => {
       if (usnsToCheck.length > 0) {
         const { data: existingMemberRows } = await supabase
           .from('team_members')
-          .select('usn, teams!inner(id, event_slug, payment_status, created_at)')
+          .select('usn, teams!inner(id, event_slug, payment_status, created_at, payment_ref)')
           .eq('teams.event_slug', event_slug)
           .in('usn', usnsToCheck);
 
@@ -574,7 +626,7 @@ serve(async (req) => {
         for (const row of existingMemberRows || []) {
           const teamRow = (row as any).teams;
           if (!teamRow) continue;
-          const verdict = classifyTeam(teamRow);
+          const verdict = await classifyTeam(teamRow);
           if (verdict === 'block') {
             return new Response(JSON.stringify({
               error: `USN ${row.usn} is already registered in another team for this event`,
