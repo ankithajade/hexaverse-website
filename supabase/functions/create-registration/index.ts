@@ -57,8 +57,6 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-    const cashfreeAppId = Deno.env.get('CASHFREE_APP_ID') || '';
-    const cashfreeSecretKey = Deno.env.get('CASHFREE_SECRET_KEY') || '';
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await req.json();
