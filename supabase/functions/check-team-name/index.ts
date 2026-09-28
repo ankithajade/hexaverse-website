@@ -36,19 +36,35 @@ serve(async (req) => {
 
     const normName = team_name.trim().toLowerCase();
 
+    const PENDING_GRACE_MINUTES = 30; // keep in sync with create-registration
+
     const { data: existing } = await supabase
       .from('teams')
-      .select('id')
+      .select('id, payment_status, created_at')
       .eq('event_slug', event_slug)
       .eq('team_name_norm', normName)
       .maybeSingle();
+
+    let taken = false;
+    if (existing) {
+      if (existing.payment_status === 'success') {
+        taken = true;
+      } else if (existing.payment_status === 'failed') {
+        taken = false; // failed attempts free up the name immediately
+      } else {
+        // 'pending' — only treat as taken while inside the grace window;
+        // create-registration will double-check with Cashfree on actual submit
+        const ageMs = Date.now() - new Date(existing.created_at).getTime();
+        taken = ageMs < PENDING_GRACE_MINUTES * 60 * 1000;
+      }
+    }
 
     return new Response(
       JSON.stringify({
         event_slug,
         team_name,
-        available: !existing,
-        taken: !!existing,
+        available: !taken,
+        taken,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

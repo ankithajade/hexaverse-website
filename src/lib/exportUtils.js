@@ -34,8 +34,12 @@ export function toArgb(cssColor) {
 
 // ── Safe CSV cell escape ──
 export function csvCell(value) {
-  const str = value === null || value === undefined ? '' : String(value);
-  // If it contains commas, quotes, or newlines, wrap in double-quotes and escape inner quotes
+  let str = value === null || value === undefined ? '' : String(value);
+  // Neutralize formula injection: Excel/Sheets treats a leading =, +, -, or @
+  // as the start of a formula when a CSV is opened, even though it's plain text here.
+  if (/^[=+\-@]/.test(str)) {
+    str = `'${str}`;
+  }
   if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
     return `"${str.replace(/"/g, '""')}"`;
   }

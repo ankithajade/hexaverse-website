@@ -72,6 +72,7 @@ const EMPTY_FORM = {
   cycle: '',
   selectedDept: '',
   rollNumber: '',
+  hpField: '',
 };
 
 const EMPTY_MEMBER = {
@@ -248,11 +249,7 @@ export default function RegisterPage() {
   const sem = Number(form.semester);
   const isHighSem = Boolean(lockedDept && [3, 5, 7].includes(sem));
   const isSem1 = Boolean(sem === 1);
-  const isEligibleSem1Dept = Boolean(
-    form.selectedDept &&
-    lockedDept &&
-    (form.selectedDept === lockedDept.id || (lockedDept.id === 'ece' && form.selectedDept === 'iot_cyber'))
-  );
+
 
   // ── Handlers ─────────────────────────────────────────────────────────────
 
@@ -379,11 +376,6 @@ export default function RegisterPage() {
         }
         if (!formData.selectedDept) {
           errors.selectedDept = 'Please select your department';
-        } else {
-          const isEligible = formData.selectedDept === lockedDept.id || (lockedDept.id === 'ece' && formData.selectedDept === 'iot_cyber');
-          if (!isEligible) {
-            errors.selectedDept = 'You are not eligible for this event';
-          }
         }
       } else if ([3, 5, 7].includes(currentSem)) {
         if (!formData.section) {
@@ -481,11 +473,6 @@ export default function RegisterPage() {
           }
           if (!m.selectedDept) {
             errors[`member_${i}_selectedDept`] = `Member ${memberNum} Department is required`;
-          } else if (lockedDept) {
-            const isEligible = m.selectedDept === lockedDept.id || (lockedDept.id === 'ece' && m.selectedDept === 'iot_cyber');
-            if (!isEligible) {
-              errors[`member_${i}_selectedDept`] = `Member ${memberNum} is not eligible for this event`;
-            }
           }
         } else if ([3, 5, 7].includes(mSem)) {
           if (!m.usn?.trim()) {
@@ -722,6 +709,7 @@ export default function RegisterPage() {
         const payload = {
           event_slug: slug,
           registrant: teamLead,
+          hp_field: form.hpField,
         };
         const res = await submitRegistration(payload);
         if (res.success) {
@@ -756,6 +744,7 @@ export default function RegisterPage() {
           team_name: isTeam ? form.teamName.trim() : form.name.trim(),
           registrant: teamLead,
           team_members: teamMembersPayload,
+          hp_field: form.hpField,
         };
 
         const res = await submitRegistration(payload);
@@ -1086,6 +1075,17 @@ export default function RegisterPage() {
                 )}
 
                 <form className="modal-form" onSubmit={handleSubmit} noValidate>
+                  {/* Honeypot — invisible to real users; bots that auto-fill every field get caught. */}
+                  <input
+                    type="text"
+                    name="website"
+                    value={form.hpField}
+                    onChange={(e) => setForm((f) => ({ ...f, hpField: e.target.value }))}
+                    style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', opacity: 0 }}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                  />
 
                   {/* Team Name (if team event) */}
                   {isTeam && (
@@ -1309,23 +1309,6 @@ export default function RegisterPage() {
                         </div>
                       </div>
 
-                      {lockedDept && form.selectedDept && !isEligibleSem1Dept && (
-                        <div
-                          style={{
-                            background: 'rgba(239, 68, 68, 0.1)',
-                            border: '1px solid #ef4444',
-                            color: '#dc2626',
-                            padding: '12px 16px',
-                            borderRadius: '8px',
-                            fontSize: '0.9rem',
-                            fontWeight: 600,
-                            marginBottom: '16px',
-                            textAlign: 'center',
-                          }}
-                        >
-                          You are not eligible for this event
-                        </div>
-                      )}
                     </>
                   )}
 
@@ -1611,22 +1594,6 @@ export default function RegisterPage() {
                                   </div>
                                 </div>
 
-                                {lockedDept && m.selectedDept && !(m.selectedDept === lockedDept.id || (lockedDept.id === 'ece' && m.selectedDept === 'iot_cyber')) && (
-                                  <div
-                                    style={{
-                                      background: 'rgba(239, 68, 68, 0.1)',
-                                      border: '1px solid #ef4444',
-                                      color: '#dc2626',
-                                      padding: '8px 12px',
-                                      borderRadius: '6px',
-                                      fontSize: '0.85rem',
-                                      fontWeight: 600,
-                                      marginBottom: '8px',
-                                    }}
-                                  >
-                                    Member {i + 2} is not eligible for this event
-                                  </div>
-                                )}
                               </>
                             )}
 

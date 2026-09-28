@@ -60,7 +60,48 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await req.json();
-    const { event_slug, registrant, team_members, team_name } = body;
+    const { event_slug, registrant, team_members, team_name, hp_field } = body;
+
+    // Honeypot: a hidden form field real users never see or fill.
+    // If it arrives non-empty, silently pretend success — don't tip off the bot.
+    if (hp_field && String(hp_field).trim() !== '') {
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Per-IP rate limit: max 5 registration attempts per 10 minutes.
+    const RATE_LIMIT_WINDOW_MINUTES = 10;
+    const RATE_LIMIT_MAX_ATTEMPTS = 30;
+    const clientIp =
+      req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+      req.headers.get('cf-connecting-ip') ||
+      'unknown';
+
+    const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_MINUTES * 60 * 1000).toISOString();
+    const { count: recentAttempts } = await supabase
+      .from('registration_attempts')
+      .select('id', { count: 'exact', head: true })
+      .eq('ip_address', clientIp)
+      .gte('created_at', windowStart);
+
+    if ((recentAttempts || 0) >= RATE_LIMIT_MAX_ATTEMPTS) {
+      return new Response(JSON.stringify({
+        error: 'Too many registration attempts from this network. Please wait a few minutes and try again.',
+      }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    await supabase.from('registration_attempts').insert({ ip_address: clientIp });
+    // Opportunistic cleanup so this table doesn't grow unbounded — fire-and-forget.
+    supabase
+      .from('registration_attempts')
+      .delete()
+      .lt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      .then(() => {});
 
     if (!event_slug) {
       return new Response(JSON.stringify({ error: 'event_slug is required' }), {
@@ -197,14 +238,7 @@ serve(async (req) => {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
-        const normDept = normalizeDeptId(deptValue);
-        const isEligible = normDept === event.department || (event.department === 'ece' && normDept === 'iot_cyber');
-        if (!isEligible) {
-          return new Response(JSON.stringify({ error: 'You are not eligible for this event' }), {
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
+
       }
 
       // Check duplicate email
@@ -408,16 +442,7 @@ serve(async (req) => {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
-        if (event.department) {
-          const normDept = normalizeDeptId(m.dept);
-          const isEligible = normDept === event.department || (event.department === 'ece' && normDept === 'iot_cyber');
-          if (!isEligible) {
-            return new Response(JSON.stringify({ error: `${memberRole} (${m.name}) is not eligible for this department event` }), {
-              status: 400,
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            });
-          }
-        }
+
       } else {
         // Sem 3, 5, 7
         if (!m.usn || !USN_REGEX.test(m.usn.trim())) {
