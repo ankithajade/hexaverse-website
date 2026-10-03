@@ -1,17 +1,9 @@
 import { useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, useMotionValue, useAnimationFrame } from 'motion/react';
 import ScrollReveal from './ScrollReveal';
 import HexGridOverlay from './HexGridOverlay';
-
-const GALLERY_IMAGES = [
-  '/gallery/p1.JPG',
-  '/gallery/p2.JPG',
-  '/gallery/p3.JPG',
-  '/gallery/p4.JPG',
-  '/gallery/p5.JPG',
-  '/gallery/p6.JPG',
-  '/gallery/p7.JPG',
-];
+import { GALLERY_IMAGES } from '../data/galleryImages';
 
 const prefersReducedMotion =
   typeof window !== 'undefined' &&
@@ -20,12 +12,6 @@ const prefersReducedMotion =
 /**
  * InfiniteSlider — Motion Primitives "Infinite Slider hover speed" pattern.
  * Scrolls children continuously; slows/pauses on hover.
- *
- * Item 9 fixes:
- *  - Renders two separately-keyed arrays (keys 'a-0'..'a-3' and 'b-0'..'b-3')
- *    instead of {children}{children} so React creates 8 distinct DOM nodes.
- *  - Uses firstSetRef to measure only the first set's width as the reset point,
- *    guaranteeing pixel-accurate looping even if sub-pixel differences exist.
  */
 function InfiniteSlider({ speed = 50 }) {
   const trackRef = useRef(null);
@@ -49,15 +35,15 @@ function InfiniteSlider({ speed = 50 }) {
 
   // Two separate arrays with distinct keys to avoid React key collisions
   const setA = GALLERY_IMAGES.map((src, i) => (
-  <div key={`a-${i}`} className="gallery-cell" style={cellStyle}>
-    <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-  </div>
-));
-const setB = GALLERY_IMAGES.map((src, i) => (
-  <div key={`b-${i}`} className="gallery-cell" style={cellStyle}>
-    <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-  </div>
-));
+    <Link key={`a-${i}`} to="/gallery" className="gallery-cell" style={cellStyle}>
+      <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    </Link>
+  ));
+  const setB = GALLERY_IMAGES.map((src, i) => (
+    <Link key={`b-${i}`} to="/gallery" className="gallery-cell" style={cellStyle}>
+      <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    </Link>
+  ));
 
   return (
     <div style={{ overflow: 'hidden' }}>
@@ -86,9 +72,9 @@ const setB = GALLERY_IMAGES.map((src, i) => (
  */
 export default function Gallery() {
   const staticCells = GALLERY_IMAGES.map((src, i) => (
-    <div key={i} className="gallery-cell" style={{ width: '260px', flexShrink: 0 }}>
+    <Link key={i} to="/gallery" className="gallery-cell" style={{ width: '260px', flexShrink: 0 }}>
       <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-    </div>
+    </Link>
   ));
 
   return (
@@ -96,8 +82,10 @@ export default function Gallery() {
       <HexGridOverlay />
       <div className="container">
         <ScrollReveal>
-          <div className="section-label" >Moments</div>
-          <h2 className="section-title" >Gallery</h2>
+          <div className="section-label">Moments</div>
+          <Link to="/gallery" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <h2 className="section-title">Gallery</h2>
+          </Link>
           <p className="section-desc">Highlights and moments from the series &mdash; coming soon.</p>
         </ScrollReveal>
       </div>
