@@ -36,11 +36,11 @@ export default function EventsPreview() {
             <Link to="/events/treasure-hunt" className="btn-register">Details</Link>
           </div>
           
-          {/* Mega Event 2 — Hackathon */}
+          {/* Mega Event 2 — AfterHours 1.0 */}
           <div className="mega-card">
             <div className="mega-card-label">Mega Event 2</div>
-            <h4>Coming Soon !!</h4>
-            <p>Stay tuned!</p>
+            <h4>AfterHours 1.0</h4>
+            <p>DBIT&apos;s first 24hr Flagship Hackathon. Click below for more details!</p>
             <div className="mega-card-date"></div>
             <div className="mega-card-badges">
               <span className="open-badge">Open to all departments</span>
@@ -49,7 +49,14 @@ export default function EventsPreview() {
                 Inter-College Event
               </span>
             </div>
-            {/* <Link to="/events/hackathon" className="btn-register">Details</Link> */}
+            <a
+              href="https://awsevents.dbit.edu.in/afterhours-1.0/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-register"
+            >
+              Details
+            </a>
           </div>
 
           {/* Technical Talk */}
