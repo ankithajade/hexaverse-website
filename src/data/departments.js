@@ -285,17 +285,17 @@ export const departments = {
       },
       {
         type: 'Signature Event',
-        title: 'Beyond Search: The Intelligence Challenge',
+        title: 'Blueprint to Live:Quiz it. Debug it. Design it. Deploy it.',
         description: `
-        Go beyond simply finding information. **Beyond Search: The Intelligence Challenge** is a **two-round** team challenge that puts participants in situations where the right information is only the starting point. Using **AWS, Amazon Bedrock, and Knowledge Bases,** teams will explore a given scenario, retrieve the information they need, and use it to make meaningful technical decisions.
+        Go from a question to a live deployment. **Blueprint to Live** is a **three-round** team challenge that follows an idea from start to finish: quiz, debug, design, deploy. **Teams of 2–3** test their CS fundamentals, track down bugs, and finish by putting a working design on the cloud.
 
-        The challenge progresses from **knowledge retrieval to cloud architecture**, requiring teams to analyse the problem, connect the right pieces, and develop a practical solution within a limited time. Along the way, participants will have to balance **technical reasoning, teamwork, and decision-making** before presenting and defending their approach to the judges.
+        The challenge moves from **knowledge to code to cloud**. It opens with the **Warm-Up Rally**, a 20-question quiz on mixed CS concepts. Next comes Bug Bounty, a case-file challenge of buggy code snippets, dry runs and simple architecture questions. The **top 10 teams** then reach the **Final Build-Off**. There they pick a problem statement, draw a high-level architecture, build a static web UI, deploy it on EC2, and pitch to the judges with a **3-minute presentation** followed by 2 minutes of Q&A.
 
-        Whether you enjoy solving problems, designing systems, or simply want to see how cloud and AI can be used beyond basic search, **Beyond Search** gives you the opportunity to put your thinking to the test in a challenge where **finding the answer is just the beginning.**
+        Whether you enjoy debugging code, designing systems, or want to see your idea running live on the cloud, Blueprint to Live lets you test your thinking in a challenge where a working deployment is the finish line. You don’t need to know specific AWS services. If you’re comfortable with the basics of programming, you’re ready.
 
         &nbsp;
 
-        ***Beyond finding answers — can you turn knowledge into the right solution? Register and show us your potential!***
+        ***From a blueprint to a live deployment: register your team and show us what you can build!***
         `,
 
         dates: '24 Oct 2026',
