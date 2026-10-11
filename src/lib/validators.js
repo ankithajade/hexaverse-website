@@ -49,6 +49,14 @@ export function isValidEmail(email) {
   return EMAIL_REGEX.test(email.trim());
 }
 
+/** Gmail only: 6–30 chars, letters/digits/dots, no "+alias", no consecutive dots */
+export const GMAIL_REGEX = /^(?!.*\.\.)[a-z0-9][a-z0-9.]{4,28}[a-z0-9]@gmail\.com$/i;
+
+export function isValidGmail(email) {
+  if (!email || typeof email !== 'string') return false;
+  return GMAIL_REGEX.test(email.trim());
+}
+
 /** Validate 10-digit Mobile Phone */
 export function isValidPhone(phone) {
   if (!phone || typeof phone !== 'string') return false;

@@ -11,6 +11,79 @@ const USN_REGEX = /^1DB(23|24|25)(CS|IS|AD|CI|EC|EE)(00[1-9]|0[1-9]\d|[1-9]\d{2}
 const PHONE_REGEX = /^[6-9]\d{9}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// ── Gmail-only emails: 6–30 chars, letters/digits/dots, no "+alias", no consecutive dots ──
+const GMAIL_REGEX = /^(?!.*\.\.)[a-z0-9][a-z0-9.]{4,28}[a-z0-9]@gmail\.com$/i;
+
+// Must stay identical to public.normalize_email() in the migration.
+function normalizeEmail(email: string): string {
+  const e = (email || '').trim().toLowerCase();
+  const [local, domain] = e.split('@');
+  if (domain === 'gmail.com' || domain === 'googlemail.com') {
+    return `${local.split('+')[0].replace(/\./g, '')}@gmail.com`;
+  }
+  return e;
+}
+
+// ── Abuse-control settings (tune here) ──
+const RAW_ATTEMPT_MAX = 30;            // any request, per IP, per window (hammering guard)
+const RAW_ATTEMPT_WINDOW_MIN = 10;
+const IP_REGISTRATION_MAX = 5;         // completed submissions per IP per window
+const IP_REGISTRATION_WINDOW_MIN = 60;
+const EVENT_BURST_MAX = 40;            // completed submissions per event per window (all IPs)
+const EVENT_BURST_WINDOW_SEC = 60;
+const LOG_RETENTION_DAYS = 30;
+
+// cf-connecting-ip is set by Cloudflare (in front of Supabase) and cannot be forged by the
+// client. x-forwarded-for's FIRST value CAN be forged, so it is only a last-resort fallback
+// and we take its LAST value (the one added by the proxy).
+function getClientIp(req: Request): string {
+  const cf = req.headers.get('cf-connecting-ip');
+  if (cf) return cf.trim();
+  const real = req.headers.get('x-real-ip');
+  if (real) return real.trim();
+  const xff = req.headers.get('x-forwarded-for');
+  if (xff) {
+    const parts = xff.split(',').map((s) => s.trim()).filter(Boolean);
+    if (parts.length) return parts[parts.length - 1];
+  }
+  return 'unknown';
+}
+
+// ── Tor exit-node block (list published by the Tor Project, cached in memory) ──
+const TOR_LIST_URL = 'https://check.torproject.org/torbulkexitlist';
+const TOR_REFRESH_MS = 60 * 60 * 1000; // refresh hourly
+const TOR_RETRY_MS = 5 * 60 * 1000;    // if a fetch fails, wait 5 min before retrying
+let torIps: Set<string> | null = null;
+let torFetchedAt = 0;
+let torLastTry = 0;
+
+async function isTorExit(ip: string): Promise<boolean> {
+  if (!ip || ip === 'unknown') return false;
+  const now = Date.now();
+  const stale = !torIps || now - torFetchedAt > TOR_REFRESH_MS;
+  if (stale && now - torLastTry > TOR_RETRY_MS) {
+    torLastTry = now;
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 3000);
+      const res = await fetch(TOR_LIST_URL, { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (res.ok) {
+        const ips = new Set(
+          (await res.text()).split('\n').map((l) => l.trim()).filter(Boolean)
+        );
+        if (ips.size > 100) { // sanity check: a real list has well over 100 entries
+          torIps = ips;
+          torFetchedAt = now;
+        }
+      }
+    } catch (err) {
+      console.error('Tor exit list fetch failed (failing open):', err);
+    }
+  }
+  return torIps ? torIps.has(ip) : false;
+}
+
 // Pending registrations older than this are treated as abandoned and auto-cleaned up
 const PENDING_GRACE_MINUTES = 30;
 
@@ -71,37 +144,80 @@ serve(async (req) => {
       });
     }
 
-    // Per-IP rate limit: max 5 registration attempts per 10 minutes.
-    const RATE_LIMIT_WINDOW_MINUTES = 10;
-    const RATE_LIMIT_MAX_ATTEMPTS = 30;
-    const clientIp =
-      req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
-      req.headers.get('cf-connecting-ip') ||
-      'unknown';
+    // Who is calling?
+    const clientIp = getClientIp(req);
+    const userAgent = (req.headers.get('user-agent') || '').slice(0, 300);
 
-    const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_MINUTES * 60 * 1000).toISOString();
+    // Block Tor exit nodes — nobody needs Tor to register for a campus event.
+    if (await isTorExit(clientIp)) {
+      return new Response(JSON.stringify({
+        error: 'Registrations from anonymizing networks (Tor) are not allowed. Please use a normal internet connection.',
+      }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Hammering guard: max RAW_ATTEMPT_MAX requests per IP per window (counts every request).
+    const rawWindowStart = new Date(Date.now() - RAW_ATTEMPT_WINDOW_MIN * 60 * 1000).toISOString();
     const { count: recentAttempts } = await supabase
       .from('registration_attempts')
       .select('id', { count: 'exact', head: true })
+      .eq('kind', 'attempt')
       .eq('ip_address', clientIp)
-      .gte('created_at', windowStart);
+      .gte('created_at', rawWindowStart);
 
-    if ((recentAttempts || 0) >= RATE_LIMIT_MAX_ATTEMPTS) {
+    if ((recentAttempts || 0) >= RAW_ATTEMPT_MAX) {
       return new Response(JSON.stringify({
-        error: 'Too many registration attempts from this network. Please wait a few minutes and try again.',
+        error: 'Too many requests from this network. Please wait a few minutes and try again.',
       }), {
         status: 429,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    await supabase.from('registration_attempts').insert({ ip_address: clientIp });
-    // Opportunistic cleanup so this table doesn't grow unbounded — fire-and-forget.
+    await supabase.from('registration_attempts').insert({
+      ip_address: clientIp,
+      user_agent: userAgent,
+      event_slug: event_slug || null,
+      kind: 'attempt',
+    });
+    // Keep 30 days of history (useful for investigating abuse) — fire-and-forget cleanup.
     supabase
       .from('registration_attempts')
       .delete()
-      .lt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      .lt('created_at', new Date(Date.now() - LOG_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString())
       .then(() => {});
+
+    // Completed-submission limits (per IP per hour, per event per minute), claimed atomically
+    // in the database. Called right before a registration row is actually written.
+    const claimSlot = async (): Promise<Response | null> => {
+      const { data: verdict, error: claimErr } = await supabase.rpc('claim_registration_slot', {
+        p_ip: clientIp,
+        p_ua: userAgent,
+        p_event_slug: event_slug,
+        // If the IP could not be determined, don't lump everyone into one shared bucket.
+        p_ip_max: clientIp === 'unknown' ? 1000000 : IP_REGISTRATION_MAX,
+        p_ip_window_minutes: IP_REGISTRATION_WINDOW_MIN,
+        p_event_max: EVENT_BURST_MAX,
+        p_event_window_seconds: EVENT_BURST_WINDOW_SEC,
+      });
+      if (claimErr) {
+        console.error('claim_registration_slot failed (failing open):', claimErr);
+        return null;
+      }
+      if (verdict === 'ip_limit') {
+        return new Response(JSON.stringify({
+          error: 'Too many registrations from this network in the last hour. Please try again later, or contact the organizers if you need help.',
+        }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      if (verdict === 'event_burst') {
+        return new Response(JSON.stringify({
+          error: 'This event is receiving a very high number of requests right now. Please try again in a minute.',
+        }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      return null;
+    };
 
     if (!event_slug) {
       return new Response(JSON.stringify({ error: 'event_slug is required' }), {
@@ -207,8 +323,8 @@ serve(async (req) => {
         });
       }
 
-      if (!EMAIL_REGEX.test(email.trim())) {
-        return new Response(JSON.stringify({ error: 'Invalid email address' }), {
+      if (!GMAIL_REGEX.test(email.trim())) {
+        return new Response(JSON.stringify({ error: 'Please use a valid Gmail address (yourname@gmail.com)' }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -246,7 +362,8 @@ serve(async (req) => {
         .from('workshop_registrations')
         .select('id')
         .eq('event_slug', event_slug)
-        .ilike('email', email.trim())
+        .eq('email_normalized', normalizeEmail(email))
+        .limit(1)
         .maybeSingle();
 
       if (existingEmail) {
@@ -288,10 +405,16 @@ serve(async (req) => {
         }
       }
 
+      // Completed-submission limits (per IP per hour, per event per minute)
+      const slotBlock = await claimSlot();
+      if (slotBlock) return slotBlock;
+
       // Insert workshop registration (status = confirmed, no payment needed)
       const { data: reg, error: regErr } = await supabase
         .from('workshop_registrations')
         .insert({
+          client_ip: clientIp,
+          user_agent: userAgent,
           event_slug,
           name: name.trim(),
           semester: semNum,
@@ -384,14 +507,14 @@ serve(async (req) => {
 
       // Email: required for Lead, optional for additional members
       if (i === 0) {
-        if (!m.email || !EMAIL_REGEX.test(m.email.trim())) {
-          return new Response(JSON.stringify({ error: `Team Lead requires a valid Email address` }), {
+        if (!m.email || !GMAIL_REGEX.test(m.email.trim())) {
+          return new Response(JSON.stringify({ error: `Team Lead requires a valid Gmail address (yourname@gmail.com)` }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
-      } else if (m.email && m.email.trim() && !EMAIL_REGEX.test(m.email.trim())) {
-        return new Response(JSON.stringify({ error: `${memberRole} (${m.name}) has an invalid Email address` }), {
+      } else if (m.email && m.email.trim() && !GMAIL_REGEX.test(m.email.trim())) {
+        return new Response(JSON.stringify({ error: `${memberRole} (${m.name}) needs a valid Gmail address (yourname@gmail.com)` }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -578,7 +701,7 @@ serve(async (req) => {
       // Check by email, then roll_number/USN — each query fetches the parent team
       // row so we can apply the tiered payment_status logic.
       const identifiers: { col: string; val: string }[] = [];
-      if (leadEmail) identifiers.push({ col: 'email', val: leadEmail });
+      if (leadEmail) identifiers.push({ col: 'email_normalized', val: normalizeEmail(leadEmail) });
       if (leadRoll)  identifiers.push({ col: 'roll_number', val: leadRoll });
       if (leadUsn)   identifiers.push({ col: 'usn', val: leadUsn });
 
@@ -664,6 +787,10 @@ serve(async (req) => {
       }
     }
 
+    // Completed-submission limits (per IP per hour, per event per minute)
+    const slotBlock = await claimSlot();
+    if (slotBlock) return slotBlock;
+
     // Server-side fee computation (never trust client fee!)
     const amount_expected = Number(event.fee_per_head) * totalMembers;
 
@@ -671,6 +798,8 @@ serve(async (req) => {
     const { data: team, error: teamErr } = await supabase
       .from('teams')
       .insert({
+        client_ip: clientIp,
+        user_agent: userAgent,
         event_slug,
         team_name: team_name.trim(),
         team_size: totalMembers,

@@ -4,6 +4,7 @@ import { registrationEvents } from '../data/registrationEvents';
 import {
   isValidUSN,
   isValidEmail,
+  isValidGmail,
   isValidPhone,
   isUSNEligibleForDept,
 } from '../lib/validators';
@@ -347,8 +348,8 @@ export default function RegisterPage() {
 
     if (!formData.email?.trim()) {
       errors.email = 'Email is required';
-    } else if (!isValidEmail(formData.email)) {
-      errors.email = 'Please enter a valid email address';
+    } else if (!isValidGmail(formData.email)) {
+      errors.email = 'Please enter a valid Gmail address (yourname@gmail.com)';
     }
 
     if (!formData.phone?.trim()) {
@@ -452,8 +453,8 @@ export default function RegisterPage() {
           errors[`member_${i}_phone`] = 'Enter a valid 10-digit mobile number';
         }
 
-        if (m.email?.trim() && !isValidEmail(m.email)) {
-          errors[`member_${i}_email`] = 'Please enter a valid email address';
+        if (m.email?.trim() && !isValidGmail(m.email)) {
+          errors[`member_${i}_email`] = 'Please enter a valid Gmail address (yourname@gmail.com)';
         }
 
         if (!m.semester) {
@@ -529,8 +530,8 @@ export default function RegisterPage() {
     }
 
     if (key === 'email') {
-      if (form.email && !isValidEmail(form.email)) {
-        return { hasError: true, error: 'Please enter a valid email address' };
+      if (form.email && !isValidGmail(form.email)) {
+        return { hasError: true, error: 'Please enter a valid Gmail address (yourname@gmail.com)' };
       }
       if (isFieldTouched && error) {
         return { hasError: true, error };
@@ -587,8 +588,8 @@ export default function RegisterPage() {
           }
         }
         if (mField === 'email') {
-          if (member.email && !isValidEmail(member.email)) {
-            return { hasError: true, error: 'Please enter a valid email address' };
+          if (member.email && !isValidGmail(member.email)) {
+            return { hasError: true, error: 'Please enter a valid Gmail address (yourname@gmail.com)' };
           }
         }
         if (mField === 'usn') {
@@ -1138,7 +1139,7 @@ export default function RegisterPage() {
                         name="email"
                         type="email"
                         className="form-input"
-                        placeholder="your@email.com"
+                        placeholder="yourname@gmail.com"
                         value={form.email}
                         onChange={setField}
                         onBlur={handleBlur}
@@ -1439,7 +1440,7 @@ export default function RegisterPage() {
                                 <input
                                   type="email"
                                   className="form-input"
-                                  placeholder="member@email.com"
+                                  placeholder="member@gmail.com"
                                   value={m.email}
                                   onChange={(e) => setMemberField(i, 'email', e.target.value)}
                                   onBlur={() => handleMemberBlur(i, 'email')}
