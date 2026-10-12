@@ -13,6 +13,8 @@ import {
   getSiteSettings,
   checkTeamNameAvailability,
   submitRegistration,
+  sendEmailOtp,
+  verifyEmailOtp,
 } from '../lib/registrationService';
 import Nav from '../components/Nav';
 import Footer from '../components/Footer';
@@ -122,6 +124,46 @@ export default function RegisterPage() {
   const [step, setStep] = useState('form');
   const [serverError, setServerError] = useState('');
   const [paymentData, setPaymentData] = useState(null);
+
+  const [otp, setOtp] = useState({
+    status: 'idle',        // 'idle' | 'sending' | 'sent' | 'verifying' | 'verified'
+    code: '',
+    token: '',
+    verifiedEmail: '',
+    error: '',
+    cooldown: 0,
+  });
+  const normEmail = (e) => (e || '').trim().toLowerCase();
+  const resetOtp = () => setOtp({ status: 'idle', code: '', token: '', verifiedEmail: '', error: '', cooldown: 0 });
+
+  // 1-second countdown for the "Resend code" button
+  useEffect(() => {
+    if (otp.cooldown <= 0) return undefined;
+    const t = setTimeout(() => setOtp((o) => ({ ...o, cooldown: o.cooldown - 1 })), 1000);
+    return () => clearTimeout(t);
+  }, [otp.cooldown]);
+
+  const handleSendOtp = async () => {
+    setOtp((o) => ({ ...o, status: 'sending', error: '' }));
+    try {
+      await sendEmailOtp(normEmail(form.email));
+      setOtp((o) => ({ ...o, status: 'sent', code: '', cooldown: 60 }));
+    } catch (err) {
+      setOtp((o) => ({ ...o, status: o.token ? 'verified' : 'idle', error: err.message }));
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    setOtp((o) => ({ ...o, status: 'verifying', error: '' }));
+    try {
+      const res = await verifyEmailOtp(normEmail(form.email), otp.code.trim());
+      setOtp((o) => ({
+        ...o, status: 'verified', token: res.token, verifiedEmail: normEmail(form.email), error: '', code: '',
+      }));
+    } catch (err) {
+      setOtp((o) => ({ ...o, status: 'sent', error: err.message }));
+    }
+  };
 
   const minMembers = slug === 'treasure-hunt' ? 3 : (eventConfig?.team_min || event.teamMin || (isTeam ? 2 : 1));
   const maxMembers = slug === 'treasure-hunt' ? 3 : (eventConfig?.team_max || event.teamMax || (isTeam ? 4 : 1));
@@ -256,6 +298,9 @@ export default function RegisterPage() {
 
   const setField = (e) => {
     const { name, value } = e.target;
+    if (name === 'email' && normEmail(value) !== otp.verifiedEmail && otp.status !== 'idle') {
+      resetOtp();
+    }
     setForm((f) => {
       const next = { ...f, [name]: value };
       if (name === 'cycle') {
@@ -686,6 +731,12 @@ export default function RegisterPage() {
       return;
     }
 
+    if (otp.status !== 'verified' || otp.verifiedEmail !== normEmail(form.email)) {
+      setServerError('Please verify your email with the code we send you before submitting.');
+      document.getElementById('reg-email')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
     setStep('submitting');
     setServerError('');
 
@@ -711,12 +762,15 @@ export default function RegisterPage() {
           event_slug: slug,
           registrant: teamLead,
           hp_field: form.hpField,
+          email_verification_token: otp.token,
         };
         const res = await submitRegistration(payload);
         if (res.success) {
           setStep('success');
         } else {
-          setServerError(res.error || 'Registration failed.');
+          const msg = res.error || 'Registration failed.';
+          if (/verify your email/i.test(msg)) resetOtp();
+          setServerError(msg);
           setStep('form');
         }
       } else {
@@ -746,6 +800,7 @@ export default function RegisterPage() {
           registrant: teamLead,
           team_members: teamMembersPayload,
           hp_field: form.hpField,
+          email_verification_token: otp.token,
         };
 
         const res = await submitRegistration(payload);
@@ -757,12 +812,16 @@ export default function RegisterPage() {
         } else if (res.success && res.is_free) {
           setStep('success');
         } else {
-          setServerError(res.error || 'Failed to initialize payment.');
+          const msg = res.error || 'Failed to initialize payment.';
+          if (/verify your email/i.test(msg)) resetOtp();
+          setServerError(msg);
           setStep('form');
         }
       }
     } catch (err) {
-      setServerError(err.message || 'Registration request failed. Please try again.');
+      const msg = err.message || 'Registration request failed. Please try again.';
+      if (/verify your email/i.test(msg)) resetOtp();
+      setServerError(msg);
       setStep('form');
     }
   };
@@ -1141,10 +1200,51 @@ export default function RegisterPage() {
                         className="form-input"
                         placeholder="yourname@gmail.com"
                         value={form.email}
+                        readOnly={otp.status === 'verified'}
                         onChange={setField}
                         onBlur={handleBlur}
                         style={getInputStyle('email')}
                       />
+                      {otp.status === 'verified' ? (
+                        <div style={{ marginTop: 6, fontSize: '0.85rem', color: '#16a34a', fontWeight: 600 }}>
+                          ✓ Email verified
+                          <button type="button" onClick={resetOtp}
+                            style={{ marginLeft: 10, background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.8rem', textDecoration: 'underline' }}>
+                            Change email
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ marginTop: 8 }}>
+                          {(otp.status === 'idle' || otp.status === 'sending') && (
+                            <button type="button" className="btn-add-member" style={{ width: 'auto', padding: '6px 14px' }} disabled={!isValidGmail(form.email) || otp.status === 'sending'} onClick={handleSendOtp}>
+                              {otp.status === 'sending' ? 'Sending…' : 'Send verification code'}
+                            </button>
+                          )}
+                          {(otp.status === 'sent' || otp.status === 'verifying') && (
+                            <div>
+                              <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 6 }}>
+                                We sent a 6-digit code to {normEmail(form.email)}. It expires in 10 minutes. Check your Spam folder too.
+                              </div>
+                              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                <input
+                                  className="form-input"
+                                  style={{ maxWidth: 160, letterSpacing: 4, textAlign: 'center' }}
+                                  inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="123456"
+                                  value={otp.code}
+                                  onChange={(e) => setOtp((o) => ({ ...o, code: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
+                                />
+                                <button type="button" className="btn-add-member" style={{ width: 'auto', padding: '6px 14px' }} disabled={otp.code.length !== 6 || otp.status === 'verifying'} onClick={handleVerifyOtp}>
+                                  {otp.status === 'verifying' ? 'Verifying…' : 'Verify'}
+                                </button>
+                                <button type="button" className="btn-add-member" style={{ width: 'auto', padding: '6px 14px' }} disabled={otp.cooldown > 0} onClick={handleSendOtp}>
+                                  {otp.cooldown > 0 ? `Resend in ${otp.cooldown}s` : 'Resend code'}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                          {otp.error && <div style={{ marginTop: 6, fontSize: '0.82rem', color: '#dc2626' }}>{otp.error}</div>}
+                        </div>
+                      )}
                     </div>
                     <div className="form-group">
                       <label htmlFor="reg-phone">Phone *</label>

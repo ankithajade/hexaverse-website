@@ -24,6 +24,12 @@ function normalizeEmail(email: string): string {
   return e;
 }
 
+async function sha256Hex(input: string): Promise<string> {
+  const data = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 // ── Abuse-control settings (tune here) ──
 const RAW_ATTEMPT_MAX = 30;            // any request, per IP, per window (hammering guard)
 const RAW_ATTEMPT_WINDOW_MIN = 10;
@@ -133,7 +139,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await req.json();
-    const { event_slug, registrant, team_members, team_name, hp_field } = body;
+    const { event_slug, registrant, team_members, team_name, hp_field, email_verification_token } = body;
 
     // Honeypot: a hidden form field real users never see or fill.
     // If it arrives non-empty, silently pretend success — don't tip off the bot.
@@ -215,6 +221,43 @@ serve(async (req) => {
         return new Response(JSON.stringify({
           error: 'This event is receiving a very high number of requests right now. Please try again in a minute.',
         }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      return null;
+    };
+
+    // ── Email verification (OTP) ──
+    // Cheap early gate: requests with no verification token are rejected before any DB work.
+    if (typeof email_verification_token !== 'string' || !/^[a-f0-9]{64}$/.test(email_verification_token)) {
+      return new Response(JSON.stringify({
+        error: 'Please verify your email with the code we send you before registering.',
+      }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // Atomically spends one use of the token, binding it to the lead's email.
+    // Fails CLOSED: if verification can't be checked, no registration is created.
+    const consumeVerification = async (): Promise<Response | null> => {
+      const regEmail = normalizeEmail(registrant?.email || '');
+      const leadEmail = team_members?.[0]?.email ? normalizeEmail(team_members[0].email) : regEmail;
+      if (!regEmail || regEmail !== leadEmail) {
+        return new Response(JSON.stringify({ error: 'The lead email does not match the verified email.' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const tokenHash = await sha256Hex(email_verification_token);
+      const { data: ok, error: consumeErr } = await supabase.rpc('consume_email_verification', {
+        p_token_hash: tokenHash,
+        p_email_norm: regEmail,
+      });
+      if (consumeErr) {
+        console.error('consume_email_verification failed:', consumeErr.message);
+        return new Response(JSON.stringify({ error: 'Email verification is temporarily unavailable. Please try again in a minute.' }), {
+          status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (!ok) {
+        return new Response(JSON.stringify({
+          error: 'Please verify your email with the code we send you before registering. (Your verification expired or was already used.)',
+        }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
       return null;
     };
@@ -405,7 +448,9 @@ serve(async (req) => {
         }
       }
 
-      // Completed-submission limits (per IP per hour, per event per minute)
+      // Verified email first, then completed-submission limits
+      const verifyBlock = await consumeVerification();
+      if (verifyBlock) return verifyBlock;
       const slotBlock = await claimSlot();
       if (slotBlock) return slotBlock;
 
@@ -787,7 +832,9 @@ serve(async (req) => {
       }
     }
 
-    // Completed-submission limits (per IP per hour, per event per minute)
+    // Verified email first, then completed-submission limits
+    const verifyBlock = await consumeVerification();
+    if (verifyBlock) return verifyBlock;
     const slotBlock = await claimSlot();
     if (slotBlock) return slotBlock;
 

@@ -127,3 +127,26 @@ export async function verifyPayment({ order_id, gateway_order_id}) {
 
   return data;
 }
+
+/** Small helper for the OTP functions: unwraps the server's error message. */
+async function invokeEdge(name, body) {
+  const { data, error } = await supabase.functions.invoke(name, { body });
+  if (error) {
+    let msg = null;
+    try {
+      if (error.context) {
+        const b = await error.context.json();
+        msg = b?.error || b?.message || null;
+      }
+    } catch {
+      /* ignore parse errors */
+    }
+    throw new Error(msg || error.message || 'Something went wrong. Please try again.');
+  }
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
+export const sendEmailOtp = (email) => invokeEdge('send-otp', { email });
+export const verifyEmailOtp = (email, code) => invokeEdge('verify-otp', { email, code });
+
