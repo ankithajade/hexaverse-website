@@ -12,11 +12,11 @@ const DEFAULT_EVENT_CONFIGS = {
   'ece-workshop':  { slug: 'ece-workshop',  event_type: 'workshop', fee_per_head: 0, is_team: false, is_open: true, registration_status: 'open' },
   'eee-workshop':  { slug: 'eee-workshop',  event_type: 'workshop', fee_per_head: 0, is_team: false, is_open: true, registration_status: 'open' },
 
-  'aiml-event':    { slug: 'aiml-event',    event_type: 'signature', fee_per_head: 52, is_team: false, team_min: 1, team_max: 1, is_open: true, registration_status: 'open' },
-  'aids-event':    { slug: 'aids-event',    event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 3, is_open: true, registration_status: 'open' },
-  'cse-event':     { slug: 'cse-event',     event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 3, is_open: true, registration_status: 'open' },
+  'aiml-event':    { slug: 'aiml-event',    event_type: 'signature', fee_per_head: 52, is_team: false, team_min: 1, team_max: 1, is_open: true, registration_status: 'close' },
+  'aids-event':    { slug: 'aids-event',    event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 3, is_open: true, registration_status: 'close' },
+  'cse-event':     { slug: 'cse-event',     event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 3, is_open: true, registration_status: 'close' },
   'ise-event':     { slug: 'ise-event',     event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 3, is_open: true, registration_status: 'open' },
-  'ece-event':     { slug: 'ece-event',     event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 3, team_max: 4, is_open: true, registration_status: 'open' },
+  'ece-event':     { slug: 'ece-event',     event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 3, is_open: true, registration_status: 'open' },
   'eee-event':     { slug: 'eee-event',     event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 4, is_open: true, registration_status: 'open' },
 
   'treasure-hunt': { slug: 'treasure-hunt', event_type: 'treasure_hunt', fee_per_head: 82, is_team: true, team_min: 3, team_max: 3, is_open: true, registration_status: 'open' },
