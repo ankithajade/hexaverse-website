@@ -14,10 +14,10 @@ const DEFAULT_WORKSHOP_RULES = [
   'Seats are reserved on a first-come, first-served basis upon registration completion.',
 ];
 
-const DEFAULT_SIGNATURE_RULES = [
+const buildSignatureRules = (fee) => [
   'Participants must register with their official college USN and mobile phone number.',
   'Team size limits must be strictly adhered to as specified for each department signature event.',
-  'Registration fee is ₹52 per head (includes ₹2 Cashfree payment gateway fee), payable during the online checkout flow.',
+  `Registration fee is ₹${fee} per head (includes ₹2 Cashfree payment gateway fee), payable during the online checkout flow.`,
 ];
 
 export const registrationEvents = {};
@@ -26,6 +26,7 @@ export const registrationEvents = {};
 Object.values(departments).forEach((dept) => {
   dept.events.forEach((ev) => {
     const isWorkshop = ev.eventId.endsWith('-workshop');
+    const fee = ev.fee || (isWorkshop ? 0 : 52);
     registrationEvents[ev.eventId] = {
       eventId: ev.eventId,
       eventTitle: ev.eventTitle || ev.title,
@@ -33,9 +34,9 @@ Object.values(departments).forEach((dept) => {
       isInterCollege: !!ev.isInterCollege,
       teamMin: ev.teamMin || (ev.isTeam ? 2 : 1),
       teamMax: ev.teamMax || (ev.isTeam ? 4 : 1),
-      fee: ev.fee || (isWorkshop ? 0 : 52),
+      fee,
       lockedDepartment: { id: dept.id, name: dept.name },
-      registrationRules: ev.registrationRules || (isWorkshop ? DEFAULT_WORKSHOP_RULES : DEFAULT_SIGNATURE_RULES),
+      registrationRules: ev.registrationRules || (isWorkshop ? DEFAULT_WORKSHOP_RULES : buildSignatureRules(fee)),
       dates: ev.dates,
       venue: ev.venue,
       description: ev.description,

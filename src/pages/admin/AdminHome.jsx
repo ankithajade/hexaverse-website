@@ -146,9 +146,19 @@ export default function AdminHome() {
   const totalEventAttendees = teams
     .filter((t) => t.payment_status === 'success')
     .reduce((sum, t) => sum + (t.team_size || t.team_members?.length || 0), 0);
+  // Revenue = what teams actually paid (from their payment record), so a fee change doesn't
+  // distort totals for registrations paid at the old price. Falls back to an estimate only for
+  // teams marked paid manually without a recorded amount.
+  const FALLBACK_FEE_PER_HEAD = { 'treasure-hunt': 82, 'eee-event': 32 };
+  const teamPaidAmount = (t) => {
+    const pay = (t.payments || []).find((p) => p.status === 'success');
+    const recorded = Number(pay?.amount_paid ?? pay?.amount_expected);
+    if (Number.isFinite(recorded) && recorded > 0) return recorded;
+    return (t.team_size || 0) * (FALLBACK_FEE_PER_HEAD[t.event_slug] ?? 52);
+  };
   const totalRevenue = teams
     .filter((t) => t.payment_status === 'success')
-    .reduce((sum, t) => sum + t.team_size * (t.event_slug === 'treasure-hunt' ? 82 : 52), 0);
+    .reduce((sum, t) => sum + teamPaidAmount(t), 0);
 
   // ── Split Chart data: Workshop vs Signature/Mega Events ──
   const workshopChartData = EVENT_SLUGS

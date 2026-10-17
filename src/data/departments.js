@@ -466,7 +466,7 @@ export const departments = {
         isTeam: true,
         teamMin: 2,
         teamMax: 4,
-        fee: 52,
+        fee: 32,
         isInterCollege: false,
         accordionContent: 'Event format, rules, and prizes will be announced soon.',
       },

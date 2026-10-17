@@ -17,7 +17,7 @@ const DEFAULT_EVENT_CONFIGS = {
   'cse-event':     { slug: 'cse-event',     event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 3, is_open: true, registration_status: 'close' },
   'ise-event':     { slug: 'ise-event',     event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 3, is_open: true, registration_status: 'open' },
   'ece-event':     { slug: 'ece-event',     event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 3, is_open: true, registration_status: 'open' },
-  'eee-event':     { slug: 'eee-event',     event_type: 'signature', fee_per_head: 52, is_team: true, team_min: 2, team_max: 4, is_open: true, registration_status: 'open' },
+  'eee-event':     { slug: 'eee-event',     event_type: 'signature', fee_per_head: 32, is_team: true, team_min: 2, team_max: 4, is_open: true, registration_status: 'open' },
 
   'treasure-hunt': { slug: 'treasure-hunt', event_type: 'treasure_hunt', fee_per_head: 82, is_team: true, team_min: 3, team_max: 3, is_open: true, registration_status: 'open' },
 };
