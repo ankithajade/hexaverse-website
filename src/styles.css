@@ -918,6 +918,14 @@ body {
   margin-bottom: 0;
 }
 
+.timeline-block-subtitle {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+  letter-spacing: 0.3px;
+}
+
 .timeline-open-badge {
   font-family: var(--font-body);
   display: inline-block;
@@ -1243,7 +1251,7 @@ body {
 /* ─── MEGA EVENTS SECTION ─── */
 .mega-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
   margin-top: 48px;
 }
@@ -1368,7 +1376,7 @@ body {
 
 @media(max-width:860px) {
   .mega-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 }
 

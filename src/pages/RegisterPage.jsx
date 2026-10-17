@@ -241,23 +241,9 @@ export default function RegisterPage() {
         title: 'Registrations Closed',
         message: 'Registrations are closed for The Convergence (Treasure Hunt).',
         cta: {
-          label: 'Look forward to Mega Event 2 and Mega Event 3!',
-          to: '/#events', // TODO: link to /#events for now (Hackathon route is commented out in EventsPreview.jsx) — revisit once Hackathon has a live route.
+          label: 'Check out AfterHours 1.0!',
+          to: '/#events',
         },
-      },
-      'hackathon': {
-        title: 'Registrations Closed',
-        message: 'Registrations are closed for the Hackathon.',
-        cta: {
-          label: "Check out Mega Event 3 — it'll be live by then!",
-          to: '/#events', // TODO: link to /#events for now (Mega Event 3 doesn't have a slug/route/DB row yet at all) — revisit once it's built.
-        },
-      },
-      // Placeholder for future Mega Event 3
-      'mega-event-3': {
-        title: 'HexaVerse Concluded',
-        message: 'HexaVerse is over. See you at the valedictory ceremony!',
-        cta: null,
       },
     };
 

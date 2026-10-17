@@ -12,7 +12,6 @@ export default function Timeline() {
   const block1Ref = useRef(null);
   const block2Ref = useRef(null);
   const block3Ref = useRef(null);
-  const block4Ref = useRef(null);
   const block5Ref = useRef(null);
   const block6Ref = useRef(null);
   const block7Ref = useRef(null);
@@ -238,7 +237,7 @@ export default function Timeline() {
             </div>
           </div>
 
-          {/* Mega Event 2 — Hackathon */}
+          {/* Mega Event 2 — AfterHours 1.0 */}
           <div
             ref={block7Ref}
             className="timeline-block timeline-block--mega"
@@ -251,12 +250,17 @@ export default function Timeline() {
               <div className="timeline-block-header">
                 <div className="timeline-block-brand">
                   <div className="timeline-mega-badge">Mega Event</div>
-                  <h3>Coming Soon !!</h3>
+                  <h3>AfterHours 1.0 - Code Beyond the Clock</h3>
+                  <div className="timeline-block-subtitle">A 24Hrs Technical Hackathon</div>
                 </div>
                 <div className="timeline-header-right">
-                  <span className="timeline-dates">Stay tuned!</span>
-                  {/* <span className="timeline-dates">30 &ndash; 31 Oct 2026</span> */}
-                  {/* <Link to="/events/hackathon" className="btn-timeline-register btn-timeline-mega">Details</Link> */}
+                  <span className="timeline-dates">30 &ndash; 31 Oct 2026</span>
+                  <a
+                    href="https://awsevents.dbit.edu.in/afterhours-1.0/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-timeline-register btn-timeline-mega"
+                  >Details</a>
                 </div>
               </div>
               <span className="timeline-open-badge">Open to all departments</span>
@@ -301,28 +305,6 @@ export default function Timeline() {
             </div>
           </div>
 
-          {/* Mega Event 3 — Technical Talk */}
-          <div
-            ref={block4Ref}
-            className="timeline-block timeline-block--mega"
-            style={{ position: 'relative' }}
-          >
-            <div className="timeline-block-clip">
-              <CursorGrid color="var(--mega-accent)" targetRef={block4Ref} />
-            </div>
-            <div className="timeline-block-inner">
-              <div className="timeline-block-header">
-                <div className="timeline-block-brand">
-                  <div className="timeline-mega-badge">Mega Event</div>
-                  <h3>Coming Soon !!</h3>
-                </div>
-                <div className="timeline-header-right">
-                  <span className="timeline-dates">Stay tuned!</span>
-                </div>
-              </div>
-              <span className="timeline-open-badge">Open to all departments</span>
-            </div>
-          </div>
 
           {/* Valedictory */}
           <div

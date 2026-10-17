@@ -71,32 +71,4 @@ export const events = {
     ],
   },
 
-  'mega-event-3': {
-    id: 'mega-event-3',
-    title: 'Mega Event 3',
-    cssVar: 'var(--mega-accent)',
-    badge: 'Mega Event',
-    dates: 'Coming Soon',
-    description:
-      'Stay tuned! Details for Mega Event 3 will be announced soon.',
-    metaTitle: "Mega Event 3 | DBIT HexaVerse CloudFest '26",
-    metaDesc:
-      "Mega Event 3 at HexaVerse CloudFest '26, Don Bosco Institute of Technology (DBIT). Coming Soon.",
-    registrationEventId: null,
-    registrationTitle: 'Mega Event 3',
-    isTeam: false,
-    isInterCollege: false,
-    metaItems: [
-      { icon: 'calendar', text: 'Date: To Be Announced' },
-      { icon: 'location', text: 'Location: Coming Soon' },
-      { icon: 'people', text: 'Coming Soon' },
-    ],
-    sections: [
-      {
-        heading: 'About Mega Event 3',
-        type: 'paragraph',
-        text: 'Details for Mega Event 3 are currently under wraps and will be revealed soon. Stay tuned for announcements!',
-      },
-    ],
-  },
 };

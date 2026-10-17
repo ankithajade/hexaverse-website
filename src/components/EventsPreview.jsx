@@ -4,7 +4,7 @@ import ScrollReveal from './ScrollReveal';
 import HexGridOverlay from './HexGridOverlay';
 
 /**
- * EventsPreview — 3-column mega-grid.
+ * EventsPreview — 2-column mega-grid.
  * Item 6: Replaced progressive-blur-on-hover with enlarge-on-hover via CSS
  * (.mega-card:hover in styles.css handles scale(1.04) translateY(-6px)).
  * MegaCard wrapper removed — cards render directly with className="mega-card".
@@ -18,11 +18,11 @@ export default function EventsPreview() {
           <div className="section-label">Campus-Wide</div>
           <h2 className="section-title">Mega Events</h2>
           <p className="section-desc">
-            Three large-scale events across the series. Every department. Every student. No limits.
+            Two large-scale events across the series. Every department. Every student. No limits.
           </p>
         </ScrollReveal>
 
-        {/* mega-grid CSS: repeat(3, 1fr) */}
+        {/* mega-grid CSS: repeat(2, 1fr) */}
         <ScrollReveal stagger className="mega-grid">
           {/* Treasure Hunt */}
           <div className="mega-card">
@@ -57,17 +57,6 @@ export default function EventsPreview() {
             >
               Details
             </a>
-          </div>
-
-          {/* Technical Talk */}
-          <div className="mega-card">
-            <div className="mega-card-label">Mega Event 3</div>
-            <h4>Coming Soon !!</h4>
-            <p>Stay tuned!</p>
-            <div className="mega-card-date"></div>
-            <div className="mega-card-badges">
-              <span className="open-badge">Open to all departments</span>
-            </div>
           </div>
 
         </ScrollReveal>
