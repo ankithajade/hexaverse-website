@@ -151,7 +151,14 @@ export default function AdminHome() {
   // teams marked paid manually without a recorded amount.
   const FALLBACK_FEE_PER_HEAD = { 'treasure-hunt': 82, 'eee-event': 32 };
   const teamPaidAmount = (t) => {
-    const pay = (t.payments || []).find((p) => p.status === 'success');
+    // PostgREST embeds payments as a single object (or null) via the teams.payment_ref foreign key,
+    // but may be an array in some query shapes.
+    let pay = null;
+    if (Array.isArray(t.payments)) {
+      pay = t.payments.find((p) => p.status === 'success') || t.payments[0] || null;
+    } else if (t.payments && typeof t.payments === 'object') {
+      pay = t.payments;
+    }
     const recorded = Number(pay?.amount_paid ?? pay?.amount_expected);
     if (Number.isFinite(recorded) && recorded > 0) return recorded;
     return (t.team_size || 0) * (FALLBACK_FEE_PER_HEAD[t.event_slug] ?? 52);
